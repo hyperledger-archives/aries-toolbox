@@ -11,6 +11,11 @@ export default new Router({
       component: require('@/components/ConnectionList').default
     },
     {
+      path: '/base',
+      name: 'connection-base',
+      component: require('@/components/ConnectionBase').default
+    },
+    {
       path: '*',
       redirect: '/'
     }

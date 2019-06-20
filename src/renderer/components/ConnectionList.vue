@@ -15,30 +15,46 @@
       </div>
     </nav>
 
-    <div class="card" style="">
+    <div class="card" style="" v-for="a in agents">
       <div class="card-body">
-        <h5 class="card-title">Alice Agent</h5>
-        <a href="#" class="card-link">Connect</a>
+        <h5 class="card-title">{{a.name}}</h5>
+        <a href="#" class="card-link" v-on:click="openConnection(a)">Connect</a>
         <a href="#" class="card-link">Edit</a>
       </div>
     </div>
-    <div class="card" style="">
-      <div class="card-body">
-        <h5 class="card-title">Bob Agent</h5>
-        <a href="#" class="card-link">Connect</a>
-        <a href="#" class="card-link">Edit</a>
-      </div>
-    </div>
+
 
   </div>
 </template>
 
 <script>
+  const electron = require('electron')
 
   export default {
     name: 'connection-list',
     components: {  },
     methods: {
+      openConnection: function(a) {
+        const modalPath = process.env.NODE_ENV === 'development'
+          ? 'http://localhost:9080/#/base?a='+a.name
+          : `file://${__dirname}/index.html#base?a=`+a.name;
+        let win = new electron.remote.BrowserWindow({ width: 400, height: 320, webPreferences: {webSecurity: false} })
+        win.on('close', function () { win = null });
+        win.loadURL(modalPath)
+
+      }
+    },
+    data() {
+      return {
+        agents: [
+          {
+            'name': 'Alice Agent'
+          },
+          {
+            'name': 'Bob Agent'
+          }
+        ]
+      }
 
     }
   }
