@@ -56,7 +56,9 @@
     "vue-electron": "^1.0.6",
     "vue-router": "^3.0.1",
     "vuex": "^3.0.1",
-    "vuex-electron": "^1.0.0"
+    "vuex-electron": "^1.0.0",
+    "encryption-envelope-js": "1.1.4",
+    "request-promise": "^4.2.4"
   },
   "devDependencies": {
     "ajv": "^6.5.0",
