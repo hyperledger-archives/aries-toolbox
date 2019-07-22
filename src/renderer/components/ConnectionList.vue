@@ -1,4 +1,5 @@
 <template>
+
   <div id="wrapper" class="container-fluid">
 
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -15,11 +16,12 @@
       </div>
     </nav>
 
-    <div class="card" style="" v-for="a in agents">
+    <div class="card" style="" v-for="a in agent_list">
       <div class="card-body">
-        <h5 class="card-title">{{a.name}}</h5>
+        <h5 class="card-title">{{a.label}}</h5>
         <a href="#" class="card-link" v-on:click="openConnection(a)">Connect</a>
         <a href="#" class="card-link">Edit</a>
+        <a href="#" class="card-link" v-on:click="deleteConnection(a)">Delete</a>
       </div>
     </div>
 
@@ -33,9 +35,9 @@
       </div>
     </div>
 
-
   </div>
 </template>
+
 
 <script>
   const electron = require('electron');
@@ -43,22 +45,32 @@
   const bs58 = require('bs58');
   const rp = require('request-promise');
   //import DIDComm from 'didcomm-js';
+  import { mapState, mapActions } from "vuex"
 
   export default {
     name: 'connection-list',
     components: {  },
+    computed: {
+      ...mapState("Connections", ["agent_list"]),
+    },
     methods: {
+      ...mapActions("Connections", ["add_connection", "delete_connection"]),
+
       openConnection: async function(a) {
         const modalPath = process.env.NODE_ENV === 'development'
-          ? 'http://localhost:9080/#/base?a='+a.name
-          : `file://${__dirname}/index.html#base?a=`+a.name;
-        let win = new electron.remote.BrowserWindow({ width: 400, height: 320, webPreferences: {webSecurity: false} })
+          ? 'http://localhost:9080/#/agent/'+a.id
+          : `file://${__dirname}/index.html#agent/`+a.id;
+        let win = new electron.remote.BrowserWindow({ width: 800, height: 600, webPreferences: {webSecurity: false} })
         win.on('close', function () { win = null });
         win.loadURL(modalPath)
 
       },
+      deleteConnection: async function(a){
+        this.delete_connection(a);
+      },
       async new_agent_invitation_process(){
         //process invite, prepare request
+        var vm = this; //hang on to view model reference
         console.log("invite", this.new_agent_invitation);
         //extract c_i param
         function getUrlVars(url) {
@@ -235,9 +247,32 @@
         };
 
         rp(options)
-            .then(function (parsedBody) {
+            .then(async function (parsedBody) {
                 // POST succeeded...
-              console.log("request post response", parsedBody);
+              //console.log("request post response", parsedBody);
+              const unpackedResponse = await didcomm.unpackMessage(parsedBody, toolbox_did);
+              //console.log("unpacked", unpackedResponse);
+              const response = JSON.parse(unpackedResponse.message);
+              //console.log("response message", response);
+              //TODO: Validate signature against invite.
+              //console.log("connection sig b64 data", response['connection~sig'].sig_data);
+              let buff = new Buffer(response['connection~sig'].sig_data, 'base64');
+              let text = buff.toString('ascii');
+              //first 8 chars are a timestamp for the signature, so we ignore those before parsing value
+              response.connection = JSON.parse(text.substring(8));
+              console.log("response message", response);
+              //TODO: record endpoint and recipient key in connection record, along with my keypair. use invitation label
+                // TODO: Clear invite box fter new add.
+                let connection_detail = {
+                    'id': new Date().getTime(),
+                    'label': invite.label,
+                    'did_doc': response.connection.DIDDoc,
+                    'my_key': toolbox_did
+                };
+                console.log("connection detail", connection_detail);
+                ///this.$store.Connections.commit("ADD_CONNECTION", connection_detail);
+                vm.add_connection(connection_detail);
+                vm.new_agent_invitation = ""; //clear input for next round
             })
             .catch(function (err) {
                 // POST failed...
@@ -247,15 +282,7 @@
     },
     data() {
       return {
-        new_agent_invitation: "",
-        agents: [
-          {
-            'name': 'Alice Agent'
-          },
-          {
-            'name': 'Bob Agent'
-          }
-        ]
+        new_agent_invitation: ""
       }
 
     }

@@ -11,9 +11,9 @@ export default new Router({
       component: require('@/components/ConnectionList').default
     },
     {
-      path: '/base',
-      name: 'connection-base',
-      component: require('@/components/ConnectionBase').default
+      path: '/agent/:agentid/',
+      name: 'agent-base',
+      component: require('@/components/AgentBase').default
     },
     {
       path: '*',
