@@ -27,6 +27,18 @@
         </v-jsoneditor>
 
       </el-tab-pane>
+
+      <el-tab-pane label="BasicMessage">
+        <div style="margin-bottom: 1em;">
+          <el-input placeholder="Message to send" @keyup.enter.native="basicmessage_send" v-model="basicmessage_compose" style="width:500px;"></el-input>
+          <el-button type="primary" @click="basicmessage_send">Send</el-button>
+
+        </div>
+        <div v-for="m in basicmessage_history.slice().reverse()">
+          <div :class="'basicmessage-'+m.direction">{{m.msg.content}}</div>
+        </div>
+
+      </el-tab-pane>
       <el-tab-pane label="Message History">
 
         <input type="button" class="btn btn-secondary" v-on:click="message_history_clear()" value="Clear"/>
@@ -43,6 +55,31 @@
 
   </div>
 </template>
+
+<style>
+  .message-display {
+    margin-bottom: 1em;
+    border-bottom: 1px solid lightgrey;
+    padding-bottom: 1em;
+  }
+  .basicmessage-Sent {
+    background-color: white;
+    margin-right: 4em;
+    margin-bottom: 1em;
+    padding: 1em;
+    border: 1px solid lightgrey;
+    border-radius: 4px;
+  }
+  .basicmessage-Received {
+    background-color: lightblue;
+    margin-left: 4em;
+    margin-bottom: 1em;
+    padding: 1em;
+    text-align: right;
+    border: 1px solid lightgrey;
+    border-radius: 4px;
+  }
+</style>
 
 <script>
   const DIDComm = require('encryption-envelope-js');
@@ -89,6 +126,14 @@
           'msg':msg,
           'direction': direction,
         });
+      },
+      async basicmessage_send(){
+        let msg = {
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message",
+          "content": this.basicmessage_compose
+        };
+        this.send_message(msg);
+        this.basicmessage_compose = "";
       },
       async message_history_clear(){
         this.message_history.splice(0, this.message_history.length);//clear all entries
@@ -166,6 +211,14 @@
           "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping",
           "response_requested": true
         },
+        'basicmessage_compose': ""
+      }
+    },
+    computed: {
+      basicmessage_history: function () {
+        return this.message_history.filter(function(h){
+          return h.msg['@type'] == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message";
+        });
       }
     },
     async created () {
@@ -176,11 +229,3 @@
     },
   }
 </script>
-
-<style>
-  .message-display {
-    margin-bottom: 1em;
-    border-bottom: 1px solid lightgrey;
-    padding-bottom: 1em;
-  }
-</style>
