@@ -20,10 +20,11 @@ function createWindow () {
   mainWindow = new BrowserWindow({
     height: 563,
     useContentSize: true,
-    width: 900
+    width: 300//900
   });
 
   mainWindow.loadURL(winURL);
+  //mainWindow.webContents.openDevTools(); //to enable 
 
   mainWindow.on('closed', () => {
     mainWindow = null
