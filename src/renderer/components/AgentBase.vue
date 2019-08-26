@@ -139,7 +139,7 @@
         this.message_history.splice(0, this.message_history.length);//clear all entries
       },
       async compose_send(){
-        this.send_message(this.compose_json);
+        this.send_message(this.compose_json, false);
       },
       async processInbound(msg){
         this.message_history_add(msg, "Received");
@@ -153,15 +153,18 @@
           console.log("Message without handler", msg);
         }
       },
-      async send_message(msg){
+      async send_message(msg, set_return_route = true){
         var vm = this; //safe reference to view model
+
         // add id
         msg['@id'] = (new Date()).getTime().toString();
 
-        // add return routing option
-        msg["~transport"] =  {
-            "return_route": "all"
-        };
+        if (set_return_route) {
+            // add return routing option
+            msg["~transport"] =  {
+                "return_route": "all"
+            };
+        }
 
         this.message_history_add(msg, "Sent");
 
@@ -181,8 +184,12 @@
 
         rp(options)
             .then(async function (parsedBody) {
-                // POST succeeded...
+              // POST succeeded...
               //console.log("request post response", parsedBody);
+              if (!parsedBody) {
+                console.log("No response for post; continuing.");
+                return;
+              }
               const unpackedResponse = await didcomm.unpackMessage(parsedBody, vm.connection.my_key);
               //console.log("unpacked", unpackedResponse);
               const response = JSON.parse(unpackedResponse.message);
