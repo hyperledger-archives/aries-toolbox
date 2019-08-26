@@ -228,7 +228,7 @@
                     "type": "IndyAgent",
                     "recipientKeys": [toolbox_did.publicKey_b58],
                     //"routingKeys": ["<example-agency-verkey>"],
-                    "serviceEndpoint": "none"
+                    "serviceEndpoint": ""
                 }]
             }
           }
