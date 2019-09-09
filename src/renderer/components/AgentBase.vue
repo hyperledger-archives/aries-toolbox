@@ -51,12 +51,50 @@
         </div>
 
       </el-tab-pane>
+      <el-tab-pane label="Schema">
+        <div class="schema-display" v-for="schema in schemas">
+         Name: {{schema.name}}
+         <br/>
+         Version: {{schema.version}}
+          <vue-json-pretty
+            :deep=1
+            :data="schema.attributes">
+          </vue-json-pretty>
+        </div>
+        
+        <div style="margin-bottom: 1em;">
+          <p>New Schema</p>
+          <p><el-input placeholder="Name" label="name" v-model="temp_schema_name" style="width:500px;"></el-input></p>
+          <p><el-input placeholder="Version" label="version" v-model="temp_schema_version" style="width:500px;"></el-input></p>
+          <p>Attributes:</p>
+          <ul style="list-style-type:none;">
+            <div class="temp_schema_attributes_display" v-for="attr in temp_schema_attributes">
+              <li>{{attr}}</li>
+            </div>
+          </ul>
+          <el-input placeholder="Attribute" @keyup.enter.native="temp_schema_add_attribute" v-model="temp_schema_attribute" style="width:500px;"> </el-input>
+          <el-button type="primary" @click="temp_schema_add_attribute" >add attribute</el-button> 
+          <el-button type="primary" @click="schema_create">Create Schema</el-button>
+        </div>
+      </el-tab-pane>
+      <el-tab-pane label="Credential Definition">
+      </el-tab-pane>
+      <el-tab-pane label="Presentation Definition">
+      </el-tab-pane>
     </el-tabs>
 
   </div>
 </template>
 
 <style>
+  .schema-display{
+    margin-bottom: 1em;
+    border-bottom: 1px solid lightgrey;
+    padding-bottom: 1em;
+  }
+  .temp_schema_attributes_display{
+    margin-bottom: 1em;
+  }
   .message-display {
     margin-bottom: 1em;
     border-bottom: 1px solid lightgrey;
@@ -138,6 +176,28 @@
       async message_history_clear(){
         this.message_history.splice(0, this.message_history.length);//clear all entries
       },
+      async schema_create(){
+        console.log("schema_create start")
+        console.log("name: ",this.temp_schema_name)
+        console.log("version: ",this.temp_schema_version)
+        console.log("attributes: ",this.temp_schema_attributes)
+
+        var schema = {
+          'name': this.temp_schema_name,
+          'version':this.temp_schema_version,
+          'attributes':this.temp_schema_attributes
+          }
+        console.log("new schema: ", schema)
+        console.log("schema: ", this.schemas)
+        this.schemas = [...this.schemas,schema];
+      },
+      async temp_schema_attributes_clear(){
+        this.schema_attributes = [];
+      },
+      async temp_schema_add_attribute(){// TODO: use parameter instead of global variable!
+        this.temp_schema_attributes = [...this.temp_schema_attributes,this.temp_schema_attribute];
+        this.temp_schema_attribute = '';
+      },
       async compose_send(){
         this.send_message(this.compose_json, false);
       },
@@ -213,6 +273,11 @@
         'connection': {'label':'loading...'},
         'connection_loaded': false,
         'message_history':[],
+        'schemas':[{'name':'BasicID','version':'1.9','attributes':['first_name','last_name','company','type']}],
+        'temp_schema_attributes':[],
+        'temp_schema_name':'',
+        'temp_schema_version':'',
+        'temp_schema_attribute':'',
         'supported_protocols': [],
         'compose_json': {
           "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping",
