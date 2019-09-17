@@ -16,12 +16,12 @@
       </div>
     </nav>
 
-    <div class="card" style="" v-for="a in agent_list">
+    <div class="card" style="" v-for="agent in agent_list" v-bind:key="agent" >
       <div class="card-body">
-        <h5 class="card-title">{{a.label}}</h5>
-        <a href="#" class="card-link" v-on:click="openConnection(a)">Connect</a>
+        <h5 class="card-title">{{agent.label}}</h5>
+        <a href="#" class="card-link" v-on:click="openConnection(agent)">Connect</a>
         <a href="#" class="card-link">Edit</a>
-        <a href="#" class="card-link" v-on:click="deleteConnection(a)">Delete</a>
+        <a href="#" class="card-link" v-on:click="deleteConnection(agent)">Delete</a>
       </div>
     </div>
 
@@ -46,15 +46,16 @@
   const rp = require('request-promise');
   //import DIDComm from 'didcomm-js';
   import { mapState, mapActions } from "vuex"
+  import * as helpers from '../DidComUtils'
 
   export default {
     name: 'connection-list',
     components: {  },
     computed: {
-      ...mapState("Connections", ["agent_list"]),
+      ...mapState("connections", ["agent_list"]),
     },
     methods: {
-      ...mapActions("Connections", ["add_connection", "delete_connection"]),
+      ...mapActions("connections", ["add_connection", "delete_connection","send_connection_request"]),
 
       openConnection: async function(a) {
         const modalPath = process.env.NODE_ENV === 'development'
@@ -72,120 +73,12 @@
         //process invite, prepare request
         var vm = this; //hang on to view model reference
         console.log("invite", this.new_agent_invitation);
+
         //extract c_i param
-        function getUrlVars(url) {
-            var vars = {};
-            var parts = url.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
-                vars[key] = value;
-            });
-            return vars;
-        }
-        /*
-         * JavaScript base64 / base64url encoder and decoder
-         */
-
-        var b64c = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"   // base64 dictionary
-        var b64u = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"   // base64url dictionary
-        var b64pad = '='
-        /* base64_encode_data
-         * Internal helper to encode data to base64 using specified dictionary.
-         */
-        function base64_encode_data(data, len, b64x) {
-            var dst = ""
-            var i
-
-            for (i = 0; i <= len - 3; i += 3)
-            {
-                dst += b64x.charAt(data.charCodeAt(i) >>> 2)
-                dst += b64x.charAt(((data.charCodeAt(i) & 3) << 4) | (data.charCodeAt(i+1) >>> 4))
-                dst += b64x.charAt(((data.charCodeAt(i+1) & 15) << 2) | (data.charCodeAt(i+2) >>> 6))
-                dst += b64x.charAt(data.charCodeAt(i+2) & 63)
-            }
-
-            if (len % 3 == 2)
-            {
-                dst += b64x.charAt(data.charCodeAt(i) >>> 2)
-                dst += b64x.charAt(((data.charCodeAt(i) & 3) << 4) | (data.charCodeAt(i+1) >>> 4))
-                dst += b64x.charAt(((data.charCodeAt(i+1) & 15) << 2))
-                dst += b64pad
-            }
-            else if (len % 3 == 1)
-            {
-                dst += b64x.charAt(data.charCodeAt(i) >>> 2)
-                dst += b64x.charAt(((data.charCodeAt(i) & 3) << 4))
-                dst += b64pad
-                dst += b64pad
-            }
-
-            return dst
-        }
-
-        /* base64_encode
-         * Encode a JavaScript string to base64.
-         * Specified string is first converted from JavaScript UCS-2 to UTF-8.
-         */
-        function base64_encode(str) {
-            var utf8str = unescape(encodeURIComponent(str))
-            return base64_encode_data(utf8str, utf8str.length, b64c)
-        }
-
-        /* base64url_encode
-         * Encode a JavaScript string to base64url.
-         * Specified string is first converted from JavaScript UCS-2 to UTF-8.
-         */
-        function base64url_encode(str) {
-            var utf8str = unescape(encodeURIComponent(str))
-            return base64_encode_data(utf8str, utf8str.length, b64u)
-        }
-
-        /* base64_charIndex
-         * Internal helper to translate a base64 character to its integer index.
-         */
-        function base64_charIndex(c) {
-            if (c == "+") return 62
-            if (c == "/") return 63
-            return b64u.indexOf(c)
-        }
-
-        /* base64_decode
-         * Decode a base64 or base64url string to a JavaScript string.
-         * Input is assumed to be a base64/base64url encoded UTF-8 string.
-         * Returned result is a JavaScript (UCS-2) string.
-         */
-        function base64_decode(data) {
-            var dst = ""
-            var i, a, b, c, d, z
-
-            for (i = 0; i < data.length - 3; i += 4) {
-                a = base64_charIndex(data.charAt(i+0))
-                b = base64_charIndex(data.charAt(i+1))
-                c = base64_charIndex(data.charAt(i+2))
-                d = base64_charIndex(data.charAt(i+3))
-
-                dst += String.fromCharCode((a << 2) | (b >>> 4))
-                if (data.charAt(i+2) != b64pad)
-                    dst += String.fromCharCode(((b << 4) & 0xF0) | ((c >>> 2) & 0x0F))
-                if (data.charAt(i+3) != b64pad)
-                    dst += String.fromCharCode(((c << 6) & 0xC0) | d)
-            }
-
-            dst = decodeURIComponent(escape(dst))
-            return dst
-        }
-
-        /* base64url_sniff
-         * Check whether specified base64 string contains base64url specific characters.
-         * Return true if specified string is base64url encoded, false otherwise.
-         */
-        function base64url_sniff(base64) {
-            if (base64.indexOf("-") >= 0) return true
-            if (base64.indexOf("_") >= 0) return true
-            return false
-        }
-        var invite_b64 = getUrlVars(this.new_agent_invitation)["c_i"];
+        var invite_b64 = helpers.getUrlVars(this.new_agent_invitation)["c_i"];
         console.log("invite b64", invite_b64);
         //base 64 decode
-        var invite_string = base64_decode(invite_b64);
+        var invite_string = helpers.base64_decode(invite_b64);
         console.log("invite string", invite_string);
         var invite = JSON.parse(invite_string);
         console.log("invite", invite);
@@ -228,7 +121,7 @@
                     "type": "IndyAgent",
                     "recipientKeys": [toolbox_did.publicKey_b58],
                     //"routingKeys": ["<example-agency-verkey>"],
-                    "serviceEndpoint": ""
+                    "serviceEndpoint": "did.report"
                 }]
             }
           }
@@ -245,46 +138,17 @@
             uri: invite.serviceEndpoint,
             body: packedMsg,
         };
-
-        rp(options)
-            .then(async function (parsedBody) {
-                // POST succeeded...
-              //console.log("request post response", parsedBody);
-              const unpackedResponse = await didcomm.unpackMessage(parsedBody, toolbox_did);
-              //console.log("unpacked", unpackedResponse);
-              const response = JSON.parse(unpackedResponse.message);
-              //console.log("response message", response);
-              //TODO: Validate signature against invite.
-              //console.log("connection sig b64 data", response['connection~sig'].sig_data);
-              let buff = new Buffer(response['connection~sig'].sig_data, 'base64');
-              let text = buff.toString('ascii');
-              //first 8 chars are a timestamp for the signature, so we ignore those before parsing value
-              response.connection = JSON.parse(text.substring(8));
-              console.log("response message", response);
-              //TODO: record endpoint and recipient key in connection record, along with my keypair. use invitation label
-                // TODO: Clear invite box fter new add.
-                let connection_detail = {
-                    'id': new Date().getTime(),
-                    'label': invite.label,
-                    'did_doc': response.connection.DIDDoc,
-                    'my_key': toolbox_did
-                };
-                console.log("connection detail", connection_detail);
-                ///this.$store.Connections.commit("ADD_CONNECTION", connection_detail);
-                vm.add_connection(connection_detail);
-                vm.new_agent_invitation = ""; //clear input for next round
-            })
-            .catch(function (err) {
-                // POST failed...
-              console.log("request post err", err);
-            });
+        return await vm.$store.dispatch('send_connection_request', options, toolbox_did, didcomm).then(response => {
+          vm.new_agent_invitation = ""; //clear input for next round
+        }, error => {
+            console.error("request post err")
+        })
       }
     },
     data() {
       return {
         new_agent_invitation: ""
       }
-
     }
   }
 </script>

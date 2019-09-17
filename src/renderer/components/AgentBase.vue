@@ -43,7 +43,7 @@
 
         <input type="button" class="btn btn-secondary" v-on:click="message_history_clear()" value="Clear"/>
         <div class="message-display" v-for="m in message_history.slice().reverse()">
-         <i>{{m.direction}}</i>
+        <i>{{m.direction}}</i>
           <vue-json-pretty
             :deep=1
             :data="m.msg">
@@ -52,16 +52,24 @@
 
       </el-tab-pane>
       <el-tab-pane label="Schema">
-        <div class="schema-display" v-for="schema in schemas">
-         Name: {{schema.name}}
-         <br/>
-         Version: {{schema.version}}
+        <!-- <div class="schema-display" v-for="schema in schemas">
+        Name: {{schema.name}}
+        <br/>
+        Version: {{schema.version}}
           <vue-json-pretty
             :deep=1
             :data="schema.attributes">
           </vue-json-pretty>
-        </div>
-        
+        </div> -->
+      <div class="schemas">
+        <ul>
+          <li
+            class="schema-item"
+            v-for="schema in schemas"
+            :key="schema.name"
+          ></li>
+        </ul>
+      </div>
         <div style="margin-bottom: 1em;">
           <p>New Schema</p>
           <p><el-input placeholder="Name" label="name" v-model="temp_schema_name" style="width:500px;"></el-input></p>
@@ -176,21 +184,6 @@
       async message_history_clear(){
         this.message_history.splice(0, this.message_history.length);//clear all entries
       },
-      async schema_create(){
-        console.log("schema_create start")
-        console.log("name: ",this.temp_schema_name)
-        console.log("version: ",this.temp_schema_version)
-        console.log("attributes: ",this.temp_schema_attributes)
-
-        var schema = {
-          'name': this.temp_schema_name,
-          'version':this.temp_schema_version,
-          'attributes':this.temp_schema_attributes
-          }
-        console.log("new schema: ", schema)
-        console.log("schema: ", this.schemas)
-        this.schemas = [...this.schemas,schema];
-      },
       async temp_schema_attributes_clear(){
         this.schema_attributes = [];
       },
@@ -273,7 +266,6 @@
         'connection': {'label':'loading...'},
         'connection_loaded': false,
         'message_history':[],
-        'schemas':[{'name':'BasicID','version':'1.9','attributes':['first_name','last_name','company','type']}],
         'temp_schema_attributes':[],
         'temp_schema_name':'',
         'temp_schema_version':'',
@@ -291,7 +283,9 @@
         return this.message_history.filter(function(h){
           return h.msg['@type'] == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message";
         });
-      }
+      },
+      ...mapState(['schemas']),
+      ...mapActions(['ADD_SCHEMA'])
     },
     async created () {
       // fetch the data when the view is created and the data is

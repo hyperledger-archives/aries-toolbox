@@ -19,7 +19,7 @@ const actions = {
 }
 
 export default {
-  namespaced: true,   // ADD THIS LINE
+  //namespaced: true,   // ADD THIS LINE
   state,
   mutations,
   actions

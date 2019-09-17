@@ -51,9 +51,12 @@
     }
   },
   "dependencies": {
-    "axios": "^0.18.0",
+    "axios": "^0.18.1",
     "element-ui": "^2.10.1",
     "encryption-envelope-js": "1.1.4",
+    "jquery": "^3.4.1",
+    "n": "^6.0.1",
+    "popper.js": "^1.15.0",
     "request-promise": "^4.2.4",
     "tslib": "^1.10.0",
     "v-jsoneditor": "^1.0.13",
@@ -62,8 +65,7 @@
     "vue-json-pretty": "^1.6.0",
     "vue-router": "^3.0.1",
     "vuex": "^3.0.1",
-    "vuex-electron": "^1.0.0",
-    "tslib": "^1.10.0"
+    "vuex-electron": "^1.0.0"
   },
   "devDependencies": {
     "ajv": "^6.5.0",
