@@ -3,15 +3,18 @@ const bs58 = require('bs58');
 
 const state = {
   agents:{},
+  agent_ids:[],
   schemas:{},
 }
 
 const mutations = {
   ADD_CONNECTION (state, detail) {
     state.agents[detail.id]=detail;
+    state.agent_ids=[...state.agent_ids,detail.id]
   },
   DELETE_CONNECTION (state, label) {
     delete state.agents[label];
+    //TODO: remove id
   },
   ADD_SCHEMA(state, agent_id, schema){
     state.schemas= {...state.schemas, ...schema};
@@ -85,7 +88,7 @@ const actions = {
   },
 }
 const getters = {
-  get_agents: state => state.agents.map(id => state.agents[id]),
+  get_agents: state => state.agent_ids.map(id => state.agents[id]),
   get_agent: state => id => state.agents[id],
   get_schemas: (state, get_agent) => 
     agent_id => 
