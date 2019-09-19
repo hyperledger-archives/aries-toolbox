@@ -52,7 +52,7 @@
 
       </el-tab-pane>
       <el-tab-pane label="Schema">
-        <!-- <div class="schema-display" v-for="schema in schemas">
+        <div class="schema-display" v-for="schema in schemas">
         Name: {{schema.name}}
         <br/>
         Version: {{schema.version}}
@@ -60,16 +60,7 @@
             :deep=1
             :data="schema.attributes">
           </vue-json-pretty>
-        </div> -->
-      <div class="schemas">
-        <ul>
-          <li
-            class="schema-item"
-            v-for="schema in schemas"
-            :key="schema.name"
-          ></li>
-        </ul>
-      </div>
+        </div>
         <div style="margin-bottom: 1em;">
           <p>New Schema</p>
           <p><el-input placeholder="Name" label="name" v-model="temp_schema_name" style="width:500px;"></el-input></p>
@@ -82,7 +73,7 @@
           </ul>
           <el-input placeholder="Attribute" @keyup.enter.native="temp_schema_add_attribute" v-model="temp_schema_attribute" style="width:500px;"> </el-input>
           <el-button type="primary" @click="temp_schema_add_attribute" >add attribute</el-button> 
-          <el-button type="primary" @click="schema_create">Create Schema</el-button>
+          <el-button type="primary" @click="schema_persist">Create Schema</el-button>
         </div>
       </el-tab-pane>
       <el-tab-pane label="Credential Definition">
@@ -132,7 +123,7 @@
   const bs58 = require('bs58');
   const rp = require('request-promise');
 
-  import { mapState, mapActions } from "vuex"
+  import { mapState, mapActions, mapGetters } from "vuex"
 
   import VueJsonPretty from 'vue-json-pretty';
   import VJsoneditor from 'v-jsoneditor';
@@ -144,7 +135,7 @@
       VJsoneditor
     },
     methods: {
-      ...mapActions("Connections", ["get_connection"]),
+      ...mapActions("connections", ["ADD_SCHEMA"]),
       async fetchAgentData(){
         //load from vue store
         // this is cloned from the datastore to allow fixing the key encodings.
@@ -184,12 +175,18 @@
       async message_history_clear(){
         this.message_history.splice(0, this.message_history.length);//clear all entries
       },
+      async schemas(){
+        return schemas(this.id);
+      },
       async temp_schema_attributes_clear(){
         this.schema_attributes = [];
       },
-      async temp_schema_add_attribute(){// TODO: use parameter instead of global variable!
+      async temp_schema_add_attribute(){
         this.temp_schema_attributes = [...this.temp_schema_attributes,this.temp_schema_attribute];
         this.temp_schema_attribute = '';
+      },
+      async schema_persist(){
+        ADD_SCHEMA(this.temp_schema_name,this.temp_schema_version,this.temp_schema_attribute)
       },
       async compose_send(){
         this.send_message(this.compose_json, false);
@@ -284,8 +281,9 @@
           return h.msg['@type'] == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message";
         });
       },
-      ...mapState(['schemas']),
-      ...mapActions(['ADD_SCHEMA'])
+      //...mapState(['connections']),
+      ...mapGetters("connections",{get_connection:"get_agent",schemas:"get_schemas"}),
+
     },
     async created () {
       // fetch the data when the view is created and the data is

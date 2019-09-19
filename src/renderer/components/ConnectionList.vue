@@ -16,7 +16,7 @@
       </div>
     </nav>
 
-    <div class="card" style="" v-for="agent in agent_list" v-bind:key="agent" >
+    <div class="card" style="" v-for="agent in agent_list" >
       <div class="card-body">
         <h5 class="card-title">{{agent.label}}</h5>
         <a href="#" class="card-link" v-on:click="openConnection(agent)">Connect</a>
@@ -45,18 +45,19 @@
   const bs58 = require('bs58');
   const rp = require('request-promise');
   //import DIDComm from 'didcomm-js';
-  import { mapState, mapActions } from "vuex"
+  import { mapState, mapActions, mapGetters } from "vuex"
   import * as helpers from '../DidComUtils'
 
   export default {
     name: 'connection-list',
     components: {  },
     computed: {
-      ...mapState("connections", ["agent_list"]),
+      //...mapState("connections", ["agent_list"]),
+      //agent_list: () => this.$store.getters.userSet,
+      ...mapGetters("connections",{agent_list:"get_agents"}),
     },
     methods: {
       ...mapActions("connections", ["add_connection", "delete_connection","send_connection_request"]),
-
       openConnection: async function(a) {
         const modalPath = process.env.NODE_ENV === 'development'
           ? 'http://localhost:9080/#/agent/'+a.id
@@ -138,11 +139,14 @@
             uri: invite.serviceEndpoint,
             body: packedMsg,
         };
-        return await vm.$store.dispatch('send_connection_request', options, toolbox_did, didcomm).then(response => {
+        console.log("attempt to call send request",vm,this)
+        try {
+          debugger
+          await vm.send_connection_request(options, toolbox_did, didcomm)
           vm.new_agent_invitation = ""; //clear input for next round
-        }, error => {
-            console.error("request post err")
-        })
+        } catch(error) {
+          console.error("request post err",error)
+        }
       }
     },
     data() {
