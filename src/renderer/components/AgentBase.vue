@@ -25,7 +25,10 @@
         <input type="button" class="btn btn-secondary" v-on:click="compose_send()" value="Send"/>
         <v-jsoneditor v-model="compose_json">
         </v-jsoneditor>
-
+        <vue-json-pretty
+            :deep=1
+            :data="{'please_display_':'response'}">
+          </vue-json-pretty>
       </el-tab-pane>
 
       <el-tab-pane label="BasicMessage">
