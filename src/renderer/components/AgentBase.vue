@@ -172,6 +172,14 @@
 
         this.connection_loaded = true;
         // TODO:get current dids, schema, ...
+        let agent_connection_list_msg = {
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-get-list",
+          "~transport": {
+            "return_route": "all"
+          }
+        }
+        let response = await this.send_message(agent_connection_list_msg);
+        console.log("connection list rsponse", response);
       },
       async run_protocol_discovery(){
         //send query
@@ -310,6 +318,8 @@
         'basicmessage_compose': "",
         'exspanded_did_docs':[],
         'did_seed':"",
+        'active_public_did':"default active did",
+        'did_docs':[{'id':"first_did",'keys':"laksdjf;las"},{'id':"second_did",'keys':"laksdjf;las"},{'id':"1qaz2wsx3edc",'keys':"laksdjf;las"}]
       }
     },
     computed: {
