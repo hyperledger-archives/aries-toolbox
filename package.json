@@ -59,6 +59,7 @@
     "popper.js": "^1.15.0",
     "request-promise": "^4.2.4",
     "tslib": "^1.10.0",
+    "uuid-v4": "^0.1.0",
     "v-jsoneditor": "^1.0.13",
     "vue": "^2.5.16",
     "vue-electron": "^1.0.6",

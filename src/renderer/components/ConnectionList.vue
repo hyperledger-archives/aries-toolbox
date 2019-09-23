@@ -16,12 +16,12 @@
       </div>
     </nav>
 
-    <div class="card" style="" v-for="agent in agent_list" >
+    <div class="card" style="" v-for="(agent, index) in agent_list" >
       <div class="card-body">
         <h5 class="card-title">{{agent.label}}</h5>
         <a href="#" class="card-link" v-on:click="openConnection(agent)">Connect</a>
         <a href="#" class="card-link">Edit</a>
-        <a href="#" class="card-link" v-on:click="deleteConnection(agent)">Delete</a>
+        <a href="#" class="card-link" v-on:click="deleteConnection(agent,index)">Delete</a>
       </div>
     </div>
 
@@ -67,8 +67,9 @@
         win.loadURL(modalPath)
 
       },
-      deleteConnection: async function(a){
-        this.delete_connection(a);
+      deleteConnection: async function(agent,index){
+        console.log("deleteConnection",agent,index)
+        this.delete_connection({id: agent.id, index: index});
       },
       async new_agent_invitation_process(){
         //process invite, prepare request
@@ -139,14 +140,38 @@
             uri: invite.serviceEndpoint,
             body: packedMsg,
         };
-        console.log("attempt to call send request",vm,this)
-        try {
-          debugger
-          await vm.send_connection_request(options, toolbox_did, didcomm)
-          vm.new_agent_invitation = ""; //clear input for next round
-        } catch(error) {
-          console.error("request post err",error)
-        }
+        rp(options)
+            .then(async function (parsedBody) {
+                // POST succeeded...
+              //console.log("request post response", parsedBody);
+              const unpackedResponse = await didcomm.unpackMessage(parsedBody, toolbox_did);
+              //console.log("unpacked", unpackedResponse);
+              const response = JSON.parse(unpackedResponse.message);
+              //console.log("response message", response);
+              //TODO: Validate signature against invite.
+              //console.log("connection sig b64 data", response['connection~sig'].sig_data);
+              let buff = new Buffer(response['connection~sig'].sig_data, 'base64');
+              let text = buff.toString('ascii');
+              //first 8 chars are a timestamp for the signature, so we ignore those before parsing value
+              response.connection = JSON.parse(text.substring(8));
+              console.log("response message", response);
+              //TODO: record endpoint and recipient key in connection record, along with my keypair. use invitation label
+                // TODO: Clear invite box fter new add.
+                let connection_detail = {
+                    'id': new Date().getTime(),
+                    'label': invite.label,
+                    'did_doc': response.connection.DIDDoc,
+                    'my_key': toolbox_did
+                };
+                console.log("connection detail", connection_detail);
+                ///this.$store.Connections.commit("ADD_CONNECTION", connection_detail);
+                vm.add_connection(connection_detail);
+                vm.new_agent_invitation = ""; //clear input for next round
+            })
+            .catch(function (err) {
+                // POST failed...
+              console.log("request post err", err);
+            });
       }
     },
     data() {
@@ -156,6 +181,3 @@
     }
   }
 </script>
-
-<style>
-</style>

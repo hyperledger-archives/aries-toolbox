@@ -1,10 +1,16 @@
 const rp = require('request-promise');
 const bs58 = require('bs58');
+var uuid = require('uuid-v4');
+import Vue from 'vue';
 
 const state = {
   agents:{},
-  agent_ids:[],
-  schemas:{},
+  agent_ids:[], // [...id,...]
+  schemas:{}, // {id:{schema}}
+  published:{},// {txn_id : {meta_data}} 
+  dids:{},// {did:{did_doc}}
+  cred_defs:{}, // {id: {cred_def}}
+  presentations:{}, // {id: {presentation}}
 }
 
 const mutations = {
@@ -12,38 +18,49 @@ const mutations = {
     state.agents[detail.id]=detail;
     state.agent_ids=[...state.agent_ids,detail.id]
   },
-  DELETE_CONNECTION (state, label) {
-    delete state.agents[label];
-    //TODO: remove id
+  DELETE_CONNECTION (state, payload) {
+    Vue.delete(state.agents,payload.id);
+    //TODO: remove schemas, and .....
+    state.agent_ids.splice(payload.index, 1);
   },
-  ADD_SCHEMA(state, agent_id, schema){
-    state.schemas= {...state.schemas, ...schema};
-    state.agents[agent_id][schemas]=[...state.agents[agent_id][schemas],schema.id];
+  ADD_SCHEMA(state, payload){
+    console.log("agent_id, schema_id, schema",payload.agent_id, payload.schema_id,payload.schema)
+    state.schemas = {...state.schemas, ...payload.schema};
+    state.agents[payload.agent_id].schemas = [...state.agents[payload.agent_id].schemas , payload.schema_id];
   },
   
 }
 
 const actions = {
-  add_connection (context, detail) {
+  add_connection ({commit}, agent) {
     // do something async
+    console.log("add_connection action called", agent)
     let schema_id = random_id();
+    console.log("schema_id", schema_id)
     let default_schema = {
       [schema_id]:{'id':schema_id,
         'name':'BasicID',
         'version':'1.9',
         'attributes':['first_name','last_name','company','type'],
-        'published':false}
+        'published_ids':[]}
     };
-    detail[schemas]=[schema_id];
-    detail.my_key.privateKeyDecoded = bs58.decode(detail.my_key.privateKey_b58);
-    detail.my_key.publicKeyDecoded = bs58.decode(detail.my_key.publicKey_b58);
-    context.commit('ADD_CONNECTION', detail);
-    context.commit('ADD_SCHEMA',default_schema);
+    agent = {... agent,
+            ...{'schemas':[],
+            'dids':[],
+            'cred_defs':[],
+            'presentations':[],
+            'publishes':[]} }
+    agent.my_key.privateKeyDecoded = bs58.decode(agent.my_key.privateKey_b58);
+    agent.my_key.publicKeyDecoded = bs58.decode(agent.my_key.publicKey_b58);
+    commit('ADD_CONNECTION', agent);
+    let payload = {'agent_id': agent.id,'schema_id':schema_id,'schema':default_schema}
+    console.log("agent_id, schema_id, schema",payload.agent_id, payload.schema_id,payload.schema)
+    commit('ADD_SCHEMA',payload);
   },
-  delete_connection (context, detail) {
-    // do something async
-    console.log("add_connection called", detail);
-    context.commit('DELETE_CONNECTION', detail.label);
+  delete_connection ({commit}, payload) {
+    // TODO: notify agent on other side of connection
+    console.log("add_connection called", payload);
+    commit('DELETE_CONNECTION', payload);
   },
 
   
@@ -74,7 +91,7 @@ const actions = {
     context.commit('ADD_CONNECTION', detail);
   },
   
-  ADD_SCHEMA({commit},agent_id,name,version,attributes){
+  addSchema({commit},agent_id,name,version,attributes){
     let schema_id = random_id();
     let schema = {
       [schema_id]:{
@@ -95,12 +112,8 @@ const getters = {
       get_agent(agent_id)['schemas'].map(schema_id => state.schemas[schema_id]),
 }
 
-function random_id() {//https://gist.github.com/gordonbrander/2230317
-  return '_' + (
-    Number(String(Math.random()).slice(2)) + 
-    Date.now() + 
-    Math.round(performance.now())
-  ).toString(36);
+function random_id() {
+  return uuid();// Generate a new UUID
 }
 
 export default {

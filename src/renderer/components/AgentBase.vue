@@ -51,6 +51,32 @@
         </div>
 
       </el-tab-pane>
+      <el-tab-pane label="Public DID">
+        <el-row>
+          <section>
+            <div>
+              Active DID: {{active_public_did}}
+            <br/>
+            </div>
+          </section>
+        <el-collapse v-model="exspanded_did_docs">
+            <div v-for="did_doc in did_docs">
+                <el-collapse-item v-bind:title="did_doc.id" :name="did_doc.id">
+                    <el-row>
+                        <div>
+                            <div>{{did_doc}}</div>
+                            <el-button v-on:click="activate_did(did_doc.id)">
+                                use
+                            </el-button>
+                        </div>
+                    </el-row>
+                </el-collapse-item>
+            </div>
+        </el-collapse>
+          <p><el-input placeholder="seed" label="did_seed" v-model="did_seed" style="width:500px;"></el-input></p>
+          <el-button type="primary" @click="create_did">create new did</el-button>
+      </el-row>
+      </el-tab-pane>
       <el-tab-pane label="Schema">
         <div class="schema-display" v-for="schema in schemas">
         Name: {{schema.name}}
@@ -135,7 +161,7 @@
       VJsoneditor
     },
     methods: {
-      ...mapActions("connections", ["ADD_SCHEMA"]),
+      ...mapActions("connections", ["addSchema"]),
       async fetchAgentData(){
         //load from vue store
         // this is cloned from the datastore to allow fixing the key encodings.
@@ -145,6 +171,7 @@
         this.connection.my_key.publicKey = bs58.decode(this.connection.my_key.publicKey_b58);
 
         this.connection_loaded = true;
+        // TODO:get current dids, schema, ...
       },
       async run_protocol_discovery(){
         //send query
@@ -186,7 +213,7 @@
         this.temp_schema_attribute = '';
       },
       async schema_persist(){
-        ADD_SCHEMA(this.temp_schema_name,this.temp_schema_version,this.temp_schema_attribute)
+        addSchema(this.temp_schema_name,this.temp_schema_version,this.temp_schema_attribute)
       },
       async compose_send(){
         this.send_message(this.compose_json, false);
@@ -255,7 +282,15 @@
               console.log("request post err", err);
             });
 
-      }
+      },
+      async activate_did(did_doc){
+        let index = this.exspanded_did_docs.indexOf(did_docs.id)
+        
+        this.exspanded_did_docs.splice(index, 1);
+      },
+      async create_did(){
+
+      },
     },
     data() {
       return {
@@ -272,7 +307,9 @@
           "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping",
           "response_requested": true
         },
-        'basicmessage_compose': ""
+        'basicmessage_compose': "",
+        'exspanded_did_docs':[],
+        'did_seed':"",
       }
     },
     computed: {
