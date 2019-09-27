@@ -39,6 +39,27 @@
         </div>
 
       </el-tab-pane>
+      <el-tab-pane label="Connections Admin">
+
+        <input type="button" class="btn btn-secondary" v-on:click="connection_list_request()" value="Load"/>
+        <table class="table table-sm">
+          <tr>
+            <th>Their DID</th>
+            <th>My DID</th>
+            <th>Their Label</th>
+            <th>Role</th>
+            <th>Created</th>
+          </tr>
+          <tr v-for="c in connection_admin_list">
+            <td>{{c.their_did}}</td>
+            <td>{{c.my_did}}</td>
+            <td>{{c.their_label}}</td>
+            <td>{{c.their_role}}</td>
+            <td>{{c.created_at}}</td>
+          </tr>
+        </table>
+
+      </el-tab-pane>
       <el-tab-pane label="Message History">
 
         <input type="button" class="btn btn-secondary" v-on:click="message_history_clear()" value="Clear"/>
@@ -117,6 +138,16 @@
         };
         this.send_message(query_msg);
       },
+      async connection_list_request(){
+        //send list request
+        let msg = {
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-get-list"
+        };
+        this.send_message(msg);
+      },
+      async ConnectionList(msg){
+        this.connection_admin_list = msg['results'];
+      },
       async ProtocolDisclose(msg){
         //console.log(msg.protocols);
         this.supported_protocols = msg.protocols;
@@ -145,6 +176,7 @@
         this.message_history_add(msg, "Received");
         var handlers = {
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/protocol-discovery/1.0/disclose": this.ProtocolDisclose,
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-list": this.ConnectionList,
         };
         var handler = handlers[msg['@type']];
         if(handler){
@@ -218,7 +250,8 @@
           "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping",
           "response_requested": true
         },
-        'basicmessage_compose': ""
+        'basicmessage_compose': "",
+        'connection_admin_list': []
       }
     },
     computed: {
