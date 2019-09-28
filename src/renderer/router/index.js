@@ -13,7 +13,7 @@ export default new Router({
     {
       path: '/agent/:agentid/',
       name: 'agent-base',
-      component: require('@/components/AgentBase').default
+      component: require('@/components/Agent/AgentBase').default
     },
     {
       path: '*',
