@@ -16,6 +16,7 @@ const mutations = {
 const actions = {
   add_connection (context, detail) {
     // do something async
+    detail['schemas'] = [{'name':'BasicID','version':'1.9','attributes':['first_name','last_name','company','type'],'published':false}];
     console.log("add_connection called", detail);
     context.commit('ADD_CONNECTION', detail);
   },
