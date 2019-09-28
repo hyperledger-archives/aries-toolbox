@@ -133,7 +133,7 @@
       async run_protocol_discovery(){
         //send query
         let query_msg = {
-          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/protocol-discovery/1.0/query",
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/query",
           "query": "*"
         };
         this.send_message(query_msg);
@@ -175,7 +175,7 @@
       async processInbound(msg){
         this.message_history_add(msg, "Received");
         var handlers = {
-          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/protocol-discovery/1.0/disclose": this.ProtocolDisclose,
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/disclose": this.ProtocolDisclose,
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-list": this.ConnectionList,
         };
         var handler = handlers[msg['@type']];
