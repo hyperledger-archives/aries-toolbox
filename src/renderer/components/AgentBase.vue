@@ -21,6 +21,58 @@
         </table>
 
       </el-tab-pane>
+
+      <el-tab-pane label="Connections">
+        <el-row>
+        <el-collapse v-model="exspanded_connection_items">
+            <div v-for="(connection, key, index) in connections">
+                <el-collapse-item v-bind:title="connection.their_label" :name="key">
+                    <el-row>
+                        <div>
+                              <vue-json-pretty
+                                :deep=1
+                                :data="connection">
+                              </vue-json-pretty>
+                              <el-form :model="connectionUpdateForm[key]" class="connectionUpdateForm">
+                                <el-form-item label="role" prop="their_role">
+                                  <el-input placeholder="connectionUpdateForm[key].their_role" v-model="connectionUpdateForm[key].their_role"></el-input>
+                                </el-form-item>
+                                <el-form-item label="label" prop="their_label">
+                                  <el-input placeholder="connectionUpdateForm[key].their_label" v-model="connectionUpdateForm[key].their_label"></el-input>
+                                  <el-button type="primary" @click="updateAgentConnection(connection)">update</el-button>
+                                </el-form-item>
+                            <el-button v-on:click="collapse_expanded_connections(key)">
+                                close expanded connection details
+                            </el-button>
+                            </el-form>
+                        </div>
+                    </el-row>
+                </el-collapse-item>
+            </div>
+        </el-collapse>
+                <el-collapse v-model="exspanded_invites_items">
+            <div v-for="(invite, key, index) in invitations">
+                <el-collapse-item v-bind:title="invite.label" :name="invite.label">
+                    <el-row>
+                        <div>
+                              <vue-json-pretty
+                                :deep=1
+                                :data="invite">
+                              </vue-json-pretty>
+
+                            <el-button v-on:click="collapse_expanded_invititions(key)">
+                                close expanded connection details
+                            </el-button>
+
+                        </div>
+                    </el-row>
+                </el-collapse-item>
+            </div>
+        </el-collapse>
+            <el-button type="primary" @click="fetchNewInvite()">create new invite</el-button>
+        </el-row>
+      </el-tab-pane>
+
       <el-tab-pane label="Compose">
         <input type="button" class="btn btn-secondary" v-on:click="compose_send()" value="Send"/>
         <v-jsoneditor v-model="compose_json">
@@ -39,27 +91,6 @@
         </div>
 
       </el-tab-pane>
-      <el-tab-pane label="Connections Admin">
-
-        <input type="button" class="btn btn-secondary" v-on:click="connection_list_request()" value="Load"/>
-        <table class="table table-sm">
-          <tr>
-            <th>Their DID</th>
-            <th>My DID</th>
-            <th>Their Label</th>
-            <th>Role</th>
-            <th>Created</th>
-          </tr>
-          <tr v-for="c in connection_admin_list">
-            <td>{{c.their_did}}</td>
-            <td>{{c.my_did}}</td>
-            <td>{{c.their_label}}</td>
-            <td>{{c.their_role}}</td>
-            <td>{{c.created_at}}</td>
-          </tr>
-        </table>
-
-      </el-tab-pane>
       <el-tab-pane label="Message History">
 
         <input type="button" class="btn btn-secondary" v-on:click="message_history_clear()" value="Clear"/>
@@ -72,8 +103,36 @@
         </div>
 
       </el-tab-pane>
+      <el-tab-pane label="Schema">
+        <div class="schema-display" v-for="schema in schemas">
+        Name: {{schema.name}}
+        <br/>
+        Version: {{schema.version}}
+          <vue-json-pretty
+            :deep=1
+            :data="schema.attributes">
+          </vue-json-pretty>
+        </div>
+        <div style="margin-bottom: 1em;">
+          <p>New Schema</p>
+          <p><el-input placeholder="Name" label="name" v-model="temp_schema_name" style="width:500px;"></el-input></p>
+          <p><el-input placeholder="Version" label="version" v-model="temp_schema_version" style="width:500px;"></el-input></p>
+          <p>Attributes:</p>
+          <ul style="list-style-type:none;">
+            <div class="temp_schema_attributes_display" v-for="attr in temp_schema_attributes">
+              <li>{{attr}}</li>
+            </div>
+          </ul>
+          <el-input placeholder="Attribute" @keyup.enter.native="temp_schema_add_attribute" v-model="temp_schema_attribute" style="width:500px;"> </el-input>
+          <el-button type="primary" @click="temp_schema_add_attribute" >add attribute</el-button> 
+          <el-button type="primary" @click="schema_persist">Create Schema</el-button>
+        </div>
+      </el-tab-pane>
+      <el-tab-pane label="Credential Definition">
+      </el-tab-pane>
+      <el-tab-pane label="Presentation Definition">
+      </el-tab-pane>
     </el-tabs>
-
   </div>
 </template>
 
@@ -130,6 +189,61 @@
 
         this.connection_loaded = true;
       },
+      async fetchAgentConnections(){
+        let query_msg = {
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-get-list",
+          "~transport": {
+            "return_route": "all"
+          }
+        }
+        this.send_message(query_msg);
+      },
+      async updateAgentConnection(connection){
+        let query_msg = {
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/update",
+            "connection_id": connection.connection_id,
+            "label": this.connectionUpdateForm[connection.connection_id].their_label,
+            "role": this.connectionUpdateForm[connection.connection_id].their_role,
+            "~transport": {
+              "return_route": "all"
+            }
+        }
+        this.send_message(query_msg);
+      },
+      async updatedConnection(msg){
+          this.connections[msg.connection.connection_id] = msg.connection
+          this.connectionUpdateForm = this.connections;
+      },
+      async fetchedConnectionList(msg){
+        const connections = msg.results.reduce(function(acc, cur, i) {
+          acc[cur.connection_id] = cur;
+          return acc;
+        }, {});
+        this.connections = connections
+        this.connectionUpdateForm = connections
+      },
+      async newInvitation(msg){
+        console.log(msg.invitation)
+        const newInvite = this.invitations[ msg.connection_id] = {
+          //... msg.invitation, // invitations is not a json yet... 
+          "invitation": msg.invitation, 
+          "connection_id" : msg.connection_id, 
+          "invitation_url": msg.invitation_url}
+      },
+      async fetchNewInvite(){
+        let query_msg = {
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/create-invitation",
+          "label": "A label",
+          "role": "normal",
+          "accept": "auto",
+          "public": false,
+          "multi_use": true,
+          "~transport": {
+            "return_route": "all"
+          }
+        }
+        this.send_message(query_msg);
+      },
       async run_protocol_discovery(){
         //send query
         let query_msg = {
@@ -137,16 +251,6 @@
           "query": "*"
         };
         this.send_message(query_msg);
-      },
-      async connection_list_request(){
-        //send list request
-        let msg = {
-          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-get-list"
-        };
-        this.send_message(msg);
-      },
-      async ConnectionList(msg){
-        this.connection_admin_list = msg['results'];
       },
       async ProtocolDisclose(msg){
         //console.log(msg.protocols);
@@ -169,6 +273,22 @@
       async message_history_clear(){
         this.message_history.splice(0, this.message_history.length);//clear all entries
       },
+      async schemas(){
+        connection = Connections.agent_list.find(function(element){
+          return element.id == this.id;
+        });
+        return connection.schemas;
+      },
+      async temp_schema_attributes_clear(){
+        this.schema_attributes = [];
+      },
+      async temp_schema_add_attribute(){
+        this.temp_schema_attributes = [...this.temp_schema_attributes,this.temp_schema_attribute];
+        this.temp_schema_attribute = '';
+      },
+      async schema_persist(){
+        ADD_SCHEMA(this.temp_schema_name,this.temp_schema_version,this.temp_schema_attribute)
+      },
       async compose_send(){
         this.send_message(this.compose_json, false);
       },
@@ -176,7 +296,10 @@
         this.message_history_add(msg, "Received");
         var handlers = {
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/disclose": this.ProtocolDisclose,
-          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-list": this.ConnectionList,
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-list": this.fetchedConnectionList, 
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection": this.updatedConnection,
+          //"did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/ack": this.removeConnection,
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation": this.newInvitation,
         };
         var handler = handlers[msg['@type']];
         if(handler){
@@ -236,8 +359,15 @@
                 // POST failed...
               console.log("request post err", err);
             });
-
-      }
+      },
+      async collapse_expanded_connections(connection_id){
+        let index = this.exspanded_connection_items.indexOf(connection_id)
+        this.exspanded_connection_items.splice(index, 1);
+      },
+      async collapse_expanded_invititions(id){
+        let index = this.exspanded_invites_items.indexOf(id)
+        this.exspanded_invites_items.splice(index, 1);
+      },
     },
     data() {
       return {
@@ -245,16 +375,25 @@
         'connection': {'label':'loading...'},
         'connection_loaded': false,
         'message_history':[],
+        'temp_schema_attributes':[],
+        'temp_schema_name':'',
+        'temp_schema_version':'',
+        'temp_schema_attribute':'',
         'supported_protocols': [],
         'compose_json': {
           "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping",
           "response_requested": true
         },
         'basicmessage_compose': "",
-        'connection_admin_list': []
+        'connections':[],
+        'connectionUpdateForm':{},
+        'exspanded_connection_items':[],
+        'invitations':{},
+        'exspanded_invites_items':[],
       }
     },
     computed: {
+      ...mapState(['Connections']),
       basicmessage_history: function () {
         return this.message_history.filter(function(h){
           return h.msg['@type'] == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message";
@@ -266,6 +405,8 @@
       // already being observed
       await this.fetchAgentData();
       await this.run_protocol_discovery();
+      await this.fetchAgentConnections();
+      // await this.fetchNewInvite(); // do not automatically create invite
     },
   }
 </script>

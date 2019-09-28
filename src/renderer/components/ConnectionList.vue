@@ -31,7 +31,7 @@
       </div>
       <div class="card-body">
         <input type="text" class="form-control" placeholder="Paste Agent Invite" v-model="new_agent_invitation"/>
-        <input type="button" class="btn btn-secondary" v-on:click="new_agent_invitation_process()" value="Connect"/>
+        <input type="button" class="btn btn-secondary" v-on:click="new_agent_invitation_process()" value="Add"/>
       </div>
     </div>
 
