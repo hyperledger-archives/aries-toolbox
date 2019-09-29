@@ -24,8 +24,9 @@
 
       <el-tab-pane label="Connections">
         <el-row>
+        <p>Active Connections:</p>
         <el-collapse v-model="exspanded_connection_items">
-            <div v-for="(connection, key, index) in connections">
+            <div v-for="(connection, key, index) in activeConnections()">
                 <el-collapse-item v-bind:title="connection.their_label" :name="key">
                     <el-row>
                         <div>
@@ -34,42 +35,78 @@
                                 :data="connection">
                               </vue-json-pretty>
                               <el-form :model="connectionUpdateForm[key]" class="connectionUpdateForm">
-                                <el-form-item label="role" prop="their_role">
-                                  <el-input placeholder="connectionUpdateForm[key].their_role" v-model="connectionUpdateForm[key].their_role"></el-input>
+                                <el-form-item label="Role:" prop="their_role">
+                                  <el-input placeholder="connectionUpdateForm[key].their_role" v-model="connectionUpdateForm[key].their_role" style="width:300px;"></el-input>
                                 </el-form-item>
-                                <el-form-item label="label" prop="their_label">
-                                  <el-input placeholder="connectionUpdateForm[key].their_label" v-model="connectionUpdateForm[key].their_label"></el-input>
-                                  <el-button type="primary" @click="updateAgentConnection(connection)">update</el-button>
+                                <el-form-item label="Label:" prop="their_label">
+                                  <el-input placeholder="connectionUpdateForm[key].their_label" v-model="connectionUpdateForm[key].their_label" style="width:300px;"></el-input>
+                                  <br/><el-button type="primary" @click="updateAgentConnection(connection)">update</el-button>
+                                  <el-button type="primary" @click="deleteAgentConnection(connection)">delete</el-button>
                                 </el-form-item>
-                            <el-button v-on:click="collapse_expanded_connections(key)">
-                                close expanded connection details
-                            </el-button>
+                            <el-button v-on:click="collapse_expanded_connections(key)">^</el-button>
                             </el-form>
                         </div>
                     </el-row>
                 </el-collapse-item>
             </div>
         </el-collapse>
-                <el-collapse v-model="exspanded_invites_items">
+        <p>Pending Connections:</p>
+        <el-collapse v-model="exspanded_connection_items">
+            <div v-for="(connection, key, index) in pendingConnections()">
+                <el-collapse-item v-bind:title="key" :name="key">
+                    <el-row>
+                        <div>
+                              <vue-json-pretty
+                                :deep=1
+                                :data="connection">
+                              </vue-json-pretty>
+                              <el-form :model="connectionUpdateForm[key]" class="connectionUpdateForm">
+                                <el-form-item label="Role:" prop="their_role">
+                                  <el-input label="Role" placeholder="connectionUpdateForm[key].their_role" v-model="connectionUpdateForm[key].their_role" style="width:300px;" ></el-input>
+                                  <br/><el-button type="primary" @click="updateAgentConnection(connection)">update</el-button>
+                                  <el-button type="primary" @click="deleteAgentConnection(connection)">delete</el-button>
+                                </el-form-item>
+                            <el-button v-on:click="collapse_expanded_connections(key)">^</el-button>
+                            </el-form>
+                        </div>
+                    </el-row>
+                </el-collapse-item>
+            </div>
+        </el-collapse>
+        <p>Open Invitations:</p>
+        <el-collapse v-model="exspanded_invites_items">
             <div v-for="(invite, key, index) in invitations">
-                <el-collapse-item v-bind:title="invite.label" :name="invite.label">
+                <el-collapse-item v-bind:title="key" :name="key">
                     <el-row>
                         <div>
                               <vue-json-pretty
                                 :deep=1
                                 :data="invite">
                               </vue-json-pretty>
-
-                            <el-button v-on:click="collapse_expanded_invititions(key)">
-                                close expanded connection details
-                            </el-button>
-
+                            <el-button v-on:click="collapse_expanded_invititions(key)">^</el-button>
                         </div>
                     </el-row>
                 </el-collapse-item>
             </div>
         </el-collapse>
+        <p>Create Invitations:</p>
+        <el-form>
+        <el-form-group >
+          <span slot="label">Label:</span>
+            <el-input v-model="invite_label_form" style="width:100px;"> </el-input>
+          <span slot="label">Role:</span>
+            <el-input v-model="invite_role_form" style="width:100px;"> </el-input>
+          <span slot="label">Acceptance:</span>
+            <el-input v-model="invite_accept_form" style="width:100px;"> </el-input>
+          <span slot="label">Public:</span>
+            <el-switch label="Public:" v-model="invite_public_form"></el-switch>
+          <span slot="label">Multi Use:</span>
+            <el-switch label="Multi Use:" v-model="invite_multi_use_form"></el-switch>
+        </el-form-group>
+        <el-form-item>
             <el-button type="primary" @click="fetchNewInvite()">create new invite</el-button>
+        </el-form-item>
+        </el-form>
         </el-row>
       </el-tab-pane>
 
@@ -210,6 +247,16 @@
         }
         this.send_message(query_msg);
       },
+      async deleteAgentConnection(connection){
+        let query_msg = {
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/delete",
+            "connection_id": connection.connection_id,
+            "~transport": {
+              "return_route": "all"
+            }
+        }
+        this.send_message(query_msg);
+      },
       async updatedConnection(msg){
           this.connections[msg.connection.connection_id] = msg.connection
           this.connectionUpdateForm = this.connections;
@@ -233,16 +280,37 @@
       async fetchNewInvite(){
         let query_msg = {
           "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/create-invitation",
-          "label": "A label",
-          "role": "normal",
-          "accept": "auto",
-          "public": false,
-          "multi_use": true,
+          "label": this.invite_label_form,
+          "role": this.invite_role_form,
+          "accept": this.invite_accept_form,
+          "public": this.invite_public_form,
+          "multi_use": this.invite_multi_use_form,
           "~transport": {
             "return_route": "all"
           }
         }
+        this.invite_label_form = "master"
+        this.invite_role_form = "normal"
+        this.invite_accept_form = "auto"
+        this.invite_public_form = false
+        this.invite_multi_use_form = true
         this.send_message(query_msg);
+      },
+      activeConnections(){
+        return Object.keys(this.connections).reduce((acc, val) => 
+          ("their_label" in this.connections[val] ?  {
+              ...acc,
+              [val]: this.connections[val]
+          } : acc                                       
+        ), {})
+      },
+      pendingConnections(){
+        return Object.keys(this.connections).reduce((acc, val) => 
+          ("their_label" in this.connections[val] ? acc : {
+              ...acc,
+              [val]: this.connections[val]
+          }                                        
+        ), {})
       },
       async run_protocol_discovery(){
         //send query
@@ -298,7 +366,7 @@
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/disclose": this.ProtocolDisclose,
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-list": this.fetchedConnectionList, 
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection": this.updatedConnection,
-          //"did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/ack": this.removeConnection,
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/ack": this.fetchAgentConnections,//this.removeConnection,
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation": this.newInvitation,
         };
         var handler = handlers[msg['@type']];
@@ -385,11 +453,16 @@
           "response_requested": true
         },
         'basicmessage_compose': "",
-        'connections':[],
+        'connections':{},
         'connectionUpdateForm':{},
         'exspanded_connection_items':[],
         'invitations':{},
         'exspanded_invites_items':[],
+        'invite_label_form':"master",
+        'invite_role_form':"normal",
+        'invite_accept_form':"auto",
+        'invite_public_form':false,
+        'invite_multi_use_form':true,
       }
     },
     computed: {
