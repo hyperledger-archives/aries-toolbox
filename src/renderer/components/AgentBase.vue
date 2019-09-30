@@ -107,12 +107,6 @@
             <el-button type="primary" @click="fetchNewInvite()">create new invite</el-button>
         </el-form-item>
         </el-form>
-<!--           
-          'label':"",
-          'role':"",
-          'static_did':"",
-          'static_key':"",
-          'static_endpoint':"", -->
         <p>Add Static Agent:</p>
         <el-form :model=static_agent_form>
         <el-form-group >
@@ -166,29 +160,44 @@
 
       </el-tab-pane>
       <el-tab-pane label="Schema">
-        <div class="schema-display" v-for="schema in schemas">
-        Name: {{schema.name}}
-        <br/>
-        Version: {{schema.version}}
-          <vue-json-pretty
-            :deep=1
-            :data="schema.attributes">
-          </vue-json-pretty>
-        </div>
-        <div style="margin-bottom: 1em;">
-          <p>New Schema</p>
-          <p><el-input placeholder="Name" label="name" v-model="temp_schema_name" style="width:500px;"></el-input></p>
-          <p><el-input placeholder="Version" label="version" v-model="temp_schema_version" style="width:500px;"></el-input></p>
-          <p>Attributes:</p>
-          <ul style="list-style-type:none;">
-            <div class="temp_schema_attributes_display" v-for="attr in temp_schema_attributes">
-              <li>{{attr}}</li>
+      <el-collapse v-model="exspanded_schemas_items">
+            <div v-for="(schema, key, index) in schemas">
+                <el-collapse-item v-bind:title="schema.name +','+ schema.version" :name="key">
+                    <el-row>
+                        <div>
+                              <vue-json-pretty
+                                :deep=1
+                                :data="schema">
+                              </vue-json-pretty>
+                            <el-button @click="publishSchema(key,'global_pool')">Publish</el-button>
+                            <el-button v-if="!schema.ledger" type="primary" @click="removeSchema(key,'global_pool')">delete</el-button>
+                            <el-button v-on:click="collapse_expanded_schemas(key)">^</el-button>
+                        </div>
+                    </el-row>
+                </el-collapse-item>
             </div>
+        </el-collapse>
+        <p>Create schema:</p>
+        <el-form :model=schemas_form>
+        <el-form-group >
+          <span slot="label">Name:</span>
+            <el-input v-model="schemas_form.name" style="width:100px;"> </el-input>
+          <span slot="label">Version:</span>
+            <el-input v-model="schemas_form.version" style="width:100px;"> </el-input>
+          <p>Attributes:</p>
+          <ul>
+            <li v-for='attribute in schemas_form.attributes'>
+              {{ attribute }}
+            </li>
           </ul>
-          <el-input placeholder="Attribute" @keyup.enter.native="temp_schema_add_attribute" v-model="temp_schema_attribute" style="width:500px;"> </el-input>
-          <el-button type="primary" @click="temp_schema_add_attribute" >add attribute</el-button> 
-          <el-button type="primary" @click="schema_persist">Create Schema</el-button>
-        </div>
+          <span slot="label">Attribute:</span>
+            <el-input @keyup.enter.native="schema_add_attribute" v-model="schemas_form.attribute" style="width:100px;"> </el-input>
+            <el-button type="primary" @click="schema_add_attribute" >add attribute</el-button> 
+        </el-form-group>
+        <el-form-item>
+            <el-button type="primary" @click="storeSchema()">create new schema</el-button>
+        </el-form-item>
+        </el-form>
       </el-tab-pane>
       <el-tab-pane label="Credential Definition">
       </el-tab-pane>
@@ -281,6 +290,18 @@
             }
         }
         this.send_message(query_msg);
+      },
+      async removeSchema(id,ledger_id){
+        let query_msg = {
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/remove-schema",
+            "schema_id": id,
+            "ledger_id": ledger_id,
+            "~transport": {
+              "return_route": "all"
+            }
+        }
+        this.send_message(query_msg);
+        delete this.schemas[id]// TODO:remove this after aca-py support is added.
       },
       async updatedConnection(msg){
           this.connections[msg.connection.connection_id] = msg.connection
@@ -380,21 +401,43 @@
       async message_history_clear(){
         this.message_history.splice(0, this.message_history.length);//clear all entries
       },
-      async schemas(){
-        connection = Connections.agent_list.find(function(element){
-          return element.id == this.id;
-        });
-        return connection.schemas;
+      async schema_attributes_clear(){
+        this.schemas_form.attributes = [];
       },
-      async temp_schema_attributes_clear(){
-        this.schema_attributes = [];
+      async schema_add_attribute(){
+        this.schemas_form.attributes = [...this.schemas_form.attributes,this.schemas_form.attribute];
+        this.schemas_form.attribute = '';
       },
-      async temp_schema_add_attribute(){
-        this.temp_schema_attributes = [...this.temp_schema_attributes,this.temp_schema_attribute];
-        this.temp_schema_attribute = '';
+      async storeSchema(){
+        let query_msg = {
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/store-schema",
+            "name": this.schemas_form.name,
+            "version": this.schemas_form.version,
+            "attributes": this.schemas_form.attributes,
+            "~transport": {
+              "return_route": "all"
+            }
+        }
+        this.send_message(query_msg);
+        this.schemas['123412341234'] = { // TODO:remove this after aca-py support is added.
+            "id":'123412341234',
+            "name": this.schemas_form.name,
+            "version": this.schemas_form.version,
+            "attributes": this.schemas_form.attributes,}
+        this.schemas_form.attributes = []
+        this.schemas_form.name =""
+        this.schemas_form.version =""
       },
-      async schema_persist(){
-        ADD_SCHEMA(this.temp_schema_name,this.temp_schema_version,this.temp_schema_attribute)
+      async publishSchema(schema_id,pool_id){
+        let query_msg = {
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/publish-schema",
+            "schema_id": schema_id,
+            "pool_id": pool_id,//optional
+            "~transport": {
+              "return_route": "all"
+            }
+        }
+        this.send_message(query_msg);
       },
       async compose_send(){
         this.send_message(this.compose_json, false);
@@ -405,8 +448,9 @@
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/disclose": this.ProtocolDisclose,
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-list": this.fetchedConnectionList, 
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection": this.updatedConnection,
-          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/ack": this.fetchAgentConnections,//this.removeConnection,
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/ack": this.fetchAgentConnections,
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation": this.newInvitation,
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-info":this.updatedConnection,// handle added statuc agent ....
         };
         var handler = handlers[msg['@type']];
         if(handler){
@@ -475,6 +519,10 @@
         let index = this.exspanded_invites_items.indexOf(id)
         this.exspanded_invites_items.splice(index, 1);
       },
+      async collapse_expanded_schemas(id){
+        let index = this.exspanded_schemas_items.indexOf(id)
+        this.exspanded_schemas_items.splice(index, 1);
+      },
     },
     data() {
       return {
@@ -482,10 +530,55 @@
         'connection': {'label':'loading...'},
         'connection_loaded': false,
         'message_history':[],
-        'temp_schema_attributes':[],
-        'temp_schema_name':'',
-        'temp_schema_version':'',
-        'temp_schema_attribute':'',
+        'schemas':{
+          '3552d86c-fc14-480a-bd22-e0be147aadc6':{
+            'id':'3552d86c-fc14-480a-bd22-e0be147aadc6',
+            'name':'digital_id',
+            'version':'1.9',
+            'attributes':[
+              'first_name',
+              'last_name',
+              'address',
+              'age',
+            ],
+          },
+          '2452d86c-fc14-480a-bd12-e0be147aade4':{
+            'id':'2452d86c-fc14-480a-bd12-e0be147aade4',
+            'name':'registration',
+            'version':'1.0.0',
+            'attributes':[
+              'address_line_1',
+              'entity_status_effective',
+              'entity_name_effective',
+              'registration_date',
+              'entity_status',
+              'entity_type',
+              'address_line_2',
+              'addressee',
+              'country',
+              'corp_num',
+              'postal_code',
+              'province',
+              'city',
+              'legal_name',
+            ],
+            'ledger':{
+              'name':'sov',
+              'txn_id':'SAF2vMgCJd2PsqUpa5U2DX:2:registration:1.0.0',
+              'seq_number':'9',
+              'cred_defs':[
+                'SAF2vMgCJd2PsqUpa5U2DX:3:CL:9:tag',
+                'JTUsfPMn1GGZLScyfqf9LU:3:CL:9:tag'
+              ],
+            }
+          }
+        },
+        'schemas_form':{
+          'attributes':[],
+          'name':'',
+          'version':'',
+          'attribute':'',
+        },
         'supported_protocols': [],
         'compose_json': {
           "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping",
@@ -497,6 +590,7 @@
         'exspanded_connection_items':[],
         'invitations':{},
         'exspanded_invites_items':[],
+        'exspanded_schemas_items':[],
         'invite_label_form':"master",
         'invite_role_form':"normal",
         'invite_accept_form':"auto",
