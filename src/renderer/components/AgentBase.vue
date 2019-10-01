@@ -160,6 +160,7 @@
 
       </el-tab-pane>
       <el-tab-pane label="Schema">
+      <p>Schemas:</p>
       <el-collapse v-model="exspanded_schemas_items">
             <div v-for="(schema, key, index) in schemas">
                 <el-collapse-item v-bind:title="schema.name +','+ schema.version" :name="key">
@@ -200,8 +201,94 @@
         </el-form>
       </el-tab-pane>
       <el-tab-pane label="Credential Definition">
+        <p>Credential Definitions:</p>
+        <el-collapse v-model="exspanded_cred_def_items">
+            <div v-for="(cred_def, key, index) in cred_defs">
+                <el-collapse-item v-bind:title="cred_def.cred_def_id" :name="key">
+                    <el-row>
+                        <div>
+                          <vue-json-pretty
+                            :deep=2
+                            :data="cred_def">
+                          </vue-json-pretty>
+                          <el-collapse v-model="exspanded_credential_issuer_items">
+                          <el-collapse-item title='Issue a credential offer' :name="key">
+                            <el-row>
+                              <div v-for="(attribute, key, index) in cred_def.primary.r" v-if="key!='master_secret'" prop="cred_def">
+                                <span slot="label">{{key}}:</span>
+                                  <el-input v-model="cred_def_form[cred_def.cred_def_id].attributes[index]" style="width:100px;"> </el-input>
+                              </div>
+                              <el-form :model=cred_def_form>
+                                <el-form-item label="select connection:" >        
+                                  <el-select v-model="cred_def_form.connection" filterable placeholder="select connection to issue to:" >
+                                    <el-option
+                                      v-for="connection in activeConnections()"
+                                      :key="connection.connection_id"
+                                      :label="connection.their_label +' ('+connection.connection_id+')'"
+                                      :value="connection.connection_id">
+                                    </el-option> 
+                                  </el-select>
+                                </el-form-item>
+                              </el-form>
+                              <el-button @click="issueCredentialOffer(key,'global_pool')">Issue a credential offer</el-button>
+                            </el-row>
+                          </el-collapse-item>
+                          </el-collapse>
+
+                        <el-button v-on:click="collapse_expanded_cred_def(key)">^</el-button>
+                        </div>
+                    </el-row>
+                </el-collapse-item>
+            </div>
+        </el-collapse>
+        <p>Create Credential Definition:</p>
+        <el-form :model=cred_def_form>
+        <el-form-item label="select ledger:" >        
+            <el-select v-model="cred_def_form.ledger" filterable placeholder="sov" >
+              <el-option
+                v-for="ledger in ledgers"
+                :key="ledger.id"
+                :label="ledger.name"
+                :value="ledger.id">
+              </el-option> 
+            </el-select>
+        </el-form-item>
+        <el-form-item label="select schema:" prop="cred_def_form">        
+            <el-select v-model="cred_def_form.schema" filterable placeholder="schema">
+              <el-option
+                v-for="schema in schemas"
+                :key="schema.id"
+                :label="schema.name +' '+ schema.version"
+                :value="schema">
+              </el-option> 
+            </el-select>
+        </el-form-item>
+<!--         <el-form-item label="select ledger:" >        
+            <el-select v-model="cred_def_form.ledger" filterable placeholder="sov" >
+              <el-option
+                v-for="ledger in ledgers"
+                :key="ledger.id"
+                :label="ledger.name"
+                :value="ledger.id">
+              </el-option> 
+            </el-select>
+        </el-form-item>
+        <el-form-item v-if="cred_def_form.ledger in ledgers" label="select schema:" prop="cred_def_form">        
+            <el-select v-model="cred_def_form" filterable placeholder="schema">
+              <el-option
+                v-for="schema in ledgerSchemas(ledgers[cred_def_form.ledger].name)"
+                :key="schema.id"
+                :label="schema.name +' '+ schema.version"
+                :value="schema.id">
+              </el-option> 
+            </el-select>
+        </el-form-item> -->
+        <el-form-item>
+          <el-button type="primary" @click="createCredentialDefinition()">create new credential definition</el-button>
+        </el-form-item>
+        </el-form>
       </el-tab-pane>
-      <el-tab-pane label="Presentation Definition">
+      <el-tab-pane label="Presentation Defincompose_sendition">
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -372,6 +459,18 @@
           }                                        
         ), {})
       },
+      ledgerSchemas(ledger_name){
+        console.log("ledger name:",ledger_name)
+        let schemas = Object.keys(this.schemas).reduce((acc,key)=>
+          ("ledgers" in this.schemas[key] &&
+           ledger_name in this.schemas[key].ledgers ?{
+              ...acc,
+              [key]: this.schemas[key]
+          } : acc                                       
+        ), {})
+        console.log("schemas",schemas)
+        return schemas
+      },
       async run_protocol_discovery(){
         //send query
         let query_msg = {
@@ -436,6 +535,16 @@
             "~transport": {
               "return_route": "all"
             }
+        }
+        this.send_message(query_msg);
+      },
+      async createCredentialDefinition(){
+          let query_msg = {
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/publish-credential-definition",
+            "schema_id": this.cred_def_form.schema.ledgers[this.cred_def_form.ledger].seq_number,
+            "~transport": {
+              "return_route": "all"
+          }
         }
         this.send_message(query_msg);
       },
@@ -523,6 +632,10 @@
         let index = this.exspanded_schemas_items.indexOf(id)
         this.exspanded_schemas_items.splice(index, 1);
       },
+      async collapse_expanded_cred_def(id){
+        let index = this.exspanded_cred_def_items.indexOf(id)
+        this.exspanded_cred_def_items.splice(index, 1);
+      },
     },
     data() {
       return {
@@ -530,6 +643,24 @@
         'connection': {'label':'loading...'},
         'connection_loaded': false,
         'message_history':[],
+        'ledgers':{
+          '12345234':{
+            'id':'12345234',
+            'name':'sov',
+          },
+          '22345234':{
+            'id':'22345234',
+            'name':'von',
+          },
+            '32345234':{
+            'id':'32345234',
+            'name':'bank',
+          },
+            '42345234':{
+            'id':'42345234',
+            'name':'adams',
+          },
+        },
         'schemas':{
           '3552d86c-fc14-480a-bd22-e0be147aadc6':{
             'id':'3552d86c-fc14-480a-bd22-e0be147aadc6',
@@ -562,7 +693,7 @@
               'city',
               'legal_name',
             ],
-            'ledger':{
+            'ledgers':{'sov':{
               'name':'sov',
               'txn_id':'SAF2vMgCJd2PsqUpa5U2DX:2:registration:1.0.0',
               'seq_number':'9',
@@ -570,7 +701,7 @@
                 'SAF2vMgCJd2PsqUpa5U2DX:3:CL:9:tag',
                 'JTUsfPMn1GGZLScyfqf9LU:3:CL:9:tag'
               ],
-            }
+            }}
           }
         },
         'schemas_form':{
@@ -578,6 +709,55 @@
           'name':'',
           'version':'',
           'attribute':'',
+        },
+        'cred_defs':{
+          '3462d86c-fc14-480a-bd12-e0be147aadv7':{ //TODO: build this from the results of a single credential_definition_id
+            'cred_def_id':'3462d86c-fc14-480a-bd12-e0be147aadv7',
+            'schema_id':'2452d86c-fc14-480a-bd12-e0be147aade4',
+            'schema_name':'registration',
+            'schema_version':'name',
+            'schema':[
+              'address_line_1',
+              'entity_status_effective',
+              'entity_name_effective',
+              'registration_date',
+              'entity_status',
+              'entity_type',
+              'address_line_2',
+              'addressee',
+              'country',
+              'corp_num',
+              'postal_code',
+              'province',
+              'city',
+              'legal_name',
+            ],
+            'cred_def_txnId':'SAF2vMgCJd2PsqUpa5U2DX:3:CL:9:Test',
+            'primary':{
+              'r':{
+                'entity_type':'4276818453997252235377809066552492903559006624154502170264010343561770...',
+                'address_line_2':'5835005062870123542337957832281874621008837246206493273019909805920578...',
+                'country':'1879513305160086851616079950364687554755887149912307898056492171417669...',
+                'master_secret':'5680719163826958582523499906964107839414241499724912816054845682277627...',
+                'city':'5070038307979790521329819136698583890861707690369236453378984162125954...',
+                'postal_code':'3112351950987780712431706032057718465524884751214233553363879722705800...',
+                'address_line_1':'7306529829675381076177399279526662495198464609142708900879759969343811...',
+                'legal_name':'4802617220397946068690549708166702621003071126577937165396665038376228...',
+                'registration_date':'2878132445424190585639532906296244810676938826012262151226024338975400...',
+                'addressee':'1001391556670028112842868976612783831982121929639458722631916162375175...',
+                'entity_status_effective':'6788510089214435350045257149388833744569568756412683331576858511590760...',
+                'corp_num':'6785661010439948560109655157528808585675707924690100517693559960557987...',
+                'entity_status':'1321064407231181370798210517190814593144851682644978311734511298020384...',
+                'entity_name_effective':'7571297275652047907551972817989506568944796137349719074126081162087488...',
+                'province':'9476317241642994808753854337446098807999115489895643485448317420223689...',
+              },
+            },
+          },
+        },
+        'cred_def_form':{
+          'schema':'',
+          '3462d86c-fc14-480a-bd12-e0be147aadv7': {'attributes':[]},// TODO: create this structure dynamically at start.
+          'ledger':'',
         },
         'supported_protocols': [],
         'compose_json': {
@@ -591,6 +771,8 @@
         'invitations':{},
         'exspanded_invites_items':[],
         'exspanded_schemas_items':[],
+        'exspanded_cred_def_items':[],
+        'exspanded_credential_issuer_items':[],
         'invite_label_form':"master",
         'invite_role_form':"normal",
         'invite_accept_form':"auto",
@@ -602,7 +784,7 @@
           'static_did':"",
           'static_key':"",
           'static_endpoint':"",
-        }
+        },
       }
     },
     computed: {
@@ -621,5 +803,6 @@
       await this.fetchAgentConnections();
       // await this.fetchNewInvite(); // do not automatically create invite
     },
+    watch:{}
   }
 </script>
