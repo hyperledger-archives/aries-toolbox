@@ -200,7 +200,7 @@
         </el-form-item>
         </el-form>
       </el-tab-pane>
-      <el-tab-pane label="Credential Definition">
+      <el-tab-pane label="Credential">
         <p>Credential Definitions:</p>
         <el-collapse v-model="exspanded_cred_def_items">
             <div v-for="(cred_def, key, index) in cred_defs">
@@ -288,6 +288,38 @@
         </el-form-item>
         </el-form>
       </el-tab-pane>
+      <el-tab-pane label="Trusted Issuers">
+      <p>Issuers:</p>
+      <el-collapse v-model="expanded_issuers_items">
+            <div v-for="(did, key, index) in trusted_issuers">
+                <el-collapse-item v-bind:title="did.label +', '+ did.id" :name="key">
+                    <el-row>
+                        <div>
+                              <vue-json-pretty
+                                :deep=1
+                                :data="did">
+                              </vue-json-pretty>
+                            <el-button type="primary" @click="removeTrustedIssuer(key)">delete</el-button>
+                            <el-button type="primary" @click="resolveTrustedIssuer(key)">resolve issuer did</el-button>
+                            <el-button v-on:click="collapse_expanded_trusted_issuer(key)">^</el-button>
+                        </div>
+                    </el-row>
+                </el-collapse-item>
+            </div>
+        </el-collapse>
+        <p>Add Trusted Issuer:</p>
+        <el-form :model=trusted_issuers_form>
+        <el-form-group >
+          <span slot="label">Did:</span>
+            <el-input v-model="trusted_issuers_form.did" style="width:100px;"> </el-input>
+          <span slot="label">Label:</span>
+            <el-input v-model="trusted_issuers_form.label" style="width:100px;"> </el-input>
+        </el-form-group>
+        <el-form-item>
+            <el-button type="primary" @click="storeTrustedIssuer()">add trusted issuer</el-button>
+        </el-form-item>
+        </el-form>
+      </el-tab-pane>
       <el-tab-pane label="Presentation Definition">
         <el-collapse v-model="exspanded_pres_def_items">
             <div v-for="(pres_def, key, index) in presentation_definitions">
@@ -333,15 +365,33 @@
           <p>Request Attributes:</p>
           <ul>
             <li v-for='(attribute,index) in pres_def_form.requested_attributes'>
-              {{attribute}}
+              <vue-json-pretty
+                :deep=3
+                :data="attribute">
+              </vue-json-pretty>
               <ul>
                 <li v-for='restriction in pres_def_form.requested_attributes[index].restrictions'>
-                  {{restriction}}
+                  {{restriction.issuer_did}}
                 </li>
               </ul>
-              <span slot="label">Restriction:</span>
-                <el-input @keyup.enter.native="add_pres_def_restriction(index)" v-model="pres_def_form.temp_attrs[index].restriction" style="width:100px;"> </el-input>
-                <el-button type="primary" @click="add_pres_def_restriction(index)" >add restriction</el-button> 
+              <el-row>
+                <el-form :model=pres_def_form>
+                  <el-form-item label="Trusted Issuer:" >        
+                    <el-select v-model="pres_def_form.temp_attrs[index].restriction" filterable placeholder="Trusted Issuer" >
+                      <el-option
+                        v-for="issuer in trusted_issuers"
+                        :key="issuer.did"
+                        :label="issuer.label +' ('+issuer.did+')'"
+                        :value="issuer.did">
+                      </el-option> 
+                    </el-select>
+                    <span slot="label">Restriction:</span>
+                      <el-button type="primary" @click="add_pres_def_restriction(index)" >add restriction</el-button> 
+                  </el-form-item>
+                </el-form>
+                  <span slot="label">Restriction:</span>
+                    <el-button type="primary" @click="add_pres_def_restriction(index)" >add restriction</el-button> 
+              </el-row>
             </li>
           </ul>
           <span slot="label">Attribute:</span>
@@ -349,7 +399,7 @@
             <el-button type="primary" @click="add_pres_def_attribute" >add request attribute</el-button> 
         </el-form-group>
         <el-form-item>
-            <el-button type="primary" @click="storeSchema()">create new schema</el-button>
+            <el-button type="primary" @click="storePresentationDefinition()">create new presentation definition</el-button>
         </el-form-item>
         </el-form>
       </el-tab-pane>
@@ -581,6 +631,8 @@
         this.pres_def_form.requested_attribute = '';
       },
       async add_pres_def_restriction(index){
+        this.pres_def_form.temp_attrs[index].restriction = 
+          {"issuer_did": this.pres_def_form.temp_attrs[index].restriction}
         this.pres_def_form.requested_attributes[index].restrictions = 
           [...this.pres_def_form.requested_attributes[index].restrictions,
           this.pres_def_form.temp_attrs[index].restriction]
@@ -626,6 +678,45 @@
           }
         }
         this.send_message(query_msg);
+      },
+      async removeTrustedIssuer(id){
+        let query_msg = {
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/remove-trusted-issuer",
+            "issuer_did": id,
+            "~transport": {
+              "return_route": "all"
+            }
+        }
+        this.send_message(query_msg);
+        delete this.trusted_issuers[id]// TODO:remove this after aca-py support is added.
+      },
+      async resolveTrustedIssuer(did){
+        let query_msg = {
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/resolve-did",
+            "issuer_did": did,
+            "~transport": {
+              "return_route": "all"
+            }
+        }
+        this.send_message(query_msg);
+        delete this.trusted_issuers[did]// TODO:remove this after aca-py support is added.
+      },
+      async storeTrustedIssuer(){
+          let query_msg = {
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/store-trusted-issuer",
+            "did": this.trusted_issuers_form.did,
+            "label": this.trusted_issuers_form.label,
+            "~transport": {
+              "return_route": "all"
+            }
+        }
+        this.send_message(query_msg);
+        this.trusted_issuers[this.trusted_issuers_form.did] = { // TODO:remove this after aca-py support is added.
+            "id":this.trusted_issuers_form.did,
+            "label": this.trusted_issuers_form.label,
+            }
+        this.trusted_issuers_form.did = ""
+        this.trusted_issuers_form.label = ""
       },
       async issuePresentationRequest(pres_def_id,connection_id){
           let query_msg = {
@@ -738,7 +829,11 @@
       async collapse_expanded_pres_def(id){
         let index = this.exspanded_pres_def_items.indexOf(id)
         this.exspanded_pres_def_items.splice(index, 1);
-      }
+      },
+      async collapse_expanded_trusted_issuer(id){
+        let index = this.expanded_issuers_items.indexOf(id)
+        this.expanded_issuers_items.splice(index, 1);
+      },
     },
     data() {
       return {
@@ -762,6 +857,20 @@
             '42345234':{
             'id':'42345234',
             'name':'adams',
+          },
+        },
+        'trusted_issuers':{
+          'mgtqGEF8EBQHBLREdRoJ4':{
+            'did':'mgtqGEF8EBQHBLREdRoJ4',
+            'label':'Sovrin Foundation',
+            'ledgers':{
+              'sov':{
+                'name':'sov',
+                'role':'2',
+                'doc':'{"endpoint":"https://sovrin.org/"}',
+                'verkey':'~7neGXtV1n3S5j1xzzZBz62',
+              },
+            },
           },
         },
         'schemas':{
@@ -870,6 +979,10 @@
           'name':'',
           'version':'',
         },
+        'trusted_issuers_form':{
+          'did':'',
+          'label':'',
+        },
         'presentation_definitions':{
           '8472d86c-fc14-480a-bd12-e0be147aadb9':{
             'pres_def_id':'8472d86c-fc14-480a-bd12-e0be147aadb9',
@@ -912,6 +1025,7 @@
         'exspanded_schemas_items':[],
         'exspanded_cred_def_items':[],
         'exspanded_credential_issuer_items':[],
+        'expanded_issuers_items':[],
         'exspanded_pres_def_items':[],
         'exspanded_presentation_request_items':[],
         'invite_label_form':"master",
