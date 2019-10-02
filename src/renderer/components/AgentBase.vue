@@ -288,7 +288,71 @@
         </el-form-item>
         </el-form>
       </el-tab-pane>
-      <el-tab-pane label="Presentation Defincompose_sendition">
+      <el-tab-pane label="Presentation Definition">
+        <el-collapse v-model="exspanded_pres_def_items">
+            <div v-for="(pres_def, key, index) in presentation_definitions">
+                <el-collapse-item v-bind:title="pres_def.name" :name="key">
+                    <el-row>
+                        <div>
+                          <vue-json-pretty
+                            :deep=3
+                            :data="pres_def">
+                          </vue-json-pretty>
+                          <el-collapse v-model="exspanded_presentation_request_items">
+                          <el-collapse-item title='Issue a credential presentation request' :name="key">
+                            <el-row>
+                              <el-form :model=pres_def_form>
+                                <el-form-item label="select connection:" >        
+                                  <el-select v-model="pres_def_form.connection" filterable placeholder="to issue to" >
+                                    <el-option
+                                      v-for="connection in activeConnections()"
+                                      :key="connection.connection_id"
+                                      :label="connection.their_label +' ('+connection.connection_id+')'"
+                                      :value="connection.connection_id">
+                                    </el-option> 
+                                  </el-select>
+                                </el-form-item>
+                              </el-form>
+                              <el-button @click="issuePresentationRequest(pres_def.pres_def_id,pres_def_form.connection)">issue a credential presentation request</el-button>
+                            </el-row>
+                          </el-collapse-item>
+                          </el-collapse>
+                        <el-button v-on:click="collapse_expanded_pres_def(key)">^</el-button>
+                        </div>
+                    </el-row>
+                </el-collapse-item>
+            </div>
+        </el-collapse>
+        <p>Create Presentation Definition:</p>
+        <el-form :model=pres_def_form>
+        <el-form-group >
+          <span slot="label">Name:</span>
+            <el-input v-model="pres_def_form.name" style="width:100px;"> </el-input>
+          <span slot="label">Version:</span>
+            <el-input v-model="pres_def_form.version" style="width:100px;"> </el-input>
+          <p>Request Attributes:</p>
+          <ul>
+            <li v-for='(attribute,index) in pres_def_form.requested_attributes'>
+              {{attribute}}
+              <ul>
+                <li v-for='restriction in pres_def_form.requested_attributes[index].restrictions'>
+                  {{restriction}}
+                </li>
+              </ul>
+              <span slot="label">Restriction:</span>
+                <el-input @keyup.enter.native="add_pres_def_restriction(index)" v-model="pres_def_form.temp_attrs[index].restriction" style="width:100px;"> </el-input>
+                <el-button type="primary" @click="add_pres_def_restriction(index)" >add restriction</el-button> 
+            </li>
+          </ul>
+          <span slot="label">Attribute:</span>
+            <el-input @keyup.enter.native="add_pres_def_attribute" v-model="pres_def_form.requested_attribute" style="width:100px;"> </el-input>
+            <el-button type="primary" @click="add_pres_def_attribute" >add request attribute</el-button> 
+        </el-form-group>
+        <el-form-item>
+            <el-button type="primary" @click="storeSchema()">create new schema</el-button>
+        </el-form-item>
+        </el-form>
+      </el-tab-pane>
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -507,6 +571,21 @@
         this.schemas_form.attributes = [...this.schemas_form.attributes,this.schemas_form.attribute];
         this.schemas_form.attribute = '';
       },
+      async add_pres_def_attribute(){
+        this.pres_def_form.requested_attribute= { 
+          "name":this.pres_def_form.requested_attribute,
+          "restrictions" : []
+          }
+        this.pres_def_form.requested_attributes = [...this.pres_def_form.requested_attributes,this.pres_def_form.requested_attribute];
+        this.pres_def_form.temp_attrs=[...this.pres_def_form.temp_attrs,{"restriction":""}]
+        this.pres_def_form.requested_attribute = '';
+      },
+      async add_pres_def_restriction(index){
+        this.pres_def_form.requested_attributes[index].restrictions = 
+          [...this.pres_def_form.requested_attributes[index].restrictions,
+          this.pres_def_form.temp_attrs[index].restriction]
+        this.pres_def_form.temp_attrs[index].restriction = '';
+      },
       async storeSchema(){
         let query_msg = {
             "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/store-schema",
@@ -547,6 +626,26 @@
           }
         }
         this.send_message(query_msg);
+      },
+      async issuePresentationRequest(pres_def_id,connection_id){
+          let query_msg = {
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/create-presentation-definition",
+            "requested_attributes":this.presentation_definitions[pres_def_id].requested_attributes,
+            "name":this.presentation_definitions[pres_def_id].name,
+            "connection_id":connection_id,
+            "version":this.presentation_definitions[pres_def_id].version,
+            "requested_predicates":this.presentation_definitions[pres_def_id].requested_predicates, 
+            "~transport": {
+              "return_route": "all"
+          }
+        }
+        this.send_message(query_msg)
+        this.pres_def_form.temp_attrs= []
+        this.pres_def_form.requested_attributes= []
+        this.pres_def_form.requested_attribute= ''
+        this.pres_def_form.restriction= ''
+        this.pres_def_form.name= ''
+        this.pres_def_form.version= ''
       },
       async compose_send(){
         this.send_message(this.compose_json, false);
@@ -636,6 +735,10 @@
         let index = this.exspanded_cred_def_items.indexOf(id)
         this.exspanded_cred_def_items.splice(index, 1);
       },
+      async collapse_expanded_pres_def(id){
+        let index = this.exspanded_pres_def_items.indexOf(id)
+        this.exspanded_pres_def_items.splice(index, 1);
+      }
     },
     data() {
       return {
@@ -759,6 +862,42 @@
           '3462d86c-fc14-480a-bd12-e0be147aadv7': {'attributes':[]},// TODO: create this structure dynamically at start.
           'ledger':'',
         },
+        'pres_def_form':{
+          'temp_attrs':[],
+          'requested_attributes':[],
+          'requested_attribute':'',
+          'restriction':'',
+          'name':'',
+          'version':'',
+        },
+        'presentation_definitions':{
+          '8472d86c-fc14-480a-bd12-e0be147aadb9':{
+            'pres_def_id':'8472d86c-fc14-480a-bd12-e0be147aadb9',
+            'name': 'registration',
+            'version': '1.0.0',
+            'requested_attributes':[
+              {'name':'address_line_1', 'restrictions': [{'issuer_did':'SAF2vMgCJd2PsqUpa5U2DX'},]},
+              {'name':'entity_status_effective', 'restrictions': [{'issuer_did':'SAF2vMgCJd2PsqUpa5U2DX'},]},
+              {'name':'entity_name_effective', 'restrictions': [{'issuer_did':'SAF2vMgCJd2PsqUpa5U2DX'},]},
+              {'name':'registration_date', 'restrictions': [{'issuer_did':'SAF2vMgCJd2PsqUpa5U2DX'},]},
+              {'name':'entity_status', 'restrictions': [{'issuer_did':'SAF2vMgCJd2PsqUpa5U2DX'},]},
+              {'name':'entity_type', 'restrictions': [{'issuer_did':'SAF2vMgCJd2PsqUpa5U2DX'},]},
+              {'name':'address_line_2', 'restrictions': [{'issuer_did':'SAF2vMgCJd2PsqUpa5U2DX'},]},
+              {'name':'addressee', 'restrictions': [{'issuer_did':'SAF2vMgCJd2PsqUpa5U2DX'},]},
+              {'name':'country', 'restrictions': [{'issuer_did':'SAF2vMgCJd2PsqUpa5U2DX'},]},
+              {'name':'corp_num', 'restrictions': [{'issuer_did':'SAF2vMgCJd2PsqUpa5U2DX'},]},
+              {'name':'postal_code', 'restrictions': [{'issuer_did':'SAF2vMgCJd2PsqUpa5U2DX'},]},
+              {'name':'province', 'restrictions': [{'issuer_did':'SAF2vMgCJd2PsqUpa5U2DX'},]},
+              {'name':'city', 'restrictions': [{'issuer_did':'SAF2vMgCJd2PsqUpa5U2DX'},]},
+              {'name':'legal_name', 'restrictions': [{'issuer_did':'SAF2vMgCJd2PsqUpa5U2DX'},]},
+              {'name':'age', 'restrictions': [{'issuer_did':'SAF2vMgCJd2PsqUpa5U2DX'},{'issuer_did':'JTUsfPMn1GGZLScyfqf9LU'},]},
+              {'name':'favorite_ice_cream'}//no restrictions, this is self attested
+              ],
+            'requested_predicates':[
+              {"name": "age","p_type": ">=","p_value": 18,"restrictions": [{'issuer_did':'SAF2vMgCJd2PsqUpa5U2DX'},{'issuer_did':'JTUsfPMn1GGZLScyfqf9LU'}],}
+            ]
+          }
+        },
         'supported_protocols': [],
         'compose_json': {
           "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping",
@@ -773,6 +912,8 @@
         'exspanded_schemas_items':[],
         'exspanded_cred_def_items':[],
         'exspanded_credential_issuer_items':[],
+        'exspanded_pres_def_items':[],
+        'exspanded_presentation_request_items':[],
         'invite_label_form':"master",
         'invite_role_form':"normal",
         'invite_accept_form':"auto",
