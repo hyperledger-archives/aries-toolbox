@@ -6,20 +6,37 @@
     </nav>
 
     <el-tabs type="border-card">
-      <el-tab-pane label="Protocol Discovery">
-
-        <input type="button" class="btn btn-secondary" v-on:click="run_protocol_discovery()" value="Query"/>
-        <table class="table table-sm">
-          <tr>
-            <th>Protocol</th>
-            <th>Roles</th>
-          </tr>
-          <tr v-for="p in supported_protocols">
-            <td>{{p.pid}}</td>
-            <td>{{p.roles}}</td>
-          </tr>
-        </table>
-
+    <el-tab-pane label="Dids">
+      <p>Dids:</p>
+      <el-collapse v-model="expanded_dids_items">
+            <div v-for="(did, key, index) in dids">
+                <el-collapse-item v-bind:title="'did: ' + did.did + ', vk: ' + did.verkey" :name="key">
+                    <el-row>
+                        <div>
+                              <vue-json-pretty
+                                :deep=1
+                                :data="did">
+                              </vue-json-pretty>
+                            <el-button v-on:click="collapse_expanded_did_item(key)">^</el-button>
+                        </div>
+                    </el-row>
+                </el-collapse-item>
+            </div>
+        </el-collapse>
+        <p>Create a Did:</p>
+        <el-form :model=did_form>
+        <el-form-group >
+          <span slot="label">Did:</span>
+            <el-input v-model="did_form.did" style="width:100px;"> </el-input>
+          <span slot="label">Seed:</span>
+            <el-input v-model="did_form.seed" style="width:100px;"> </el-input>
+          <span slot="label">Alias:</span>
+            <el-input v-model="did_form.label" style="width:100px;"> </el-input>
+        </el-form-group>
+        <el-form-item>
+            <el-button type="primary" @click="createDid()">add trusted issuer</el-button>
+        </el-form-item>
+        </el-form>
       </el-tab-pane>
 
       <el-tab-pane label="Connections">
@@ -321,6 +338,7 @@
         </el-form>
       </el-tab-pane>
       <el-tab-pane label="Presentation Definition">
+      <p>Presentation Definitions:</p>
         <el-collapse v-model="exspanded_pres_def_items">
             <div v-for="(pres_def, key, index) in presentation_definitions">
                 <el-collapse-item v-bind:title="pres_def.name" :name="key">
@@ -401,8 +419,124 @@
         <el-form-item>
             <el-button type="primary" @click="storePresentationDefinition()">create new presentation definition</el-button>
         </el-form-item>
+          <p>Presentation Requests Sent:</p>
+          <el-collapse v-model="expanded_pres_req_sent_items">
+            <div v-for="(pres_req, key, index) in sentPresentationRequests()">
+                <el-collapse-item v-bind:title="labelFromConnection(pres_req.connection_id)" :name="key">
+                    <el-row>
+                        <div>
+                          <vue-json-pretty
+                            :deep=1
+                            :data="pres_req">
+                          </vue-json-pretty>
+                            <el-button v-on:click="collapse_expanded_pres_req_sent(key)">^</el-button>
+                        </div>
+                    </el-row>
+                </el-collapse-item>
+            </div>
+          </el-collapse>
+          <p>Presentation Requests Received:</p>
+          <el-collapse v-model="expanded_pres_req_rec_items">
+            <div v-for="(pres_req, key, index) in receivedPresentationRequests()">
+                <el-collapse-item v-bind:title="labelFromConnection(pres_req.connection_id)" :name="key">
+                    <el-row>
+                        <div>
+                              <vue-json-pretty
+                                :deep=1
+                                :data="pres_req">
+                              </vue-json-pretty>
+                            <el-button v-on:click="collapse_expanded_pres_req_rec(key)">^</el-button>
+                        </div>
+                    </el-row>
+                </el-collapse-item>
+            </div>
+          </el-collapse>
+          <p>Presentations Sent:</p>
+          <el-collapse v-model="expanded_pres_sent_items">
+            <div v-for="(pres_req, key, index) in sentPresentations()">
+                <el-collapse-item v-bind:title="labelFromConnection(pres_req.connection_id)" :name="key">
+                    <el-row>
+                        <div>
+                              <vue-json-pretty
+                                :deep=1
+                                :data="pres_req">
+                              </vue-json-pretty>
+                            <el-button v-on:click="collapse_expanded_pres_sent(key)">^</el-button>
+                        </div>
+                    </el-row>
+                </el-collapse-item>
+            </div>
+          </el-collapse>
+          <p>Presentations Received:</p>
+          <el-collapse v-model="expanded_pres_rec_items">
+            <div v-for="(pres_req, key, index) in receivedPresentations()">
+                <el-collapse-item v-bind:title="labelFromConnection(pres_req.connection_id)" :name="key">
+                    <el-row>
+                        <div>
+                              <vue-json-pretty
+                                :deep=1
+                                :data="pres_req">
+                              </vue-json-pretty>
+                            <el-button v-on:click="collapse_expanded_pres_rec(key)">^</el-button>
+                        </div>
+                    </el-row>
+                </el-collapse-item>
+            </div>
+          </el-collapse>
+          <p>Presentations :</p>
+          <el-collapse v-model="expanded_pres_ver_items">
+            <div v-for="(pres_req, key, index) in verifiedPresentations()">
+                <!-- <el-collapse-item v-bind:title="labelFromConnection(pres_req.connection_id)" :name="key">
+                    <el-row>
+                        <div>
+                              <vue-json-pretty
+                                :deep=1
+                                :data="pres_req">
+                              </vue-json-pretty>
+                            <el-button v-on:click="collapse_expanded_ver(key)">^</el-button>
+                        <el-collapse-item title='Send a Presentation' :name="key">
+                            <el-row>
+                              <div v-for="(attribute, key, index) in cred_def.primary.r" v-if="key!='master_secret'" prop="cred_def">
+                                <span slot="label">{{key}}:</span>
+                                  <el-input v-model="cred_def_form[cred_def.cred_def_id].attributes[index]" style="width:100px;"> </el-input>
+                              </div>
+                              <el-form :model=cred_def_form>
+                                <el-form-item label="select connection:" >        
+                                  <el-select v-model="cred_def_form.connection" filterable placeholder="select connection to issue to:" >
+                                    <el-option
+                                      v-for="connection in activeConnections()"
+                                      :key="connection.connection_id"
+                                      :label="connection.their_label +' ('+connection.connection_id+')'"
+                                      :value="connection.connection_id">
+                                    </el-option> 
+                                  </el-select>
+                                </el-form-item>
+                              </el-form>
+                              <el-button @click="issueCredentialOffer(key,'global_pool')">Issue a credential offer</el-button>
+                            </el-row>
+                          </el-collapse-item>
+                        </div>
+                    </el-row>
+                </el-collapse-item> -->
+            </div>
+          </el-collapse>
         </el-form>
       </el-tab-pane>
+      </el-tab-pane>
+      <el-tab-pane label="Protocol Discovery">
+
+        <input type="button" class="btn btn-secondary" v-on:click="run_protocol_discovery()" value="Query"/>
+        <table class="table table-sm">
+          <tr>
+            <th>Protocol</th>
+            <th>Roles</th>
+          </tr>
+          <tr v-for="p in supported_protocols">
+            <td>{{p.pid}}</td>
+            <td>{{p.roles}}</td>
+          </tr>
+        </table>
+
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -442,7 +576,6 @@
 
   import VueJsonPretty from 'vue-json-pretty';
   import VJsoneditor from 'v-jsoneditor';
-
   export default {
     name: 'agent-base',
     components: {
@@ -469,6 +602,44 @@
           }
         }
         this.send_message(query_msg);
+      },
+      async getAgentDids(){
+        this.send_message( {
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/get-list-dids",
+          "~transport": {
+            "return_route": "all"
+          }
+        })
+      },
+      async createDid(){
+        let msg = {
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/create-did",
+          "~transport": {
+            "return_route": "all"
+          }
+        }
+        msg = this.did_form.did ? {...msg,"did":this.did_form.did} : msg
+        msg = this.did_form.seed ? {...msg,"seed":this.did_form.seed} : msg
+        msg = this.did_form.label ? {...msg, "metadata": {"label":this.did_form.label}} : msg
+        this.send_message(msg)
+      },
+      async receivedAgentDids(msg){
+        const dids = msg.result.reduce(function(acc, cur, i) {
+          acc[cur.did] = cur;
+          return acc;
+        }, {});
+        this.dids = dids
+        this.didsUpdateForm = dids
+      },
+      async updatedDid(msg){
+        if ('result' in msg &&
+            'did' in msg.result) {
+          this.dids[msg.result.did] = msg.result
+          this.did_form.did = ""
+          this.did_form.seed = ""
+          this.did_form.label = ""
+          this.didsUpdateForm = this.dids
+        }
       },
       async updateAgentConnection(connection){
         let query_msg = {
@@ -557,6 +728,12 @@
         }
         this.send_message(query_msg);
       },
+      labelFromConnection(id){
+        if (id in this.connections &&'their_label' in this.connections[id]) {
+          return this.connections[id].their_label
+        }
+        return id
+      },
       activeConnections(){
         return Object.keys(this.connections).reduce((acc, val) => 
           ("their_label" in this.connections[val] ?  {
@@ -571,6 +748,46 @@
               ...acc,
               [val]: this.connections[val]
           }                                        
+        ), {})
+      },
+      sentPresentationRequests(){
+        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
+          ("request_sent" === this.presentation_exchanges[val].state ?  {
+              ...acc,
+              [val]: this.presentation_exchanges[val]
+          } : acc                                       
+        ), {})
+      },
+      receivedPresentationRequests(){
+        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
+          ("request_received" === this.presentation_exchanges[val].state ?  {
+              ...acc,
+              [val]: this.presentation_exchanges[val]
+          } : acc                                       
+        ), {})
+      },
+      sentPresentations(){
+        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
+          ("presentation_sent" === this.presentation_exchanges[val].state ?  {
+              ...acc,
+              [val]: this.presentation_exchanges[val]
+          } : acc                                       
+        ), {})
+      },
+      receivedPresentations(){
+        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
+          ("presentation_received" === this.presentation_exchanges[val].state ?  {
+              ...acc,
+              [val]: this.presentation_exchanges[val]
+          } : acc                                       
+        ), {})
+      },
+      verifiedPresentations(){
+        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
+          ("verified" === this.presentation_exchanges[val].state ?  {
+              ...acc,
+              [val]: this.presentation_exchanges[val]
+          } : acc                                       
         ), {})
       },
       ledgerSchemas(ledger_name){
@@ -596,6 +813,14 @@
       async ProtocolDisclose(msg){
         //console.log(msg.protocols);
         this.supported_protocols = msg.protocols;
+      },
+      async most_recent_sent_msg(){
+        //return this.message_history.reduce(function(acc, cur, i) {
+          //Todo: group by thread, store most resent thread, return message thread.
+
+      },
+      async most_recent_sent_msg(){
+
       },
       async message_history_add(msg, direction){
         this.message_history.push({
@@ -749,7 +974,9 @@
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection": this.updatedConnection,
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/ack": this.fetchAgentConnections,
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation": this.newInvitation,
-          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-info":this.updatedConnection,// handle added statuc agent ....
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-info":this.updatedConnection,// handle added statuc agent
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/list-dids":this.receivedAgentDids,
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/did":this.updatedDid,
         };
         var handler = handlers[msg['@type']];
         if(handler){
@@ -834,6 +1061,30 @@
         let index = this.expanded_issuers_items.indexOf(id)
         this.expanded_issuers_items.splice(index, 1);
       },
+      async collapse_expanded_pres_req_sent(id){
+        let index = this.expanded_pres_req_sent_items.indexOf(id)
+        this.expanded_pres_req_sent_items.splice(index, 1);
+      },
+      async collapse_expanded_pres_req_rec(id){
+        let index = this.expanded_pres_req_rec_items.indexOf(id)
+        this.expanded_pres_req_rec_items.splice(index, 1);
+      },
+      async collapse_expanded_pres_sent(id){
+        let index = this.expanded_pres_sent_items.indexOf(id)
+        this.expanded_pres_sent_items.splice(index, 1);
+      },
+      async collapse_expanded_pres_rec(id){
+        let index = this.expanded_pres_rec_items.indexOf(id)
+        this.expanded_pres_rec_items.splice(index, 1);
+      },
+      async collapse_expanded_ver(id){
+        let index = this.expanded_pres_ver_items.indexOf(id)
+        this.expanded_pres_ver_items.splice(index, 1);
+      },
+      async collapse_expanded_did_item(id){
+        let index = this.expanded_dids_items.indexOf(id)
+        this.expanded_dids_items.splice(index, 1);
+      }
     },
     data() {
       return {
@@ -859,6 +1110,7 @@
             'name':'adams',
           },
         },
+        'dids':{},
         'trusted_issuers':{
           'mgtqGEF8EBQHBLREdRoJ4':{
             'did':'mgtqGEF8EBQHBLREdRoJ4',
@@ -983,6 +1235,12 @@
           'did':'',
           'label':'',
         },
+        'did_form':{
+          'did':'',
+          'seed':'',
+          'label':'',
+          'metadata':'',
+        },
         'presentation_definitions':{
           '8472d86c-fc14-480a-bd12-e0be147aadb9':{
             'pres_def_id':'8472d86c-fc14-480a-bd12-e0be147aadb9',
@@ -1011,6 +1269,98 @@
             ]
           }
         },
+        'presentation_exchanges': { 
+          '0012d86c-fc14-480a-bd12-e0be147lbew9':
+          {
+            'presentation_exchange_id':'0012d86c-fc14-480a-bd12-e0be147lbew9',// "string",
+            'connection_id':'fd507eb3-8acf-40c2-9bbd-78cbcc52a3e4',// "string",
+            'thread_id':'0170119952737',// "string",
+            'initiator':'self' , // "string",
+            'state':'request_sent',// "string",
+            'presentation_request':{},// {},
+            'presentation':{},// {},
+            'auto_present': false,
+            'verified':'',// 'verified', // "string"
+            'error_msg':'',// "string",
+            'updated_at':'2019-10-03 16:25:52.934302Z',// "string",
+            'created_at':'2019-10-03 16:25:05.875156Z',// "string",
+          },
+          '0022d86c-fc14-480a-bd12-e0be147lbew9':
+          {
+            'presentation_exchange_id':'0022d86c-fc14-480a-bd12-e0be147lbew9',// "string",
+            'connection_id':'00207eb3-8acf-40c2-9bbd-78cbcc52a3e4',// "string",
+            'thread_id':'0270119952737',// "string",
+            'initiator':'external' , // "string",
+            'state':'request_received',// "string",
+            'presentation_request':{},// {},
+            'presentation':{},// {},
+            'auto_present': false,
+            'verified':'',// 'verified', // "string"
+            'error_msg':'',// "string",
+            'updated_at':'2019-10-03 16:25:52.934302Z',// "string",
+            'created_at':'2019-10-03 16:25:05.875156Z',// "string",
+          },
+          '0032d86c-fc14-480a-bd12-e0be147lbew9':
+          {
+            'presentation_exchange_id':'0032d86c-fc14-480a-bd12-e0be147lbew9',// "string",
+            'connection_id':'00307eb3-8acf-40c2-9bbd-78cbcc52a3e4',// "string",
+            'thread_id':'0370119952737',// "string",
+            'initiator':'self' , // "string",
+            'state':'presentation_sent',// "string",
+            'presentation_request':{},// {},
+            'presentation':{},// {},
+            'auto_present': false,
+            'verified':'',// 'verified', // "string"
+            'error_msg':'',// "string",
+            'updated_at':'2019-10-03 16:25:52.934302Z',// "string",
+            'created_at':'2019-10-03 16:25:05.875156Z',// "string",
+          },
+          '0042d86c-fc14-480a-bd12-e0be147lbew9':
+          {
+            'presentation_exchange_id':'0042d86c-fc14-480a-bd12-e0be147lbew9',// "string",
+            'connection_id':'00407eb3-8acf-40c2-9bbd-78cbcc52a3e4',// "string",
+            'thread_id':'0470119952737',// "string",
+            'initiator':'external' , // "string",
+            'state':'presentation_received',// "string",
+            'presentation_request':{},// {},
+            'presentation':{},// {},
+            'auto_present': false,
+            'verified':'',// 'verified', // "string"
+            'error_msg':'',// "string",
+            'updated_at':'2019-10-03 16:25:52.934302Z',// "string",
+            'created_at':'2019-10-03 16:25:05.875156Z',// "string",
+          },
+          '0062d86c-fc14-480a-bd12-e0be147lbew9':
+          {
+            'presentation_exchange_id':'0062d86c-fc14-480a-bd12-e0be147lbew9',// "string",
+            'connection_id':'00607eb3-8acf-40c2-9bbd-78cbcc52a3e4',// "string",
+            'thread_id':'0670119952737',// "string",
+            'initiator':'self' , // "string",
+            'state':'verified',// "string",
+            'presentation_request':{},// {},
+            'presentation':{},// {},
+            'auto_present': false,
+            'verified':'verified', // "string"
+            'error_msg':'',// "string",
+            'updated_at':'2019-10-03 16:25:52.934302Z',// "string",
+            'created_at':'2019-10-03 16:25:05.875156Z',// "string",
+          },
+          '0052d86c-fc14-480a-bd12-e0be147lbew9':
+          {
+            'presentation_exchange_id':'0052d86c-fc14-480a-bd12-e0be147lbew9',// "string",
+            'connection_id':'00507eb3-8acf-40c2-9bbd-78cbcc52a3e4',// "string",
+            'thread_id':'0570119952737',// "string",
+            'initiator':'external' , // "string",
+            'state':'verified',// "string",
+            'presentation_request':{},// {},
+            'presentation':{},// {},
+            'auto_present': false,
+            'verified':'verified', // "string"
+            'error_msg':'',// "string",
+            'updated_at':'2019-10-03 16:25:52.934302Z',// "string",
+            'created_at':'2019-10-03 16:25:05.875156Z',// "string",
+          },
+        },
         'supported_protocols': [],
         'compose_json': {
           "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping",
@@ -1021,6 +1371,7 @@
         'connectionUpdateForm':{},
         'exspanded_connection_items':[],
         'invitations':{},
+        'expanded_dids_items':[],
         'exspanded_invites_items':[],
         'exspanded_schemas_items':[],
         'exspanded_cred_def_items':[],
@@ -1028,6 +1379,11 @@
         'expanded_issuers_items':[],
         'exspanded_pres_def_items':[],
         'exspanded_presentation_request_items':[],
+        'expanded_pres_req_sent_items':[],
+        'expanded_pres_req_rec_items':[],
+        'expanded_pres_rec_items':[],
+        'expanded_pres_sent_items':[],
+        'expanded_pres_ver_items':[],
         'invite_label_form':"master",
         'invite_role_form':"normal",
         'invite_accept_form':"auto",
@@ -1054,6 +1410,7 @@
       // fetch the data when the view is created and the data is
       // already being observed
       await this.fetchAgentData();
+      await this.getAgentDids();
       await this.run_protocol_discovery();
       await this.fetchAgentConnections();
       // await this.fetchNewInvite(); // do not automatically create invite
