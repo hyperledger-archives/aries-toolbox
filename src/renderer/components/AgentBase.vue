@@ -150,7 +150,13 @@
         <input type="button" class="btn btn-secondary" v-on:click="compose_send()" value="Send"/>
         <v-jsoneditor v-model="compose_json">
         </v-jsoneditor>
-
+        <div class="message-display" v-for="msg in most_recent_sent_msgs()">
+          <i>{{msg.direction}}</i>
+          <vue-json-pretty
+            :deep=1
+            :data="msg.msg">
+          </vue-json-pretty>
+        </div>
       </el-tab-pane>
 
       <el-tab-pane label="BasicMessage">
@@ -814,13 +820,17 @@
         //console.log(msg.protocols);
         this.supported_protocols = msg.protocols;
       },
-      async most_recent_sent_msg(){
-        //return this.message_history.reduce(function(acc, cur, i) {
-          //Todo: group by thread, store most resent thread, return message thread.
-
+      msgHistoryGroupedByThid(){
+        return this.message_history.reduce(function(acc, cur, i) {
+          var id = ('~thread'in cur.msg && 'thid' in cur.msg['~thread']) ? cur.msg['~thread'].thid : cur.msg['@id']
+          acc[id] = acc[id] || []
+          acc[id].push(cur)
+          return acc }, 
+          {})
       },
-      async most_recent_sent_msg(){
-
+      most_recent_sent_msgs(){
+        return this.msgHistoryGroupedByThid()[this.last_sent_msg_id]
+        
       },
       async message_history_add(msg, direction){
         this.message_history.push({
@@ -964,6 +974,8 @@
         this.pres_def_form.version= ''
       },
       async compose_send(){
+        this.last_sent_msg_id = '@id' in this.compose_json ? this.compose_json['@id'] : (new Date()).getTime().toString()
+        this.compose_json['@id']= this.last_sent_msg_id
         this.send_message(this.compose_json, false);
       },
       async processInbound(msg){
@@ -989,14 +1001,14 @@
         var vm = this; //safe reference to view model
 
         // add id
-        msg['@id'] = (new Date()).getTime().toString();
+        msg['@id'] = '@id' in msg ? msg['@id'] : (new Date()).getTime().toString();
+        
+        // clear configurations
+        set_return_route = 'response_requested' in msg ? msg['response_requested'] : set_return_route
+        delete msg['response_request']
 
-        if (set_return_route) {
-            // add return routing option
-            msg["~transport"] =  {
-                "return_route": "all"
-            };
-        }
+        // add transport from configuration
+        msg['~transport'] = set_return_route ? {'return_route': 'all'} : {'return_route': 'none'} // FIXME: none?????
 
         this.message_history_add(msg, "Sent");
 
@@ -1092,6 +1104,7 @@
         'connection': {'label':'loading...'},
         'connection_loaded': false,
         'message_history':[],
+        'last_sent_msg_id':'',
         'ledgers':{
           '12345234':{
             'id':'12345234',
