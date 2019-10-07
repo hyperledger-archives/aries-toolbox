@@ -39,8 +39,44 @@
         </el-form>
       </el-tab-pane>
 
+    <el-tab-pane label="Ledger">
+      <p>Ledgers:</p>
+      <el-collapse v-model="expanded_ledger_items">
+            <div v-for="(ledger, key, index) in ledgers">
+                <el-collapse-item v-bind:title="'Name: ' + ledger.name" :name="key">
+                    <el-row>
+                        <div>
+                              <vue-json-pretty
+                                :deep=1
+                                :data="ledger">
+                              </vue-json-pretty>
+                              <el-form class="ledger-form">
+                                <el-form-item >
+                                  <el-button type="primary" @click="removeLedger(ledger)">delete</el-button>
+                                </el-form-item>
+                            <el-button v-on:click="collapse_expanded_ledger_item(key)">^</el-button>
+                            </el-form>
+                        </div>
+                    </el-row>
+                </el-collapse-item>
+            </div>
+        </el-collapse>
+        <p>Add new ledger:</p>
+        <el-form :model=ledger_form>
+        <el-form-group >
+          <span slot="label">Name:</span>
+            <el-input v-model="ledger_form.name" style="width:100px;"> </el-input>
+          <span slot="label">Url to genesis file:</span>
+            <el-input v-model="ledger_form.gen_url" style="width:100px;"> </el-input>
+        </el-form-group>
+        <el-form-item>
+            <el-button type="primary" @click="addLedger()">add new ledger</el-button>
+        </el-form-item>
+        </el-form>
+      </el-tab-pane>
+
       <el-tab-pane label="Connections">
-        <el-row>
+        <el-row>  
         <p>Active Connections:</p>
         <el-collapse v-model="exspanded_connection_items">
             <div v-for="(connection, key, index) in activeConnections()">
@@ -590,6 +626,13 @@
     },
     methods: {
       ...mapActions("Connections", ["get_connection"]),
+      //=========================================================================================================================
+      //-------------------------Outbound Messages-------------------------------------------------------------------
+      //=========================================================================================================================
+      /**
+       *  Agent admin messages sent to change state of wallet and did connections. 
+       */
+      //=========================================================================================================================
       async fetchAgentData(){
         //load from vue store
         // this is cloned from the datastore to allow fixing the key encodings.
@@ -607,6 +650,14 @@
             "return_route": "all"
           }
         }
+        this.send_message(query_msg);
+      },
+      async run_protocol_discovery(){
+        //send query
+        let query_msg = {
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/query",
+          "query": "*"
+        };
         this.send_message(query_msg);
       },
       async getAgentDids(){
@@ -628,24 +679,6 @@
         msg = this.did_form.seed ? {...msg,"seed":this.did_form.seed} : msg
         msg = this.did_form.label ? {...msg, "metadata": {"label":this.did_form.label}} : msg
         this.send_message(msg)
-      },
-      async receivedAgentDids(msg){
-        const dids = msg.result.reduce(function(acc, cur, i) {
-          acc[cur.did] = cur;
-          return acc;
-        }, {});
-        this.dids = dids
-        this.didsUpdateForm = dids
-      },
-      async updatedDid(msg){
-        if ('result' in msg &&
-            'did' in msg.result) {
-          this.dids[msg.result.did] = msg.result
-          this.did_form.did = ""
-          this.did_form.seed = ""
-          this.did_form.label = ""
-          this.didsUpdateForm = this.dids
-        }
       },
       async updateAgentConnection(connection){
         let query_msg = {
@@ -681,26 +714,6 @@
         this.send_message(query_msg);
         delete this.schemas[id]// TODO:remove this after aca-py support is added.
       },
-      async updatedConnection(msg){
-          this.connections[msg.connection.connection_id] = msg.connection
-          this.connectionUpdateForm = this.connections;
-      },
-      async fetchedConnectionList(msg){
-        const connections = msg.results.reduce(function(acc, cur, i) {
-          acc[cur.connection_id] = cur;
-          return acc;
-        }, {});
-        this.connections = connections
-        this.connectionUpdateForm = connections
-      },
-      async newInvitation(msg){
-        console.log(msg.invitation)
-        const newInvite = this.invitations[ msg.connection_id] = {
-          //... msg.invitation, // invitations is not a json yet... 
-          "invitation": msg.invitation, 
-          "connection_id" : msg.connection_id, 
-          "invitation_url": msg.invitation_url}
-      },
       async fetchNewInvite(){
         let query_msg = {
           "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/create-invitation",
@@ -733,110 +746,11 @@
           }
         }
         this.send_message(query_msg);
-      },
-      labelFromConnection(id){
-        if (id in this.connections &&'their_label' in this.connections[id]) {
-          return this.connections[id].their_label
-        }
-        return id
-      },
-      activeConnections(){
-        return Object.keys(this.connections).reduce((acc, val) => 
-          ("their_label" in this.connections[val] ?  {
-              ...acc,
-              [val]: this.connections[val]
-          } : acc                                       
-        ), {})
-      },
-      pendingConnections(){
-        return Object.keys(this.connections).reduce((acc, val) => 
-          ("their_label" in this.connections[val] ? acc : {
-              ...acc,
-              [val]: this.connections[val]
-          }                                        
-        ), {})
-      },
-      sentPresentationRequests(){
-        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
-          ("request_sent" === this.presentation_exchanges[val].state ?  {
-              ...acc,
-              [val]: this.presentation_exchanges[val]
-          } : acc                                       
-        ), {})
-      },
-      receivedPresentationRequests(){
-        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
-          ("request_received" === this.presentation_exchanges[val].state ?  {
-              ...acc,
-              [val]: this.presentation_exchanges[val]
-          } : acc                                       
-        ), {})
-      },
-      sentPresentations(){
-        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
-          ("presentation_sent" === this.presentation_exchanges[val].state ?  {
-              ...acc,
-              [val]: this.presentation_exchanges[val]
-          } : acc                                       
-        ), {})
-      },
-      receivedPresentations(){
-        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
-          ("presentation_received" === this.presentation_exchanges[val].state ?  {
-              ...acc,
-              [val]: this.presentation_exchanges[val]
-          } : acc                                       
-        ), {})
-      },
-      verifiedPresentations(){
-        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
-          ("verified" === this.presentation_exchanges[val].state ?  {
-              ...acc,
-              [val]: this.presentation_exchanges[val]
-          } : acc                                       
-        ), {})
-      },
-      ledgerSchemas(ledger_name){
-        console.log("ledger name:",ledger_name)
-        let schemas = Object.keys(this.schemas).reduce((acc,key)=>
-          ("ledgers" in this.schemas[key] &&
-           ledger_name in this.schemas[key].ledgers ?{
-              ...acc,
-              [key]: this.schemas[key]
-          } : acc                                       
-        ), {})
-        console.log("schemas",schemas)
-        return schemas
-      },
-      async run_protocol_discovery(){
-        //send query
-        let query_msg = {
-          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/query",
-          "query": "*"
-        };
-        this.send_message(query_msg);
-      },
-      async ProtocolDisclose(msg){
-        //console.log(msg.protocols);
-        this.supported_protocols = msg.protocols;
-      },
-      msgHistoryGroupedByThid(){
-        return this.message_history.reduce(function(acc, cur, i) {
-          var id = ('~thread'in cur.msg && 'thid' in cur.msg['~thread']) ? cur.msg['~thread'].thid : cur.msg['@id']
-          acc[id] = acc[id] || []
-          acc[id].push(cur)
-          return acc }, 
-          {})
-      },
-      most_recent_sent_msgs(){
-        return this.msgHistoryGroupedByThid()[this.last_sent_msg_id]
-        
-      },
-      async message_history_add(msg, direction){
-        this.message_history.push({
-          'msg':msg,
-          'direction': direction,
-        });
+      },   
+      async compose_send(){
+        this.last_sent_msg_id = '@id' in this.compose_json ? this.compose_json['@id'] : (new Date()).getTime().toString()
+        this.compose_json['@id']= this.last_sent_msg_id
+        this.send_message(this.compose_json, true);
       },
       async basicmessage_send(){
         let msg = {
@@ -845,33 +759,6 @@
         };
         this.send_message(msg);
         this.basicmessage_compose = "";
-      },
-      async message_history_clear(){
-        this.message_history.splice(0, this.message_history.length);//clear all entries
-      },
-      async schema_attributes_clear(){
-        this.schemas_form.attributes = [];
-      },
-      async schema_add_attribute(){
-        this.schemas_form.attributes = [...this.schemas_form.attributes,this.schemas_form.attribute];
-        this.schemas_form.attribute = '';
-      },
-      async add_pres_def_attribute(){
-        this.pres_def_form.requested_attribute= { 
-          "name":this.pres_def_form.requested_attribute,
-          "restrictions" : []
-          }
-        this.pres_def_form.requested_attributes = [...this.pres_def_form.requested_attributes,this.pres_def_form.requested_attribute];
-        this.pres_def_form.temp_attrs=[...this.pres_def_form.temp_attrs,{"restriction":""}]
-        this.pres_def_form.requested_attribute = '';
-      },
-      async add_pres_def_restriction(index){
-        this.pres_def_form.temp_attrs[index].restriction = 
-          {"issuer_did": this.pres_def_form.temp_attrs[index].restriction}
-        this.pres_def_form.requested_attributes[index].restrictions = 
-          [...this.pres_def_form.requested_attributes[index].restrictions,
-          this.pres_def_form.temp_attrs[index].restriction]
-        this.pres_def_form.temp_attrs[index].restriction = '';
       },
       async storeSchema(){
         let query_msg = {
@@ -973,10 +860,98 @@
         this.pres_def_form.name= ''
         this.pres_def_form.version= ''
       },
-      async compose_send(){
-        this.last_sent_msg_id = '@id' in this.compose_json ? this.compose_json['@id'] : (new Date()).getTime().toString()
-        this.compose_json['@id']= this.last_sent_msg_id
-        this.send_message(this.compose_json, false);
+      async send_message(msg, set_return_route = true){
+        var vm = this; //safe reference to view model
+        msg['@id'] = '@id' in msg ? msg['@id'] : (new Date()).getTime().toString(); // add id
+        console.log('response_requested' in msg, msg);
+        set_return_route = 'response_requested' in msg ? msg['response_requested'] : set_return_route // clear configurations
+        delete msg['response_request']
+        // add transport from configuration
+        msg['~transport'] = set_return_route ? {'return_route': 'all'} : {'return_route': 'none'} //Aries RFC 0092 https://github.com/hyperledger/aries-rfcs/blob/be5635174e202f8604c521e09d98b04ac7a70930/features/0092-transport-return-route/README.md
+        this.message_history_add(msg, "Sent");
+        console.log("sending message", msg);
+        console.log("to", bs58.decode(this.connection.did_doc.service[0].recipientKeys[0]));
+        const didcomm = new DIDComm.DIDComm();
+        await didcomm.Ready;
+        const packedMsg = await didcomm.packMessage(JSON.stringify(msg), [bs58.decode(this.connection.did_doc.service[0].recipientKeys[0])], this.connection.my_key);
+        //send request
+        var options = {
+            method: 'POST',
+            uri: this.connection.did_doc.service[0].serviceEndpoint,
+            body: packedMsg,
+        };
+        rp(options)
+            .then(async function (parsedBody) {
+              if (!parsedBody) { // POST succeeded...
+                console.log("No response for post; continuing.");
+                return;
+              }
+              const unpackedResponse = await didcomm.unpackMessage(parsedBody, vm.connection.my_key);
+              //console.log("unpacked", unpackedResponse);
+              const response = JSON.parse(unpackedResponse.message);
+
+              //TODO: Process signed fields
+              console.log("received message", response);
+              vm.processInbound(response);
+            })
+            .catch(function (err) { // POST failed...
+              console.log("request post err", err);
+            });
+      },
+      //=========================================================================================================================
+      //-------------------------Inbound Messages---------------------------------------------------------------------------
+      //=========================================================================================================================
+      /**
+       *  Received Agent admin messages with directives containing state of wallet and did connections to be displayed. 
+       */
+      //=========================================================================================================================
+      async receivedAgentDids(msg){
+        const dids = msg.result.reduce(function(acc, cur, i) {
+          acc[cur.did] = cur;
+          return acc;
+        }, {});
+        this.dids = dids
+        this.didsUpdateForm = dids
+      },
+      async updatedDid(msg){
+        if ('result' in msg &&
+            'did' in msg.result) {
+          this.dids[msg.result.did] = msg.result
+          this.did_form.did = ""
+          this.did_form.seed = ""
+          this.did_form.label = ""
+          this.didsUpdateForm = this.dids
+        }
+      },
+      async fetchedConnectionList(msg){
+        const connections = msg.results.reduce(function(acc, cur, i) {
+          acc[cur.connection_id] = cur;
+          return acc;
+        }, {});
+        this.connections = connections
+        this.connectionUpdateForm = connections
+      },
+      async updatedConnection(msg){
+          this.connections[msg.connection.connection_id] = msg.connection
+          this.connectionUpdateForm = this.connections;
+      },
+      async newInvitation(msg){
+        console.log(msg.invitation)
+        const newInvite = this.invitations[ msg.connection_id] = {
+          //... msg.invitation, // invitations is not a json yet... 
+          "invitation": msg.invitation, 
+          "connection_id" : msg.connection_id, 
+          "invitation_url": msg.invitation_url}
+      },
+      async ProtocolDisclose(msg){
+        //console.log(msg.protocols);
+        this.supported_protocols = msg.protocols;
+      },
+      async message_history_add(msg, direction){
+        this.message_history.push({
+          'msg':msg,
+          'direction': direction,
+        });
       },
       async processInbound(msg){
         this.message_history_add(msg, "Received");
@@ -997,57 +972,39 @@
           console.log("Message without handler", msg);
         }
       },
-      async send_message(msg, set_return_route = true){
-        var vm = this; //safe reference to view model
-
-        // add id
-        msg['@id'] = '@id' in msg ? msg['@id'] : (new Date()).getTime().toString();
-        
-        // clear configurations
-        set_return_route = 'response_requested' in msg ? msg['response_requested'] : set_return_route
-        delete msg['response_request']
-
-        // add transport from configuration
-        msg['~transport'] = set_return_route ? {'return_route': 'all'} : {'return_route': 'none'} // FIXME: none?????
-
-        this.message_history_add(msg, "Sent");
-
-        console.log("sending message", msg);
-        console.log("to", bs58.decode(this.connection.did_doc.service[0].recipientKeys[0]));
-
-        const didcomm = new DIDComm.DIDComm();
-        await didcomm.Ready;
-        const packedMsg = await didcomm.packMessage(JSON.stringify(msg), [bs58.decode(this.connection.did_doc.service[0].recipientKeys[0])], this.connection.my_key);
-
-        //send request
-        var options = {
-            method: 'POST',
-            uri: this.connection.did_doc.service[0].serviceEndpoint,
-            body: packedMsg,
-        };
-
-        rp(options)
-            .then(async function (parsedBody) {
-              // POST succeeded...
-              //console.log("request post response", parsedBody);
-              if (!parsedBody) {
-                console.log("No response for post; continuing.");
-                return;
-              }
-              const unpackedResponse = await didcomm.unpackMessage(parsedBody, vm.connection.my_key);
-              //console.log("unpacked", unpackedResponse);
-              const response = JSON.parse(unpackedResponse.message);
-
-              //TODO: Process signed fields
-
-              console.log("received message", response);
-              vm.processInbound(response);
-
-            })
-            .catch(function (err) {
-                // POST failed...
-              console.log("request post err", err);
-            });
+      //=========================================================================================================================
+      //------------------------- View methods ----------------------------------------------------------------------------------
+      //=========================================================================================================================
+      /**
+       * 
+       */      
+      //=========================================================================================================================
+      async add_pres_def_attribute(){
+        this.pres_def_form.requested_attribute= { 
+          "name":this.pres_def_form.requested_attribute,
+          "restrictions" : []
+          }
+        this.pres_def_form.requested_attributes = [...this.pres_def_form.requested_attributes,this.pres_def_form.requested_attribute];
+        this.pres_def_form.temp_attrs=[...this.pres_def_form.temp_attrs,{"restriction":""}]
+        this.pres_def_form.requested_attribute = '';
+      },
+      async add_pres_def_restriction(index){
+        this.pres_def_form.temp_attrs[index].restriction = 
+          {"issuer_did": this.pres_def_form.temp_attrs[index].restriction}
+        this.pres_def_form.requested_attributes[index].restrictions = 
+          [...this.pres_def_form.requested_attributes[index].restrictions,
+          this.pres_def_form.temp_attrs[index].restriction]
+        this.pres_def_form.temp_attrs[index].restriction = '';
+      },
+      async message_history_clear(){
+        this.message_history.splice(0, this.message_history.length);//clear all entries
+      },
+      async schema_attributes_clear(){
+        this.schemas_form.attributes = [];
+      },
+      async schema_add_attribute(){
+        this.schemas_form.attributes = [...this.schemas_form.attributes,this.schemas_form.attribute];
+        this.schemas_form.attribute = '';
       },
       async collapse_expanded_connections(connection_id){
         let index = this.exspanded_connection_items.indexOf(connection_id)
@@ -1096,7 +1053,103 @@
       async collapse_expanded_did_item(id){
         let index = this.expanded_dids_items.indexOf(id)
         this.expanded_dids_items.splice(index, 1);
-      }
+      },
+      async collapse_expanded_ledger_item(id){
+        let index = this.expanded_ledger_items.indexOf(id)
+        this.expanded_ledger_items.splice(index, 1);
+      },
+      //=========================================================================================================================
+      //------------------------------------------------ Aggregate methods ---------------------------------------------------
+      //=========================================================================================================================
+      /**
+       * 
+       */      
+      //=========================================================================================================================
+      labelFromConnection(id){
+        if (id in this.connections &&'their_label' in this.connections[id]) {
+          return this.connections[id].their_label
+        }
+        return id
+      },
+      activeConnections(){
+        return Object.keys(this.connections).reduce((acc, val) => 
+          ("their_label" in this.connections[val] ?  {
+              ...acc,
+              [val]: this.connections[val]
+          } : acc                                       
+        ), {})
+      },
+      pendingConnections(){
+        return Object.keys(this.connections).reduce((acc, val) => 
+          ("their_label" in this.connections[val] ? acc : {
+              ...acc,
+              [val]: this.connections[val]
+          }                                        
+        ), {})
+      },
+      msgHistoryGroupedByThid(){
+        return this.message_history.reduce(function(acc, cur, i) {
+          var id = ('~thread'in cur.msg && 'thid' in cur.msg['~thread']) ? cur.msg['~thread'].thid : cur.msg['@id']
+          acc[id] = acc[id] || []
+          acc[id].push(cur)
+          return acc }, 
+          {})
+      },
+      most_recent_sent_msgs(){
+        return this.msgHistoryGroupedByThid()[this.last_sent_msg_id]  
+      },  
+      sentPresentationRequests(){
+        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
+          ("request_sent" === this.presentation_exchanges[val].state ?  {
+              ...acc,
+              [val]: this.presentation_exchanges[val]
+          } : acc                                       
+        ), {})
+      },
+      receivedPresentationRequests(){
+        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
+          ("request_received" === this.presentation_exchanges[val].state ?  {
+              ...acc,
+              [val]: this.presentation_exchanges[val]
+          } : acc                                       
+        ), {})
+      },
+      sentPresentations(){
+        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
+          ("presentation_sent" === this.presentation_exchanges[val].state ?  {
+              ...acc,
+              [val]: this.presentation_exchanges[val]
+          } : acc                                       
+        ), {})
+      },
+      receivedPresentations(){
+        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
+          ("presentation_received" === this.presentation_exchanges[val].state ?  {
+              ...acc,
+              [val]: this.presentation_exchanges[val]
+          } : acc                                       
+        ), {})
+      },
+      verifiedPresentations(){
+        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
+          ("verified" === this.presentation_exchanges[val].state ?  {
+              ...acc,
+              [val]: this.presentation_exchanges[val]
+          } : acc                                       
+        ), {})
+      },
+      ledgerSchemas(ledger_name){
+        console.log("ledger name:",ledger_name)
+        let schemas = Object.keys(this.schemas).reduce((acc,key)=>
+          ("ledgers" in this.schemas[key] &&
+           ledger_name in this.schemas[key].ledgers ?{
+              ...acc,
+              [key]: this.schemas[key]
+          } : acc                                       
+        ), {})
+        console.log("schemas",schemas)
+        return schemas
+      },
     },
     data() {
       return {
@@ -1254,6 +1307,10 @@
           'label':'',
           'metadata':'',
         },
+        'ledger_form':{
+          'name':'',
+          'gen_url':'',
+        },
         'presentation_definitions':{
           '8472d86c-fc14-480a-bd12-e0be147aadb9':{
             'pres_def_id':'8472d86c-fc14-480a-bd12-e0be147aadb9',
@@ -1385,6 +1442,7 @@
         'exspanded_connection_items':[],
         'invitations':{},
         'expanded_dids_items':[],
+        'expanded_ledger_items':[],
         'exspanded_invites_items':[],
         'exspanded_schemas_items':[],
         'exspanded_cred_def_items':[],
