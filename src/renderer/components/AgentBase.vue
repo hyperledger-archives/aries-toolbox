@@ -100,6 +100,12 @@
       </el-tab-pane>
       <el-tab-pane label="Connections">
         <el-row>
+          <agent-connection-list title="Active Connections:" itemlabel="their_label" v-bind:list="activeConnections">
+          </agent-connection-list>
+          <agent-connection-list title="Pending Connections:" itemlabel="their_label" v-bind:list="pendingConnections">
+          </agent-connection-list>
+          <agent-connection-list title="Open Invitations:" itemlabel="connection_id" v-bind:list="openInvitations">
+          </agent-connection-list>
         <template v-if="Object.keys(activeConnections).length">
           <p>Active Connections:</p>
           <el-collapse v-model="exspanded_active_connection_items">
@@ -774,11 +780,13 @@
 
   import VueJsonPretty from 'vue-json-pretty';
   import VJsoneditor from 'v-jsoneditor';
+  import AgentConnectionList from './AgentConnectionList.vue'
   export default {
     name: 'agent-base',
     components: {
       VueJsonPretty,
-      VJsoneditor
+      VJsoneditor,
+      AgentConnectionList
     },
     methods: {
       ...mapActions("Connections", ["get_connection"]),
@@ -1592,13 +1600,14 @@
     computed: {
       ...mapState(['Connections']),
       //=========================================================================================================================
-      //------------------------------------------------ Aggregate methods ---------------------------------------------------
+      //------------------------------------------------ Filter methods ---------------------------------------------------
       //=========================================================================================================================
       /**
        *
        */
       //=========================================================================================================================
       activeConnections(){
+        // return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "active");
         return Object.keys(this.connections).reduce((acc, val) =>
           ("state" in this.connections[val] && this.connections[val].state === "active" ?  {
               ...acc,
@@ -1607,6 +1616,7 @@
         ), {})
       },
       requestStateConnections(){
+        // return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "request");
         return Object.keys(this.connections).reduce((acc, val) =>
           ("state" in this.connections[val] && this.connections[val].state === "request" ?  {
               ...acc,
@@ -1616,6 +1626,7 @@
       },
       responseStateConnections(){
         return Object.keys(this.connections).reduce((acc, val) =>
+        // return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "response");
           ("state" in this.connections[val] && this.connections[val].state === "response" ?  {
               ...acc,
               [val]: this.connections[val]
@@ -1623,6 +1634,10 @@
         ), {})
       },
       pendingConnections(){
+        // return Object.values(this.connections).filter(
+        //     conn => "state" in conn &&
+        //     conn.state != "active"
+        //     ...);
         return Object.keys(this.connections).reduce((acc, val) =>
           ("state" in this.connections[val] && //state != active and state != invitation and state != error
             this.connections[val].state != "active" &&
