@@ -11,7 +11,7 @@
               :key="did.did"
               :label="did.did"
               :value="did.did">
-            </el-option> 
+            </el-option>
           </el-select>
           <el-select v-model="active_ledger_selector.ledger" filterable placeholder="activate ledger" >
             <el-option
@@ -19,7 +19,7 @@
               :key="ledger.name"
               :label="ledger.name"
               :value="ledger.name">
-            </el-option> 
+            </el-option>
           </el-select>
       </el-form>
     </nav>
@@ -37,8 +37,8 @@
                                 :data="did">
                               </vue-json-pretty>
                               <!--
-                                - button identify did permission on ledger 
-                                - button activate did 
+                                - button identify did permission on ledger
+                                - button activate did
                                 - publish did on active ledger -->
                             <el-button v-on:click="collapse_expanded_did_item(key)">^</el-button>
                         </div>
@@ -206,7 +206,7 @@
         <template v-if="Object.keys(invitations).length">
           <p>New Invitations:</p>
           <el-collapse v-model="exspanded_invites_items">
-              <div v-for="(invite, key, index) in invitations"> 
+              <div v-for="(invite, key, index) in invitations">
                   <el-collapse-item v-bind:title="key" :name="key">
                       <el-row>
                           <div>
@@ -369,7 +369,7 @@
           </ul>
           <span slot="label">Attribute:</span>
             <el-input @keyup.enter.native="schema_add_attribute" v-model="schemas_form.attribute" style="width:100px;"> </el-input>
-            <el-button type="primary" @click="schema_add_attribute" >add attribute</el-button> 
+            <el-button type="primary" @click="schema_add_attribute" >add attribute</el-button>
         </el-form-group>
         <el-form-item>
             <el-button type="primary" @click="storeSchema()">create new schema</el-button>
@@ -385,15 +385,15 @@
           *     requested credential, recieved from a "send-proposal" API call.
           *         <Button> send offer
           * - STATE_OFFER_SENT -
-          *     pending credential offer made to a holder, result of "send-offer" API call. 
-          * - STATE_REQUEST_RECEIVED - 
+          *     pending credential offer made to a holder, result of "send-offer" API call.
+          * - STATE_REQUEST_RECEIVED -
           *     request from holder containing credential attribute data and blinded secret. result of "send-request"
           *         <Button> issue
           * - STATE_ISSUED
           *     issued with data from request. result of "issue" API call.
           * - STATE_STORED
           *     ack received
-           */ 
+           */
         -->
         <p>Credential Definitions:</p>
         <el-collapse v-model="exspanded_cred_def_items">
@@ -413,14 +413,14 @@
                                   <el-input v-model="cred_def_form[cred_def.cred_def_id].attributes[index]" style="width:100px;"> </el-input>
                               </div>
                               <el-form :model=cred_def_form>
-                                <el-form-item label="select connection:" >        
+                                <el-form-item label="select connection:" >
                                   <el-select v-model="cred_def_form.connection" filterable placeholder="select connection to issue to:" >
                                     <el-option
                                       v-for="connection in activeConnections"
                                       :key="connection.connection_id"
                                       :label="connection.their_label +' ('+connection.connection_id+')'"
                                       :value="connection.connection_id">
-                                    </el-option> 
+                                    </el-option>
                                   </el-select>
                                 </el-form-item>
                               </el-form>
@@ -437,44 +437,44 @@
         </el-collapse>
         <p>Create Credential Definition:</p>
         <el-form :model=cred_def_form>
-        <el-form-item label="select ledger:" >        
+        <el-form-item label="select ledger:" >
             <el-select v-model="cred_def_form.ledger" filterable placeholder="sov" >
               <el-option
                 v-for="ledger in ledgers"
                 :key="ledger.id"
                 :label="ledger.name"
                 :value="ledger.id">
-              </el-option> 
+              </el-option>
             </el-select>
         </el-form-item>
-        <el-form-item label="select schema:" prop="cred_def_form">        
+        <el-form-item label="select schema:" prop="cred_def_form">
             <el-select v-model="cred_def_form.schema" filterable placeholder="schema">
               <el-option
                 v-for="schema in schemas"
                 :key="schema.id"
                 :label="schema.name +' '+ schema.version"
                 :value="schema">
-              </el-option> 
+              </el-option>
             </el-select>
         </el-form-item>
-<!--         <el-form-item label="select ledger:" >        
+<!--         <el-form-item label="select ledger:" >
             <el-select v-model="cred_def_form.ledger" filterable placeholder="sov" >
               <el-option
                 v-for="ledger in ledgers"
                 :key="ledger.id"
                 :label="ledger.name"
                 :value="ledger.id">
-              </el-option> 
+              </el-option>
             </el-select>
         </el-form-item>
-        <el-form-item v-if="cred_def_form.ledger in ledgers" label="select schema:" prop="cred_def_form">        
+        <el-form-item v-if="cred_def_form.ledger in ledgers" label="select schema:" prop="cred_def_form">
             <el-select v-model="cred_def_form" filterable placeholder="schema">
               <el-option
                 v-for="schema in ledgerSchemas(ledgers[cred_def_form.ledger].name)"
                 :key="schema.id"
                 :label="schema.name +' '+ schema.version"
                 :value="schema.id">
-              </el-option> 
+              </el-option>
             </el-select>
         </el-form-item> -->
         <el-form-item>
@@ -524,13 +524,13 @@
           *         <Button> select connection , select cred_def and send request,
           * - STATE_OFFER_RECEIVED -
           *         <Button> send request
-          * - STATE_REQUEST_SENT - 
+          * - STATE_REQUEST_SENT -
           * - STATE_CREDENTIAL_RECEIVED
           *     issued with data from request. result of "issue" API call.
           *       <Button> Accept , send ack or problem report
           * - STATE_STORED
-          * 
-           */ 
+          *
+           */
         -->
       </el-tab-pane>
       <el-tab-pane label="Presentation">
@@ -548,14 +548,14 @@
                           <el-collapse-item title='Issue a credential presentation request' :name="key">
                             <el-row>
                               <el-form :model=pres_def_form>
-                                <el-form-item label="select connection:" >        
+                                <el-form-item label="select connection:" >
                                   <el-select v-model="pres_def_form.connection" filterable placeholder="to issue to" >
                                     <el-option
                                       v-for="connection in activeConnections"
                                       :key="connection.connection_id"
                                       :label="connection.their_label +' ('+connection.connection_id+')'"
                                       :value="connection.connection_id">
-                                    </el-option> 
+                                    </el-option>
                                   </el-select>
                                 </el-form-item>
                               </el-form>
@@ -590,27 +590,27 @@
               </ul>
               <el-row>
                 <el-form :model=pres_def_form>
-                  <el-form-item label="Trusted Issuer:" >        
+                  <el-form-item label="Trusted Issuer:" >
                     <el-select v-model="pres_def_form.temp_attrs[index].restriction" filterable placeholder="Trusted Issuer" >
                       <el-option
                         v-for="issuer in trusted_issuers"
                         :key="issuer.did"
                         :label="issuer.label +' ('+issuer.did+')'"
                         :value="issuer.did">
-                      </el-option> 
+                      </el-option>
                     </el-select>
                     <span slot="label">Restriction:</span>
-                      <el-button type="primary" @click="add_pres_def_restriction(index)" >add restriction</el-button> 
+                      <el-button type="primary" @click="add_pres_def_restriction(index)" >add restriction</el-button>
                   </el-form-item>
                 </el-form>
                   <span slot="label">Restriction:</span>
-                    <el-button type="primary" @click="add_pres_def_restriction(index)" >add restriction</el-button> 
+                    <el-button type="primary" @click="add_pres_def_restriction(index)" >add restriction</el-button>
               </el-row>
             </li>
           </ul>
           <span slot="label">Attribute:</span>
             <el-input @keyup.enter.native="add_pres_def_attribute" v-model="pres_def_form.requested_attribute" style="width:100px;"> </el-input>
-            <el-button type="primary" @click="add_pres_def_attribute" >add request attribute</el-button> 
+            <el-button type="primary" @click="add_pres_def_attribute" >add request attribute</el-button>
         </el-form-group>
         <el-form-item>
             <el-button type="primary" @click="storePresentationDefinition()">create new presentation definition</el-button>
@@ -697,14 +697,14 @@
                                   <el-input v-model="cred_def_form[cred_def.cred_def_id].attributes[index]" style="width:100px;"> </el-input>
                               </div>
                               <el-form :model=cred_def_form>
-                                <el-form-item label="select connection:" >        
+                                <el-form-item label="select connection:" >
                                   <el-select v-model="cred_def_form.connection" filterable placeholder="select connection to issue to:" >
                                     <el-option
                                       v-for="connection in activeConnections"
                                       :key="connection.connection_id"
                                       :label="connection.their_label +' ('+connection.connection_id+')'"
                                       :value="connection.connection_id">
-                                    </el-option> 
+                                    </el-option>
                                   </el-select>
                                 </el-form-item>
                               </el-form>
@@ -786,7 +786,7 @@
       //-------------------------Outbound Messages-------------------------------------------------------------------
       //=========================================================================================================================
       /**
-       *  Agent admin messages sent to change state of wallet and did connections. 
+       *  Agent admin messages sent to change state of wallet and did connections.
        */
       //=========================================================================================================================
       async fetchAgentData(){
@@ -902,7 +902,7 @@
           }
         }
         this.send_message(query_msg);
-      },   
+      },
       async compose_send(){
         this.last_sent_msg_id = '@id' in this.compose_json ? this.compose_json['@id'] : (new Date()).getTime().toString()
         this.compose_json['@id']= this.last_sent_msg_id
@@ -1003,7 +1003,7 @@
             "name":this.presentation_definitions[pres_def_id].name,
             "connection_id":connection_id,
             "version":this.presentation_definitions[pres_def_id].version,
-            "requested_predicates":this.presentation_definitions[pres_def_id].requested_predicates, 
+            "requested_predicates":this.presentation_definitions[pres_def_id].requested_predicates,
             "~transport": {
               "return_route": "all"
           }
@@ -1058,7 +1058,7 @@
       //-------------------------Inbound Messages---------------------------------------------------------------------------
       //=========================================================================================================================
       /**
-       *  Received Agent admin messages with directives containing state of wallet and did connections to be displayed. 
+       *  Received Agent admin messages with directives containing state of wallet and did connections to be displayed.
        */
       //=========================================================================================================================
       async receivedAgentDids(msg){
@@ -1094,9 +1094,9 @@
       async newInvitation(msg){
         console.log(msg.invitation)
         const newInvite = this.invitations[ msg.connection_id] = {
-          //... msg.invitation, // invitations is not a json yet... 
-          "invitation": msg.invitation, 
-          "connection_id" : msg.connection_id, 
+          //... msg.invitation, // invitations is not a json yet...
+          "invitation": msg.invitation,
+          "connection_id" : msg.connection_id,
           "invitation_url": msg.invitation_url}
       },
       async ProtocolDisclose(msg){
@@ -1113,7 +1113,7 @@
         this.message_history_add(msg, "Received");
         var handlers = {
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/disclose": this.ProtocolDisclose,
-          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-list": this.fetchedConnectionList, 
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-list": this.fetchedConnectionList,
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection": this.updatedConnection,
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/ack": this.fetchAgentConnections,
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation": this.newInvitation,
@@ -1129,43 +1129,43 @@
         }
       },
       connectionsInvitationModeFilterForMulti(connections){
-        return Object.keys(connections).reduce((acc, val) => 
+        return Object.keys(connections).reduce((acc, val) =>
           ("invitation_mode" in connections[val] && connections[val].invitation_mode === "multi" ?  {
               ...acc,
               [val]: connections[val]
-          } : acc                                       
+          } : acc
         ), {})
       },
       connectionsInvitationModeFilterForOnce(connections){
-        return Object.keys(connections).reduce((acc, val) => 
+        return Object.keys(connections).reduce((acc, val) =>
           ("invitation_mode" in connections[val] && connections[val].invitation_mode === "once" ?  {
               ...acc,
               [val]: connections[val]
-          } : acc                                       
+          } : acc
         ), {})
       },
       connectionsInitiatorFilterForSelf(connections){
-        return Object.keys(connections).reduce((acc, val) => 
+        return Object.keys(connections).reduce((acc, val) =>
           ("initiator" in connections[val] && connections[val].initiator === "self" ?  {
               ...acc,
               [val]: connections[val]
-          } : acc                                       
+          } : acc
         ), {})
       },
       connectionsInitiatorFilterForExternal(connections){
-        return Object.keys(connections).reduce((acc, val) => 
+        return Object.keys(connections).reduce((acc, val) =>
           ("initiator" in connections[val] && connections[val].initiator === "external" ?  {
               ...acc,
               [val]: connections[val]
-          } : acc                                       
+          } : acc
         ), {})
       },
       connectionsInitiatorFilterForMultiuse(connections){
-        return Object.keys(connections).reduce((acc, val) => 
+        return Object.keys(connections).reduce((acc, val) =>
           ("initiator" in connections[val] && connections[val].initiator === "multiuse" ?  {
               ...acc,
               [val]: connections[val]
-          } : acc                                       
+          } : acc
         ), {})
       },
       labelFromConnection(id){
@@ -1178,11 +1178,11 @@
       //------------------------- View methods ----------------------------------------------------------------------------------
       //=========================================================================================================================
       /**
-       * 
-       */      
+       *
+       */
       //=========================================================================================================================
       async add_pres_def_attribute(){
-        this.pres_def_form.requested_attribute= { 
+        this.pres_def_form.requested_attribute= {
           "name":this.pres_def_form.requested_attribute,
           "restrictions" : []
           }
@@ -1191,9 +1191,9 @@
         this.pres_def_form.requested_attribute = '';
       },
       async add_pres_def_restriction(index){
-        this.pres_def_form.temp_attrs[index].restriction = 
+        this.pres_def_form.temp_attrs[index].restriction =
           {"issuer_did": this.pres_def_form.temp_attrs[index].restriction}
-        this.pres_def_form.requested_attributes[index].restrictions = 
+        this.pres_def_form.requested_attributes[index].restrictions =
           [...this.pres_def_form.requested_attributes[index].restrictions,
           this.pres_def_form.temp_attrs[index].restriction]
         this.pres_def_form.temp_attrs[index].restriction = '';
@@ -1449,7 +1449,7 @@
             ]
           }
         },
-        'presentation_exchanges': { 
+        'presentation_exchanges': {
           '0012d86c-fc14-480a-bd12-e0be147lbew9':
           {
             'presentation_exchange_id':'0012d86c-fc14-480a-bd12-e0be147lbew9',// "string",
@@ -1595,42 +1595,42 @@
       //------------------------------------------------ Aggregate methods ---------------------------------------------------
       //=========================================================================================================================
       /**
-       * 
-       */         
+       *
+       */
       //=========================================================================================================================
       activeConnections(){
-        return Object.keys(this.connections).reduce((acc, val) => 
+        return Object.keys(this.connections).reduce((acc, val) =>
           ("state" in this.connections[val] && this.connections[val].state === "active" ?  {
               ...acc,
               [val]: this.connections[val]
-          } : acc                                       
+          } : acc
         ), {})
       },
       requestStateConnections(){
-        return Object.keys(this.connections).reduce((acc, val) => 
+        return Object.keys(this.connections).reduce((acc, val) =>
           ("state" in this.connections[val] && this.connections[val].state === "request" ?  {
               ...acc,
               [val]: this.connections[val]
-          } : acc                                       
+          } : acc
         ), {})
       },
       responseStateConnections(){
-        return Object.keys(this.connections).reduce((acc, val) => 
+        return Object.keys(this.connections).reduce((acc, val) =>
           ("state" in this.connections[val] && this.connections[val].state === "response" ?  {
               ...acc,
               [val]: this.connections[val]
-          } : acc                                       
+          } : acc
         ), {})
       },
       pendingConnections(){
-        return Object.keys(this.connections).reduce((acc, val) => 
+        return Object.keys(this.connections).reduce((acc, val) =>
           ("state" in this.connections[val] && //state != active and state != invitation and state != error
             this.connections[val].state != "active" &&
             this.connections[val].state != "invitation" &&
             this.connections[val].state != "error" ? acc : {
               ...acc,
               [val]: this.connections[val]
-          }                                        
+          }
         ), {})
       },
       openInvitations(){
@@ -1640,43 +1640,43 @@
         return this.connectionsInvitationModeFilterForMulti(this.invitationConnections) // Multiuse Invitations (state == invitation and mode == multi)
       },
       invitationConnections(){
-        return Object.keys(this.connections).reduce((acc, val) => 
+        return Object.keys(this.connections).reduce((acc, val) =>
           ("state" in this.connections[val] && this.connections[val].state === "invitation" ?  {
               ...acc,
               [val]: this.connections[val]
-          } : acc                                       
+          } : acc
         ), {})
       },
       inactiveConnections(){
-        return Object.keys(this.connections).reduce((acc, val) => 
+        return Object.keys(this.connections).reduce((acc, val) =>
           ("state" in this.connections[val] && this.connections[val].state === "inactive" ?  {
               ...acc,
               [val]: this.connections[val]
-          } : acc                                       
+          } : acc
         ), {})
       },
       staticConnections(){
-        return Object.keys(this.connections).reduce((acc, val) => 
+        return Object.keys(this.connections).reduce((acc, val) =>
           ("state" in this.connections[val] && this.connections[val].state === "static" ?  {
               ...acc,
               [val]: this.connections[val]
-          } : acc                                       
+          } : acc
         ), {})
       },
       initedStateConnections(){
-        return Object.keys(this.connections).reduce((acc, val) => 
+        return Object.keys(this.connections).reduce((acc, val) =>
           ("state" in this.connections[val] && this.connections[val].state === "init" ?  {
               ...acc,
               [val]: this.connections[val]
-          } : acc                                       
+          } : acc
         ), {})
       },
       errorStateConnections(){
-        return Object.keys(this.connections).reduce((acc, val) => 
+        return Object.keys(this.connections).reduce((acc, val) =>
           ("state" in this.connections[val] && this.connections[val].state === "error" ?  {
               ...acc,
               [val]: this.connections[val]
-          } : acc                                       
+          } : acc
         ), {})
       },
       basicmessage_history: function () {
@@ -1689,50 +1689,50 @@
           var id = ('~thread'in cur.msg && 'thid' in cur.msg['~thread']) ? cur.msg['~thread'].thid : cur.msg['@id']
           acc[id] = acc[id] || []
           acc[id].push(cur)
-          return acc }, 
+          return acc },
           {})
       },
       most_recent_sent_msgs(){
-        return this.msgHistoryGroupedByThid[this.last_sent_msg_id]  
-      },  
+        return this.msgHistoryGroupedByThid[this.last_sent_msg_id]
+      },
       sentPresentationRequests(){
-        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
+        return Object.keys(this.presentation_exchanges).reduce((acc, val) =>
           ("request_sent" === this.presentation_exchanges[val].state ?  {
               ...acc,
               [val]: this.presentation_exchanges[val]
-          } : acc                                       
+          } : acc
         ), {})
       },
       receivedPresentationRequests(){
-        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
+        return Object.keys(this.presentation_exchanges).reduce((acc, val) =>
           ("request_received" === this.presentation_exchanges[val].state ?  {
               ...acc,
               [val]: this.presentation_exchanges[val]
-          } : acc                                       
+          } : acc
         ), {})
       },
       sentPresentations(){
-        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
+        return Object.keys(this.presentation_exchanges).reduce((acc, val) =>
           ("presentation_sent" === this.presentation_exchanges[val].state ?  {
               ...acc,
               [val]: this.presentation_exchanges[val]
-          } : acc                                       
+          } : acc
         ), {})
       },
       receivedPresentations(){
-        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
+        return Object.keys(this.presentation_exchanges).reduce((acc, val) =>
           ("presentation_received" === this.presentation_exchanges[val].state ?  {
               ...acc,
               [val]: this.presentation_exchanges[val]
-          } : acc                                       
+          } : acc
         ), {})
       },
       verifiedPresentations(){
-        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
+        return Object.keys(this.presentation_exchanges).reduce((acc, val) =>
           ("verified" === this.presentation_exchanges[val].state ?  {
               ...acc,
               [val]: this.presentation_exchanges[val]
-          } : acc                                       
+          } : acc
         ), {})
       },
       ledgerSchemas(ledger_name){
@@ -1741,7 +1741,7 @@
           ("ledgers" in this.schemas[key] && ledger_name in this.schemas[key].ledgers ?{
               ...acc,
               [key]: this.schemas[key]
-          } : acc                                       
+          } : acc
         ), {})
         console.log("schemas",schemas)
         return schemas
