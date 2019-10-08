@@ -904,8 +904,6 @@
         this.send_message(query_msg);
       },
       async compose_send(){
-        this.last_sent_msg_id = '@id' in this.compose_json ? this.compose_json['@id'] : (new Date()).getTime().toString()
-        this.compose_json['@id']= this.last_sent_msg_id
         this.send_message(this.compose_json, true);
       },
       async basicmessage_send(){
@@ -1019,11 +1017,13 @@
       async send_message(msg, set_return_route = true){
         var vm = this; //safe reference to view model
         msg['@id'] = '@id' in msg ? msg['@id'] : (new Date()).getTime().toString(); // add id
-        console.log('response_requested' in msg, msg);
-        set_return_route = 'response_requested' in msg ? msg['response_requested'] : set_return_route // clear configurations
-        delete msg['response_request']
-        // add transport from configuration
-        msg['~transport'] = set_return_route ? {'return_route': 'all'} : {'return_route': 'none'} //Aries RFC 0092 https://github.com/hyperledger/aries-rfcs/blob/be5635174e202f8604c521e09d98b04ac7a70930/features/0092-transport-return-route/README.md
+        this.last_sent_msg_id = msg['@id']
+        if (set_return_route) {
+          if (!("~transport" in msg)) {
+            msg["~transport"] = {}
+          }
+          msg["~transport"]["return_route"] = "all"
+        }
         this.message_history_add(msg, "Sent");
         console.log("sending message", msg);
         console.log("to", bs58.decode(this.connection.did_doc.service[0].recipientKeys[0]));
