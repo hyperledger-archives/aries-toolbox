@@ -3,6 +3,25 @@
 
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <a class="navbar-brand" href="#">{{connection.label}}</a>
+      <!-- active privileged did -->
+      <el-form :model=active_ledger_selector>
+          <el-select v-model="active_ledger_selector.did" filterable placeholder="activate did" >
+            <el-option
+              v-for="did in dids"
+              :key="did.did"
+              :label="did.did"
+              :value="did.did">
+            </el-option> 
+          </el-select>
+          <el-select v-model="active_ledger_selector.ledger" filterable placeholder="activate ledger" >
+            <el-option
+              v-for="ledger in ledgers"
+              :key="ledger.name"
+              :label="ledger.name"
+              :value="ledger.name">
+            </el-option> 
+          </el-select>
+      </el-form>
     </nav>
 
     <el-tabs type="border-card">
@@ -17,6 +36,10 @@
                                 :deep=1
                                 :data="did">
                               </vue-json-pretty>
+                              <!--
+                                - button identify did permission on ledger 
+                                - button activate did 
+                                - publish did on active ledger -->
                             <el-button v-on:click="collapse_expanded_did_item(key)">^</el-button>
                         </div>
                     </el-row>
@@ -51,6 +74,7 @@
                                 :data="ledger">
                               </vue-json-pretty>
                               <el-form class="ledger-form">
+                                <!-- activate ledger -->
                                 <el-form-item >
                                   <el-button type="primary" @click="removeLedger(ledger)">delete</el-button>
                                 </el-form-item>
@@ -74,74 +98,157 @@
         </el-form-item>
         </el-form>
       </el-tab-pane>
-
       <el-tab-pane label="Connections">
-        <el-row>  
-        <p>Active Connections:</p>
-        <el-collapse v-model="exspanded_connection_items">
-            <div v-for="(connection, key, index) in activeConnections()">
-                <el-collapse-item v-bind:title="connection.their_label" :name="key">
-                    <el-row>
-                        <div>
-                              <vue-json-pretty
-                                :deep=1
-                                :data="connection">
-                              </vue-json-pretty>
-                              <el-form :model="connectionUpdateForm[key]" class="connectionUpdateForm">
-                                <el-form-item label="Role:" prop="their_role">
-                                  <el-input placeholder="connectionUpdateForm[key].their_role" v-model="connectionUpdateForm[key].their_role" style="width:300px;"></el-input>
-                                </el-form-item>
-                                <el-form-item label="Label:" prop="their_label">
-                                  <el-input placeholder="connectionUpdateForm[key].their_label" v-model="connectionUpdateForm[key].their_label" style="width:300px;"></el-input>
-                                  <br/><el-button type="primary" @click="updateAgentConnection(connection)">update</el-button>
-                                  <el-button type="primary" @click="deleteAgentConnection(connection)">delete</el-button>
-                                </el-form-item>
-                            <el-button v-on:click="collapse_expanded_connections(key)">^</el-button>
-                            </el-form>
-                        </div>
-                    </el-row>
-                </el-collapse-item>
-            </div>
-        </el-collapse>
-        <p>Pending Connections:</p>
-        <el-collapse v-model="exspanded_connection_items">
-            <div v-for="(connection, key, index) in pendingConnections()">
-                <el-collapse-item v-bind:title="key" :name="key">
-                    <el-row>
-                        <div>
-                              <vue-json-pretty
-                                :deep=1
-                                :data="connection">
-                              </vue-json-pretty>
-                              <el-form :model="connectionUpdateForm[key]" class="connectionUpdateForm">
-                                <el-form-item label="Role:" prop="their_role">
-                                  <el-input label="Role" placeholder="connectionUpdateForm[key].their_role" v-model="connectionUpdateForm[key].their_role" style="width:300px;" ></el-input>
-                                  <br/><el-button type="primary" @click="updateAgentConnection(connection)">update</el-button>
-                                  <el-button type="primary" @click="deleteAgentConnection(connection)">delete</el-button>
-                                </el-form-item>
-                            <el-button v-on:click="collapse_expanded_connections(key)">^</el-button>
-                            </el-form>
-                        </div>
-                    </el-row>
-                </el-collapse-item>
-            </div>
-        </el-collapse>
-        <p>Open Invitations:</p>
-        <el-collapse v-model="exspanded_invites_items">
-            <div v-for="(invite, key, index) in invitations">
-                <el-collapse-item v-bind:title="key" :name="key">
-                    <el-row>
-                        <div>
-                              <vue-json-pretty
-                                :deep=1
-                                :data="invite">
-                              </vue-json-pretty>
-                            <el-button v-on:click="collapse_expanded_invititions(key)">^</el-button>
-                        </div>
-                    </el-row>
-                </el-collapse-item>
-            </div>
-        </el-collapse>
+        <el-row>
+        <template v-if="Object.keys(activeConnections).length">
+          <p>Active Connections:</p>
+          <el-collapse v-model="exspanded_active_connection_items">
+              <div v-for="(connection, key, index) in activeConnections"><!-- - Connections (state == active) -->
+                  <el-collapse-item v-bind:title="connection.their_label" :name="key">
+                      <el-row>
+                          <div>
+                                <vue-json-pretty
+                                  :deep=1
+                                  :data="connection">
+                                </vue-json-pretty>
+                                <el-form :model="connectionUpdateForm[key]" class="connectionUpdateForm">
+                                  <el-form-item label="Role:" prop="their_role">
+                                    <el-input placeholder="connectionUpdateForm[key].their_role" v-model="connectionUpdateForm[key].their_role" style="width:300px;"></el-input>
+                                  </el-form-item>
+                                  <el-form-item label="Label:" prop="their_label">
+                                    <el-input placeholder="connectionUpdateForm[key].their_label" v-model="connectionUpdateForm[key].their_label" style="width:300px;"></el-input>
+                                    <br/><el-button type="primary" @click="updateAgentConnection(connection)">update</el-button>
+                                    <el-button type="primary" @click="deleteAgentConnection(connection)">delete</el-button>
+                                  </el-form-item>
+                              <el-button v-on:click="collapse_expanded_connections(key)">^</el-button>
+                              </el-form>
+                          </div>
+                      </el-row>
+                  </el-collapse-item>
+              </div>
+          </el-collapse>
+        </template>
+        <template v-if="Object.keys(pendingConnections).length">
+          <p>Pending Connections:</p>
+          <el-collapse v-model="exspanded_pending_connection_items">
+              <div v-for="(connection, key, index) in pendingConnections"><!-- - Pending Connections (state != active and state != invitation and state != error) -->
+                  <el-collapse-item v-bind:title="key" :name="key">
+                      <el-row>
+                          <div>
+                                <vue-json-pretty
+                                  :deep=1
+                                  :data="connection">
+                                </vue-json-pretty>
+                                <el-form :model="connectionUpdateForm[key]" class="connectionUpdateForm">
+                                  <el-form-item label="Role:" prop="their_role">
+                                    <el-input label="Role" placeholder="connectionUpdateForm[key].their_role" v-model="connectionUpdateForm[key].their_role" style="width:300px;" ></el-input>
+                                    <br/><el-button type="primary" @click="updateAgentConnection(connection)">update</el-button>
+                                    <el-button type="primary" @click="deleteAgentConnection(connection)">delete</el-button>
+                                  </el-form-item>
+                              <el-button v-on:click="collapse_expanded_connections(key)">^</el-button>
+                              </el-form>
+                          </div>
+                      </el-row>
+                  </el-collapse-item>
+              </div>
+          </el-collapse>
+        </template>
+        <template v-if="Object.keys(openInvitations).length">
+          <p>Open invitations:</p>
+          <el-collapse v-model="exspanded_open_invitation_connection_items">
+              <div v-for="(connection, key, index) in openInvitations">
+                  <el-collapse-item v-bind:title="key" :name="key">
+                      <el-row>
+                          <div>
+                                <vue-json-pretty
+                                  :deep=1
+                                  :data="connection">
+                                </vue-json-pretty>
+                                <el-form :model="connectionUpdateForm[key]" class="connectionUpdateForm">
+                                  <el-form-item label="Role:" prop="their_role">
+                                    <el-input label="Role" placeholder="connectionUpdateForm[key].their_role" v-model="connectionUpdateForm[key].their_role" style="width:300px;" ></el-input>
+                                    <br/><el-button type="primary" @click="updateAgentConnection(connection)">update</el-button>
+                                    <el-button type="primary" @click="deleteAgentConnection(connection)">delete</el-button>
+                                  </el-form-item>
+                              <el-button v-on:click="collapse_expanded_connections(key)">^</el-button>
+                              </el-form>
+                          </div>
+                      </el-row>
+                  </el-collapse-item>
+              </div>
+          </el-collapse>
+        </template>
+        <template v-if="Object.keys(multiUseInvitations).length">
+          <p>Multiuse Invitations:</p>
+          <el-collapse v-model="exspanded_multi_use_invitations_connection_items">
+              <div v-for="(connection, key, index) in multiUseInvitations">
+                  <el-collapse-item v-bind:title="key" :name="key">
+                      <el-row>
+                          <div>
+                                <vue-json-pretty
+                                  :deep=1
+                                  :data="connection">
+                                </vue-json-pretty>
+                                <el-form :model="connectionUpdateForm[key]" class="connectionUpdateForm">
+                                  <el-form-item label="Role:" prop="their_role">
+                                    <el-input label="Role" placeholder="connectionUpdateForm[key].their_role" v-model="connectionUpdateForm[key].their_role" style="width:300px;" ></el-input>
+                                    <br/><el-button type="primary" @click="updateAgentConnection(connection)">update</el-button>
+                                    <el-button type="primary" @click="deleteAgentConnection(connection)">delete</el-button>
+                                  </el-form-item>
+                              <el-button v-on:click="collapse_expanded_connections(key)">^</el-button>
+                              </el-form>
+                          </div>
+                      </el-row>
+                  </el-collapse-item>
+              </div>
+          </el-collapse>
+        </template>
+        <template v-if="Object.keys(invitations).length">
+          <p>New Invitations:</p>
+          <el-collapse v-model="exspanded_invites_items">
+              <div v-for="(invite, key, index) in invitations"> 
+                  <el-collapse-item v-bind:title="key" :name="key">
+                      <el-row>
+                          <div>
+                                <vue-json-pretty
+                                  :deep=1
+                                  :data="invite">
+                                </vue-json-pretty>
+                              <el-button v-on:click="collapse_expanded_invititions(key)">^</el-button>
+                          </div>
+                      </el-row>
+                  </el-collapse-item>
+              </div>
+          </el-collapse>
+        </template>
+        <template v-if="Object.keys(errorStateConnections).length">
+          <p>Failed Connections:</p>
+          <el-collapse v-model="exspanded_active_connection_items">
+              <div v-for="(connection, key, index) in errorStateConnections"><!-- Failed Connections (state == error) -->
+                  <el-collapse-item v-bind:title="connection.their_label" :name="key">
+                      <el-row>
+                          <div>
+                                <vue-json-pretty
+                                  :deep=1
+                                  :data="connection">
+                                </vue-json-pretty>
+                                <el-form :model="connectionUpdateForm[key]" class="connectionUpdateForm">
+                                  <el-form-item label="Role:" prop="their_role">
+                                    <el-input placeholder="connectionUpdateForm[key].their_role" v-model="connectionUpdateForm[key].their_role" style="width:300px;"></el-input>
+                                  </el-form-item>
+                                  <el-form-item label="Label:" prop="their_label">
+                                    <el-input placeholder="connectionUpdateForm[key].their_label" v-model="connectionUpdateForm[key].their_label" style="width:300px;"></el-input>
+                                    <br/><el-button type="primary" @click="updateAgentConnection(connection)">update</el-button>
+                                    <el-button type="primary" @click="deleteAgentConnection(connection)">delete</el-button>
+                                  </el-form-item>
+                              <el-button v-on:click="collapse_expanded_connections(key)">^</el-button>
+                              </el-form>
+                          </div>
+                      </el-row>
+                  </el-collapse-item>
+              </div>
+          </el-collapse>
+        </template>
         <p>Create Invitations:</p>
         <el-form>
         <el-form-group >
@@ -158,6 +265,16 @@
         </el-form-group>
         <el-form-item>
             <el-button type="primary" @click="fetchNewInvite()">create new invite</el-button>
+        </el-form-item>
+        </el-form>
+        <p>Add connection from invitation:</p>
+        <el-form :model=agent_invitation_form>
+        <el-form-group >
+          <span slot="label">invitation:</span>
+            <el-input v-model="agent_invitation_form.invitation" style="width:100px;"> </el-input>
+        </el-form-group>
+        <el-form-item>
+            <el-button type="primary" @click="addStaticAgent()">Add Agent</el-button>
         </el-form-item>
         </el-form>
         <p>Add Static Agent:</p>
@@ -186,7 +303,7 @@
         <input type="button" class="btn btn-secondary" v-on:click="compose_send()" value="Send"/>
         <v-jsoneditor v-model="compose_json">
         </v-jsoneditor>
-        <div class="message-display" v-for="msg in most_recent_sent_msgs()">
+        <div class="message-display" v-for="msg in most_recent_sent_msgs">
           <i>{{msg.direction}}</i>
           <vue-json-pretty
             :deep=1
@@ -259,7 +376,25 @@
         </el-form-item>
         </el-form>
       </el-tab-pane>
-      <el-tab-pane label="Credential">
+      <el-tab-pane label="Credential Issuance">
+        <!--
+          /**
+          * credential
+          * states
+          * - proposals - <stretch goal>
+          *     requested credential, recieved from a "send-proposal" API call.
+          *         <Button> send offer
+          * - STATE_OFFER_SENT -
+          *     pending credential offer made to a holder, result of "send-offer" API call. 
+          * - STATE_REQUEST_RECEIVED - 
+          *     request from holder containing credential attribute data and blinded secret. result of "send-request"
+          *         <Button> issue
+          * - STATE_ISSUED
+          *     issued with data from request. result of "issue" API call.
+          * - STATE_STORED
+          *     ack received
+           */ 
+        -->
         <p>Credential Definitions:</p>
         <el-collapse v-model="exspanded_cred_def_items">
             <div v-for="(cred_def, key, index) in cred_defs">
@@ -281,7 +416,7 @@
                                 <el-form-item label="select connection:" >        
                                   <el-select v-model="cred_def_form.connection" filterable placeholder="select connection to issue to:" >
                                     <el-option
-                                      v-for="connection in activeConnections()"
+                                      v-for="connection in activeConnections"
                                       :key="connection.connection_id"
                                       :label="connection.their_label +' ('+connection.connection_id+')'"
                                       :value="connection.connection_id">
@@ -379,7 +514,26 @@
         </el-form-item>
         </el-form>
       </el-tab-pane>
-      <el-tab-pane label="Presentation Definition">
+      <el-tab-pane label="My Credentials">
+        <!--
+          /**
+          * credential
+          * states
+          * - proposals -<stretch goal>
+          *     request credential,
+          *         <Button> select connection , select cred_def and send request,
+          * - STATE_OFFER_RECEIVED -
+          *         <Button> send request
+          * - STATE_REQUEST_SENT - 
+          * - STATE_CREDENTIAL_RECEIVED
+          *     issued with data from request. result of "issue" API call.
+          *       <Button> Accept , send ack or problem report
+          * - STATE_STORED
+          * 
+           */ 
+        -->
+      </el-tab-pane>
+      <el-tab-pane label="Presentation">
       <p>Presentation Definitions:</p>
         <el-collapse v-model="exspanded_pres_def_items">
             <div v-for="(pres_def, key, index) in presentation_definitions">
@@ -397,7 +551,7 @@
                                 <el-form-item label="select connection:" >        
                                   <el-select v-model="pres_def_form.connection" filterable placeholder="to issue to" >
                                     <el-option
-                                      v-for="connection in activeConnections()"
+                                      v-for="connection in activeConnections"
                                       :key="connection.connection_id"
                                       :label="connection.their_label +' ('+connection.connection_id+')'"
                                       :value="connection.connection_id">
@@ -463,7 +617,7 @@
         </el-form-item>
           <p>Presentation Requests Sent:</p>
           <el-collapse v-model="expanded_pres_req_sent_items">
-            <div v-for="(pres_req, key, index) in sentPresentationRequests()">
+            <div v-for="(pres_req, key, index) in sentPresentationRequests">
                 <el-collapse-item v-bind:title="labelFromConnection(pres_req.connection_id)" :name="key">
                     <el-row>
                         <div>
@@ -479,7 +633,7 @@
           </el-collapse>
           <p>Presentation Requests Received:</p>
           <el-collapse v-model="expanded_pres_req_rec_items">
-            <div v-for="(pres_req, key, index) in receivedPresentationRequests()">
+            <div v-for="(pres_req, key, index) in receivedPresentationRequests">
                 <el-collapse-item v-bind:title="labelFromConnection(pres_req.connection_id)" :name="key">
                     <el-row>
                         <div>
@@ -495,7 +649,7 @@
           </el-collapse>
           <p>Presentations Sent:</p>
           <el-collapse v-model="expanded_pres_sent_items">
-            <div v-for="(pres_req, key, index) in sentPresentations()">
+            <div v-for="(pres_req, key, index) in sentPresentations">
                 <el-collapse-item v-bind:title="labelFromConnection(pres_req.connection_id)" :name="key">
                     <el-row>
                         <div>
@@ -511,7 +665,7 @@
           </el-collapse>
           <p>Presentations Received:</p>
           <el-collapse v-model="expanded_pres_rec_items">
-            <div v-for="(pres_req, key, index) in receivedPresentations()">
+            <div v-for="(pres_req, key, index) in receivedPresentations">
                 <el-collapse-item v-bind:title="labelFromConnection(pres_req.connection_id)" :name="key">
                     <el-row>
                         <div>
@@ -527,7 +681,7 @@
           </el-collapse>
           <p>Presentations :</p>
           <el-collapse v-model="expanded_pres_ver_items">
-            <div v-for="(pres_req, key, index) in verifiedPresentations()">
+            <div v-for="(pres_req, key, index) in verifiedPresentations">
                 <!-- <el-collapse-item v-bind:title="labelFromConnection(pres_req.connection_id)" :name="key">
                     <el-row>
                         <div>
@@ -546,7 +700,7 @@
                                 <el-form-item label="select connection:" >        
                                   <el-select v-model="cred_def_form.connection" filterable placeholder="select connection to issue to:" >
                                     <el-option
-                                      v-for="connection in activeConnections()"
+                                      v-for="connection in activeConnections"
                                       :key="connection.connection_id"
                                       :label="connection.their_label +' ('+connection.connection_id+')'"
                                       :value="connection.connection_id">
@@ -563,6 +717,8 @@
             </div>
           </el-collapse>
         </el-form>
+      </el-tab-pane>
+      <el-tab-pane label="Verifications">
       </el-tab-pane>
       </el-tab-pane>
       <el-tab-pane label="Protocol Discovery">
@@ -972,6 +1128,52 @@
           console.log("Message without handler", msg);
         }
       },
+      connectionsInvitationModeFilterForMulti(connections){
+        return Object.keys(connections).reduce((acc, val) => 
+          ("invitation_mode" in connections[val] && connections[val].invitation_mode === "multi" ?  {
+              ...acc,
+              [val]: connections[val]
+          } : acc                                       
+        ), {})
+      },
+      connectionsInvitationModeFilterForOnce(connections){
+        return Object.keys(connections).reduce((acc, val) => 
+          ("invitation_mode" in connections[val] && connections[val].invitation_mode === "once" ?  {
+              ...acc,
+              [val]: connections[val]
+          } : acc                                       
+        ), {})
+      },
+      connectionsInitiatorFilterForSelf(connections){
+        return Object.keys(connections).reduce((acc, val) => 
+          ("initiator" in connections[val] && connections[val].initiator === "self" ?  {
+              ...acc,
+              [val]: connections[val]
+          } : acc                                       
+        ), {})
+      },
+      connectionsInitiatorFilterForExternal(connections){
+        return Object.keys(connections).reduce((acc, val) => 
+          ("initiator" in connections[val] && connections[val].initiator === "external" ?  {
+              ...acc,
+              [val]: connections[val]
+          } : acc                                       
+        ), {})
+      },
+      connectionsInitiatorFilterForMultiuse(connections){
+        return Object.keys(connections).reduce((acc, val) => 
+          ("initiator" in connections[val] && connections[val].initiator === "multiuse" ?  {
+              ...acc,
+              [val]: connections[val]
+          } : acc                                       
+        ), {})
+      },
+      labelFromConnection(id){
+        if (id in this.connections &&'their_label' in this.connections[id]) {
+          return this.connections[id].their_label
+        }
+        return id
+      },
       //=========================================================================================================================
       //------------------------- View methods ----------------------------------------------------------------------------------
       //=========================================================================================================================
@@ -1057,98 +1259,6 @@
       async collapse_expanded_ledger_item(id){
         let index = this.expanded_ledger_items.indexOf(id)
         this.expanded_ledger_items.splice(index, 1);
-      },
-      //=========================================================================================================================
-      //------------------------------------------------ Aggregate methods ---------------------------------------------------
-      //=========================================================================================================================
-      /**
-       * 
-       */      
-      //=========================================================================================================================
-      labelFromConnection(id){
-        if (id in this.connections &&'their_label' in this.connections[id]) {
-          return this.connections[id].their_label
-        }
-        return id
-      },
-      activeConnections(){
-        return Object.keys(this.connections).reduce((acc, val) => 
-          ("their_label" in this.connections[val] ?  {
-              ...acc,
-              [val]: this.connections[val]
-          } : acc                                       
-        ), {})
-      },
-      pendingConnections(){
-        return Object.keys(this.connections).reduce((acc, val) => 
-          ("their_label" in this.connections[val] ? acc : {
-              ...acc,
-              [val]: this.connections[val]
-          }                                        
-        ), {})
-      },
-      msgHistoryGroupedByThid(){
-        return this.message_history.reduce(function(acc, cur, i) {
-          var id = ('~thread'in cur.msg && 'thid' in cur.msg['~thread']) ? cur.msg['~thread'].thid : cur.msg['@id']
-          acc[id] = acc[id] || []
-          acc[id].push(cur)
-          return acc }, 
-          {})
-      },
-      most_recent_sent_msgs(){
-        return this.msgHistoryGroupedByThid()[this.last_sent_msg_id]  
-      },  
-      sentPresentationRequests(){
-        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
-          ("request_sent" === this.presentation_exchanges[val].state ?  {
-              ...acc,
-              [val]: this.presentation_exchanges[val]
-          } : acc                                       
-        ), {})
-      },
-      receivedPresentationRequests(){
-        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
-          ("request_received" === this.presentation_exchanges[val].state ?  {
-              ...acc,
-              [val]: this.presentation_exchanges[val]
-          } : acc                                       
-        ), {})
-      },
-      sentPresentations(){
-        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
-          ("presentation_sent" === this.presentation_exchanges[val].state ?  {
-              ...acc,
-              [val]: this.presentation_exchanges[val]
-          } : acc                                       
-        ), {})
-      },
-      receivedPresentations(){
-        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
-          ("presentation_received" === this.presentation_exchanges[val].state ?  {
-              ...acc,
-              [val]: this.presentation_exchanges[val]
-          } : acc                                       
-        ), {})
-      },
-      verifiedPresentations(){
-        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
-          ("verified" === this.presentation_exchanges[val].state ?  {
-              ...acc,
-              [val]: this.presentation_exchanges[val]
-          } : acc                                       
-        ), {})
-      },
-      ledgerSchemas(ledger_name){
-        console.log("ledger name:",ledger_name)
-        let schemas = Object.keys(this.schemas).reduce((acc,key)=>
-          ("ledgers" in this.schemas[key] &&
-           ledger_name in this.schemas[key].ledgers ?{
-              ...acc,
-              [key]: this.schemas[key]
-          } : acc                                       
-        ), {})
-        console.log("schemas",schemas)
-        return schemas
       },
     },
     data() {
@@ -1437,9 +1547,16 @@
           "response_requested": true
         },
         'basicmessage_compose': "",
+        'active_ledger_selector':{
+          'leger':'',
+        },
         'connections':{},
         'connectionUpdateForm':{},
         'exspanded_connection_items':[],
+        'exspanded_active_connection_items':[],
+        'exspanded_pending_connection_items':[],
+        'exspanded_open_invitation_connection_items':[],
+        'exspanded_multi_use_invitations_connection_items':[],
         'invitations':{},
         'expanded_dids_items':[],
         'expanded_ledger_items':[],
@@ -1460,6 +1577,9 @@
         'invite_accept_form':"auto",
         'invite_public_form':false,
         'invite_multi_use_form':true,
+        'agent_invitation_form':{
+          'invitation':'',
+        },
         'static_agent_form':{
           'label':"",
           'role':"",
@@ -1471,11 +1591,161 @@
     },
     computed: {
       ...mapState(['Connections']),
+      //=========================================================================================================================
+      //------------------------------------------------ Aggregate methods ---------------------------------------------------
+      //=========================================================================================================================
+      /**
+       * 
+       */         
+      //=========================================================================================================================
+      activeConnections(){
+        return Object.keys(this.connections).reduce((acc, val) => 
+          ("state" in this.connections[val] && this.connections[val].state === "active" ?  {
+              ...acc,
+              [val]: this.connections[val]
+          } : acc                                       
+        ), {})
+      },
+      requestStateConnections(){
+        return Object.keys(this.connections).reduce((acc, val) => 
+          ("state" in this.connections[val] && this.connections[val].state === "request" ?  {
+              ...acc,
+              [val]: this.connections[val]
+          } : acc                                       
+        ), {})
+      },
+      responseStateConnections(){
+        return Object.keys(this.connections).reduce((acc, val) => 
+          ("state" in this.connections[val] && this.connections[val].state === "response" ?  {
+              ...acc,
+              [val]: this.connections[val]
+          } : acc                                       
+        ), {})
+      },
+      pendingConnections(){
+        return Object.keys(this.connections).reduce((acc, val) => 
+          ("state" in this.connections[val] && //state != active and state != invitation and state != error
+            this.connections[val].state != "active" &&
+            this.connections[val].state != "invitation" &&
+            this.connections[val].state != "error" ? acc : {
+              ...acc,
+              [val]: this.connections[val]
+          }                                        
+        ), {})
+      },
+      openInvitations(){
+        return this.connectionsInvitationModeFilterForOnce(this.invitationConnections) // Open invitations (state == invitation and mode == once)
+      },
+      multiUseInvitations(){
+        return this.connectionsInvitationModeFilterForMulti(this.invitationConnections) // Multiuse Invitations (state == invitation and mode == multi)
+      },
+      invitationConnections(){
+        return Object.keys(this.connections).reduce((acc, val) => 
+          ("state" in this.connections[val] && this.connections[val].state === "invitation" ?  {
+              ...acc,
+              [val]: this.connections[val]
+          } : acc                                       
+        ), {})
+      },
+      inactiveConnections(){
+        return Object.keys(this.connections).reduce((acc, val) => 
+          ("state" in this.connections[val] && this.connections[val].state === "inactive" ?  {
+              ...acc,
+              [val]: this.connections[val]
+          } : acc                                       
+        ), {})
+      },
+      staticConnections(){
+        return Object.keys(this.connections).reduce((acc, val) => 
+          ("state" in this.connections[val] && this.connections[val].state === "static" ?  {
+              ...acc,
+              [val]: this.connections[val]
+          } : acc                                       
+        ), {})
+      },
+      initedStateConnections(){
+        return Object.keys(this.connections).reduce((acc, val) => 
+          ("state" in this.connections[val] && this.connections[val].state === "init" ?  {
+              ...acc,
+              [val]: this.connections[val]
+          } : acc                                       
+        ), {})
+      },
+      errorStateConnections(){
+        return Object.keys(this.connections).reduce((acc, val) => 
+          ("state" in this.connections[val] && this.connections[val].state === "error" ?  {
+              ...acc,
+              [val]: this.connections[val]
+          } : acc                                       
+        ), {})
+      },
       basicmessage_history: function () {
         return this.message_history.filter(function(h){
           return h.msg['@type'] == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message";
         });
-      }
+      },
+      msgHistoryGroupedByThid(){
+        return this.message_history.reduce(function(acc, cur, i) {
+          var id = ('~thread'in cur.msg && 'thid' in cur.msg['~thread']) ? cur.msg['~thread'].thid : cur.msg['@id']
+          acc[id] = acc[id] || []
+          acc[id].push(cur)
+          return acc }, 
+          {})
+      },
+      most_recent_sent_msgs(){
+        return this.msgHistoryGroupedByThid[this.last_sent_msg_id]  
+      },  
+      sentPresentationRequests(){
+        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
+          ("request_sent" === this.presentation_exchanges[val].state ?  {
+              ...acc,
+              [val]: this.presentation_exchanges[val]
+          } : acc                                       
+        ), {})
+      },
+      receivedPresentationRequests(){
+        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
+          ("request_received" === this.presentation_exchanges[val].state ?  {
+              ...acc,
+              [val]: this.presentation_exchanges[val]
+          } : acc                                       
+        ), {})
+      },
+      sentPresentations(){
+        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
+          ("presentation_sent" === this.presentation_exchanges[val].state ?  {
+              ...acc,
+              [val]: this.presentation_exchanges[val]
+          } : acc                                       
+        ), {})
+      },
+      receivedPresentations(){
+        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
+          ("presentation_received" === this.presentation_exchanges[val].state ?  {
+              ...acc,
+              [val]: this.presentation_exchanges[val]
+          } : acc                                       
+        ), {})
+      },
+      verifiedPresentations(){
+        return Object.keys(this.presentation_exchanges).reduce((acc, val) => 
+          ("verified" === this.presentation_exchanges[val].state ?  {
+              ...acc,
+              [val]: this.presentation_exchanges[val]
+          } : acc                                       
+        ), {})
+      },
+      ledgerSchemas(ledger_name){
+        console.log("ledger name:",ledger_name)
+        let schemas = Object.keys(this.schemas).reduce((acc,key)=>
+          ("ledgers" in this.schemas[key] && ledger_name in this.schemas[key].ledgers ?{
+              ...acc,
+              [key]: this.schemas[key]
+          } : acc                                       
+        ), {})
+        console.log("schemas",schemas)
+        return schemas
+      },
     },
     async created () {
       // fetch the data when the view is created and the data is
