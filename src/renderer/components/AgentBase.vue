@@ -274,7 +274,7 @@
             <el-input v-model="agent_invitation_form.invitation" style="width:100px;"> </el-input>
         </el-form-group>
         <el-form-item>
-            <el-button type="primary" @click="addStaticAgent()">Add Agent</el-button>
+            <el-button type="primary" @click="addAgent()">Add Agent</el-button>
         </el-form-item>
         </el-form>
         <p>Add Static Agent:</p>
@@ -888,6 +888,14 @@
         this.invite_public_form = false
         this.invite_multi_use_form = true
         this.send_message(query_msg);
+      },
+      async addAgent() {
+        let receive_invite_msg = {
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/receive-invitation",
+          "invitation": this.agent_invitation_form.invitation,
+          "accept": "auto"
+        };
+        this.send_message(receive_invite_msg);
       },
       async addStaticAgent(){
         let query_msg ={
