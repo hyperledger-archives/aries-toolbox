@@ -102,93 +102,41 @@
         <el-row>
           <agent-connection-list
             title="Active Connections:"
-            itemlabel="their_label"
-            v-bind:list="activeConnections"
+            editable="true"
+            v-bind:list="Object.values(activeConnections)"
             v-on:connection-editted="updateAgentConnection"
             v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
           <agent-connection-list
             title="Pending Connections:"
-            itemlabel="their_label"
-            v-bind:list="pendingConnections"
+            editable="true"
+            v-bind:list="Object.values(pendingConnections)"
             v-on:connection-editted="updateAgentConnection"
             v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
           <agent-connection-list
             title="Open Invitations:"
-            itemlabel="connection_id"
-            v-bind:list="openInvitations"
+            editable="true"
+            v-bind:list="Object.values(openInvitations)"
             v-on:connection-editted="updateAgentConnection"
             v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
-        <template v-if="Object.keys(multiUseInvitations).length">
-          <p>Multiuse Invitations:</p>
-          <el-collapse v-model="exspanded_multi_use_invitations_connection_items">
-              <div v-for="(connection, key, index) in multiUseInvitations">
-                  <el-collapse-item v-bind:title="key" :name="key">
-                      <el-row>
-                          <div>
-                                <vue-json-pretty
-                                  :deep=1
-                                  :data="connection">
-                                </vue-json-pretty>
-                                <el-form :model="connectionUpdateForm[key]" class="connectionUpdateForm">
-                                  <el-form-item label="Role:" prop="their_role">
-                                    <el-input label="Role" placeholder="connectionUpdateForm[key].their_role" v-model="connectionUpdateForm[key].their_role" style="width:300px;" ></el-input>
-                                    <br/><el-button type="primary" @click="updateAgentConnection(connection)">update</el-button>
-                                    <el-button type="primary" @click="deleteAgentConnection(connection)">delete</el-button>
-                                  </el-form-item>
-                              <el-button v-on:click="collapse_expanded_connections(key)">^</el-button>
-                              </el-form>
-                          </div>
-                      </el-row>
-                  </el-collapse-item>
-              </div>
-          </el-collapse>
-        </template>
-        <template v-if="Object.keys(invitations).length">
-          <p>New Invitations:</p>
-          <el-collapse v-model="exspanded_invites_items">
-              <div v-for="(invite, key, index) in invitations">
-                  <el-collapse-item v-bind:title="key" :name="key">
-                      <el-row>
-                          <div>
-                                <vue-json-pretty
-                                  :deep=1
-                                  :data="invite">
-                                </vue-json-pretty>
-                              <el-button v-on:click="collapse_expanded_invititions(key)">^</el-button>
-                          </div>
-                      </el-row>
-                  </el-collapse-item>
-              </div>
-          </el-collapse>
-        </template>
-        <template v-if="Object.keys(errorStateConnections).length">
-          <p>Failed Connections:</p>
-          <el-collapse v-model="exspanded_active_connection_items">
-              <div v-for="(connection, key, index) in errorStateConnections"><!-- Failed Connections (state == error) -->
-                  <el-collapse-item v-bind:title="connection.their_label" :name="key">
-                      <el-row>
-                          <div>
-                                <vue-json-pretty
-                                  :deep=1
-                                  :data="connection">
-                                </vue-json-pretty>
-                                <el-form :model="connectionUpdateForm[key]" class="connectionUpdateForm">
-                                  <el-form-item label="Role:" prop="their_role">
-                                    <el-input placeholder="connectionUpdateForm[key].their_role" v-model="connectionUpdateForm[key].their_role" style="width:300px;"></el-input>
-                                  </el-form-item>
-                                  <el-form-item label="Label:" prop="their_label">
-                                    <el-input placeholder="connectionUpdateForm[key].their_label" v-model="connectionUpdateForm[key].their_label" style="width:300px;"></el-input>
-                                    <br/><el-button type="primary" @click="updateAgentConnection(connection)">update</el-button>
-                                    <el-button type="primary" @click="deleteAgentConnection(connection)">delete</el-button>
-                                  </el-form-item>
-                              <el-button v-on:click="collapse_expanded_connections(key)">^</el-button>
-                              </el-form>
-                          </div>
-                      </el-row>
-                  </el-collapse-item>
-              </div>
-          </el-collapse>
-        </template>
+          <agent-connection-list
+            title="Multiuse Invitations:"
+            editable="true"
+            v-bind:list="Object.values(multiUseInvitations)"
+            v-on:connection-editted="updateAgentConnection"
+            v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
+          <agent-connection-list
+            title="New Invitations:"
+            editable="false"
+            v-bind:list="Object.values(invitations)"
+            v-on:connection-editted="updateAgentConnection"
+            v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>  
+          <agent-connection-list
+            title="Failed Connections:"
+            editable="false"
+            v-bind:list="Object.values(errorStateConnections)"
+            v-on:connection-editted="updateAgentConnection"
+            v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
+
         <p>Create Invitations:</p>
         <el-form>
         <el-form-group >
