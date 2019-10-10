@@ -40,11 +40,12 @@
 
 <script>
 const electron = require('electron');
-const DIDComm = require('encryption-envelope-js');
 const bs58 = require('bs58');
 const rp = require('request-promise');
+const DIDComm = require('encryption-envelope-js');
 //import DIDComm from 'didcomm-js';
 import { mapState, mapActions } from "vuex"
+import { new_connection } from '../connection_detail.js';
 
 export default {
   name: 'connection-list',
@@ -262,15 +263,10 @@ export default {
           console.log("response message", response);
           //TODO: record endpoint and recipient key in connection record, along with my keypair. use invitation label
           // TODO: Clear invite box fter new add.
-          let connection_detail = {
-            'id': new Date().getTime(),
-            'label': invite.label,
-            'did_doc': response.connection.DIDDoc,
-            'my_key': toolbox_did
-          };
+          let connection_detail = new_connection(invite.label, response.connection.DIDDoc, toolbox_did);
           console.log("connection detail", connection_detail);
           ///this.$store.Connections.commit("ADD_CONNECTION", connection_detail);
-          vm.add_connection(connection_detail);
+          vm.add_connection(connection_detail.to_store());
           vm.new_agent_invitation = ""; //clear input for next round
         })
         .catch(function (err) {
