@@ -12,6 +12,7 @@
               </vue-json-pretty>
             </div>
             <el-button @click="edit(index)">Edit</el-button>
+            <el-button type="danger" @click="delete_conn(index)">Delete</el-button>
           </el-row>
         </el-collapse-item>
       </div>
@@ -61,10 +62,14 @@ export default {
       this.editForm.label = connection.their_label;
       this.editFormActive = true;
     },
-    update: async function() {
+    update: function() {
       this.editFormActive = false;
-      this.$emit('connection-editted', editForm);
-    }
+      this.$emit('connection-editted', this.editForm);
+    },
+    delete_conn: function (index) {
+      let connection = this.list[index];
+      this.$emit('connection-deleted', connection);
+    } 
   }
 }
 </script>

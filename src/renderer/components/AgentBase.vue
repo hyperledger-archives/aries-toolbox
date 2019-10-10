@@ -100,12 +100,24 @@
       </el-tab-pane>
       <el-tab-pane label="Connections">
         <el-row>
-          <agent-connection-list title="Active Connections:" itemlabel="their_label" v-bind:list="activeConnections" v-on:connection-editted="updateAgentConnection">
-          </agent-connection-list>
-          <agent-connection-list title="Pending Connections:" itemlabel="their_label" v-bind:list="pendingConnections" v-on:connection-editted="updateAgentConnection">
-          </agent-connection-list>
-          <agent-connection-list title="Open Invitations:" itemlabel="connection_id" v-bind:list="openInvitations" v-on:connection-editted="updateAgentConnection">
-          </agent-connection-list>
+          <agent-connection-list
+            title="Active Connections:"
+            itemlabel="their_label"
+            v-bind:list="activeConnections"
+            v-on:connection-editted="updateAgentConnection"
+            v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
+          <agent-connection-list
+            title="Pending Connections:"
+            itemlabel="their_label"
+            v-bind:list="pendingConnections"
+            v-on:connection-editted="updateAgentConnection"
+            v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
+          <agent-connection-list
+            title="Open Invitations:"
+            itemlabel="connection_id"
+            v-bind:list="openInvitations"
+            v-on:connection-editted="updateAgentConnection"
+            v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
         <template v-if="Object.keys(multiUseInvitations).length">
           <p>Multiuse Invitations:</p>
           <el-collapse v-model="exspanded_multi_use_invitations_connection_items">
