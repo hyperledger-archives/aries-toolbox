@@ -24,8 +24,8 @@
     </nav>
 
     <el-tabs type="border-card">
-      <el-tab-pane label="Dids">
-        <p>Dids:</p>
+      <el-tab-pane v-if="showDids" label="DIDs" name="dids">
+        <p>DIDs:</p>
         <el-collapse v-model="expanded_dids_items">
           <div v-for="(did, key) in dids" :key="key">
             <el-collapse-item v-bind:title="'did: ' + did.did + ', vk: ' + did.verkey" :name="key">
@@ -61,7 +61,7 @@
         </el-form>
       </el-tab-pane>
 
-      <el-tab-pane label="Ledger">
+      <el-tab-pane v-if="showLedgers" label="Ledger" name="ledgers">
         <p>Ledgers:</p>
         <el-collapse v-model="expanded_ledger_items">
           <div v-for="(ledger, key) in ledgers" :key="key">
@@ -97,7 +97,7 @@
           </el-form-item>
         </el-form>
       </el-tab-pane>
-      <el-tab-pane label="Connections">
+      <el-tab-pane v-if="showConnections" label="Connections" name="connections">
         <el-row>
           <agent-connection-list
             title="Active Connections:"
@@ -186,7 +186,7 @@
         </el-row>
       </el-tab-pane>
 
-      <el-tab-pane label="Compose">
+      <el-tab-pane label="Compose" name="compose">
         <input type="button" class="btn btn-secondary" v-on:click="compose_send()" value="Send"/>
         <v-jsoneditor v-model="compose_json">
         </v-jsoneditor>
@@ -199,7 +199,7 @@
         </div>
       </el-tab-pane>
 
-      <el-tab-pane label="BasicMessage">
+      <el-tab-pane v-if="showBasicMessage" label="BasicMessage" name="basicmessage">
         <div style="margin-bottom: 1em;">
           <el-input placeholder="Message to send" @keyup.enter.native="basicmessage_send" v-model="basicmessage_compose" style="width:500px;"></el-input>
           <el-button type="primary" @click="basicmessage_send">Send</el-button>
@@ -210,7 +210,7 @@
         </div>
 
       </el-tab-pane>
-      <el-tab-pane label="Message History">
+      <el-tab-pane label="Message History" name="message_history">
 
         <input type="button" class="btn btn-secondary" v-on:click="message_history_clear()" value="Clear"/>
         <div class="message-display" v-for="m in message_history.slice().reverse()" :key="m.msg['@id']">
@@ -222,7 +222,7 @@
         </div>
 
       </el-tab-pane>
-      <el-tab-pane label="Schema">
+      <el-tab-pane v-if="showSchemas" label="Schemas" name="schemas">
         <p>Schemas:</p>
         <el-collapse v-model="exspanded_schemas_items">
           <div v-for="(schema, key, index) in schemas">
@@ -263,7 +263,7 @@
           </el-form-item>
         </el-form>
       </el-tab-pane>
-      <el-tab-pane label="Credential Issuance">
+      <el-tab-pane label="Credential Issuance" name="issuance">
         <!--
           /**
           * credential
@@ -369,7 +369,7 @@
             </el-form-item>
         </el-form>
       </el-tab-pane>
-      <el-tab-pane label="Trusted Issuers">
+      <el-tab-pane label="Trusted Issuers" name="trusted_issuers">
         <p>Issuers:</p>
         <el-collapse v-model="expanded_issuers_items">
           <div v-for="(did, key, index) in trusted_issuers">
@@ -401,7 +401,7 @@
           </el-form-item>
         </el-form>
       </el-tab-pane>
-      <el-tab-pane label="My Credentials">
+      <el-tab-pane label="My Credentials" name="credentials">
         <!--
           /**
           * credential
@@ -420,7 +420,7 @@
           */
         -->
       </el-tab-pane>
-      <el-tab-pane label="Presentation">
+      <el-tab-pane label="Presentation" name="presentation">
         <p>Presentation Definitions:</p>
         <el-collapse v-model="exspanded_pres_def_items">
           <div v-for="(pres_def, key, index) in presentation_definitions">
@@ -605,10 +605,10 @@
           </el-collapse>
         </el-form>
       </el-tab-pane>
-      <el-tab-pane label="Verifications">
+      <el-tab-pane label="Verifications" name="verifications">
       </el-tab-pane>
       </el-tab-pane>
-      <el-tab-pane label="Protocol Discovery">
+      <el-tab-pane label="Protocol Discovery" name="protocol_discovery">
 
         <input type="button" class="btn btn-secondary" v-on:click="run_protocol_discovery()" value="Query"/>
         <table class="table table-sm">
@@ -1441,6 +1441,21 @@ export default {
      *
      */
     //=========================================================================================================================
+    showDids() {
+      return this.supported_protocols.find(item => item.pid === 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0')
+    },
+    showLedgers() {
+      return this.supported_protocols.find(item => item.pid === 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-ledger/1.0')
+    },
+    showConnections() {
+      return this.supported_protocols.find(item => item.pid === 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0')
+    },
+    showSchemas() {
+      return this.supported_protocols.find(item => item.pid === 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0')
+    },
+    showBasicMessage() {
+      return this.supported_protocols.find(item => item.pid === 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0')
+    },
     activeConnections(){
       return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "active")
     },
