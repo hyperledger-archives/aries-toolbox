@@ -1466,17 +1466,17 @@
             conn.state          === "invitation" &&
           //==========================================
             "invitation_mode"   in conn &&
-            conn.invitation_mode != "once"
+            conn.invitation_mode === "once"
           )
       },
       multiUseInvitations(){
         return Object.values(this.connections).filter(
           conn =>
-            "invitation_mode"   in  conn &&
-            conn.invitation_mode !=  "multi" &&
+            "state"             in conn &&
+            conn.state          === "invitation" &&
           //==========================================
-            "state"             in  conn &&
-            conn.state          === "invitation"
+            "invitation_mode"   in conn &&
+            conn.invitation_mode === "multi"
           )
       },
       inactiveConnections(){
