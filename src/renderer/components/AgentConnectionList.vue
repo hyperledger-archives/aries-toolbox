@@ -1,12 +1,13 @@
 <template >
   <div v-if="list.length">
     <p>{{ title }}</p>
-    <el-collapse v-model="exspanded_active_connection_item">
+    <el-collapse v-model="expanded_items">
       <ul class="list">
-        <el-collapse-item v-for="(connection, index) in list" 
-        v-bind:title="get_name(connection)" 
-        :name="get_name(connection)" 
-        :key="connection.connection_id">
+        <el-collapse-item
+          v-for="(connection, index) in list"
+          v-bind:title="get_name(connection)"
+          :name="connection.connection_id"
+          :key="connection.connection_id">
           <el-row>
             <div>
               <vue-json-pretty
@@ -15,11 +16,10 @@
               </vue-json-pretty>
             </div>
             <template v-if="editable">
-            <el-button @click="edit(index)">Edit</el-button>
+              <el-button @click="edit(connection)">Edit</el-button>
             </template>
-            <el-button type="danger" @click="delete_conn(index)">Delete</el-button>
-            <el-button v-on:click="collapse_expanded_connection(index)">^</el-button>
-            
+            <el-button type="danger" @click="delete_conn(connection)">Delete</el-button>
+            <el-button v-on:click="collapse_expanded(connection)">^</el-button>
           </el-row>
         </el-collapse-item>
       </ul>
@@ -52,7 +52,7 @@ export default {
   },
   data () {
     return {
-      exspanded_active_connection_item:[],
+      expanded_items:[],
       editFormActive: false,
       editForm: {
         connection_id: '',
@@ -69,8 +69,7 @@ export default {
       };
       return connection.connection_id;
     },
-    edit: function (index) {
-      let connection = this.list[index];
+    edit: function (connection) {
       this.editForm.connection_id = connection.connection_id;
       this.editForm.role = connection.their_role;
       this.editForm.label = connection.their_label;
@@ -80,13 +79,14 @@ export default {
       this.editFormActive = false;
       this.$emit('connection-editted', this.editForm);
     },
-    delete_conn: function (index) {
-      let connection = this.list[index];
+    delete_conn: function (connection) {
       this.$emit('connection-deleted', connection);
     },
-    collapse_expanded_connection(index){
-      this.exspanded_active_connection_item.splice(index, 1);
-    }, 
+    collapse_expanded: function(connection){
+      this.expanded_items = this.expanded_items.filter(
+        item => item != connection.connection_id
+      );
+    },
   }
 }
 </script>

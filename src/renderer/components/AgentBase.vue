@@ -103,37 +103,37 @@
           <agent-connection-list
             title="Active Connections:"
             editable="true"
-            v-bind:list="Object.values(activeConnections)"
+            v-bind:list="activeConnections"
             v-on:connection-editted="updateAgentConnection"
             v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
           <agent-connection-list
             title="Pending Connections:"
             editable="true"
-            v-bind:list="Object.values(pendingConnections)"
+            v-bind:list="pendingConnections"
             v-on:connection-editted="updateAgentConnection"
             v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
           <agent-connection-list
             title="Open Invitations:"
             editable="true"
-            v-bind:list="Object.values(openInvitations)"
+            v-bind:list="openInvitations"
             v-on:connection-editted="updateAgentConnection"
             v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
           <agent-connection-list
             title="Multiuse Invitations:"
             editable="true"
-            v-bind:list="Object.values(multiUseInvitations)"
+            v-bind:list="multiUseInvitations"
             v-on:connection-editted="updateAgentConnection"
             v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
           <agent-connection-list
             title="New Invitations:"
             editable="false"
-            v-bind:list="Object.values(invitations)"
+            v-bind:list="invitations"
             v-on:connection-editted="updateAgentConnection"
-            v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>  
+            v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
           <agent-connection-list
             title="Failed Connections:"
             editable="false"
-            v-bind:list="Object.values(errorStateConnections)"
+            v-bind:list="errorStateConnections"
             v-on:connection-editted="updateAgentConnection"
             v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
 
@@ -1461,23 +1461,23 @@
       },
       openInvitations(){
         return Object.values(this.connections).filter(
-          conn => 
-            "state"             in conn && 
-            conn.state          === "invitation" && 
+          conn =>
+            "state"             in conn &&
+            conn.state          === "invitation" &&
           //==========================================
             "invitation_mode"   in conn &&
             conn.invitation_mode != "once"
-          ) 
+          )
       },
       multiUseInvitations(){
         return Object.values(this.connections).filter(
-          conn => 
-            "invitation_mode"   in  conn && 
+          conn =>
+            "invitation_mode"   in  conn &&
             conn.invitation_mode !=  "multi" &&
           //==========================================
-            "state"             in  conn && 
+            "state"             in  conn &&
             conn.state          === "invitation"
-          ) 
+          )
       },
       inactiveConnections(){
         return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "inactive")
