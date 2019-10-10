@@ -28,7 +28,7 @@
     <el-tab-pane label="Dids">
       <p>Dids:</p>
       <el-collapse v-model="expanded_dids_items">
-            <div v-for="(did, key, index) in dids">
+            <div v-for="(did, key) in dids" :key="key">
                 <el-collapse-item v-bind:title="'did: ' + did.did + ', vk: ' + did.verkey" :name="key">
                     <el-row>
                         <div>
@@ -65,7 +65,7 @@
     <el-tab-pane label="Ledger">
       <p>Ledgers:</p>
       <el-collapse v-model="expanded_ledger_items">
-            <div v-for="(ledger, key, index) in ledgers">
+            <div v-for="(ledger, key) in ledgers" :key="key">
                 <el-collapse-item v-bind:title="'Name: ' + ledger.name" :name="key">
                     <el-row>
                         <div>
@@ -309,7 +309,7 @@
         <input type="button" class="btn btn-secondary" v-on:click="compose_send()" value="Send"/>
         <v-jsoneditor v-model="compose_json">
         </v-jsoneditor>
-        <div class="message-display" v-for="msg in most_recent_sent_msgs">
+        <div class="message-display" v-for="(msg, index) in most_recent_sent_msgs" :key="index">
           <i>{{msg.direction}}</i>
           <vue-json-pretty
             :deep=1
@@ -324,7 +324,7 @@
           <el-button type="primary" @click="basicmessage_send">Send</el-button>
 
         </div>
-        <div v-for="m in basicmessage_history.slice().reverse()">
+        <div v-for="m in basicmessage_history.slice().reverse()" :key="m.msg['@id']">
           <div :class="'basicmessage-'+m.direction">{{m.msg.content}}</div>
         </div>
 
@@ -332,7 +332,7 @@
       <el-tab-pane label="Message History">
 
         <input type="button" class="btn btn-secondary" v-on:click="message_history_clear()" value="Clear"/>
-        <div class="message-display" v-for="m in message_history.slice().reverse()">
+        <div class="message-display" v-for="m in message_history.slice().reverse()" :key="m.msg['@id']">
          <i>{{m.direction}}</i>
           <vue-json-pretty
             :deep=1
@@ -1607,92 +1607,53 @@
        */
       //=========================================================================================================================
       activeConnections(){
-        // return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "active");
-        return Object.keys(this.connections).reduce((acc, val) =>
-          ("state" in this.connections[val] && this.connections[val].state === "active" ?  {
-              ...acc,
-              [val]: this.connections[val]
-          } : acc
-        ), {})
+        return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "active")
       },
       requestStateConnections(){
-        // return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "request");
-        return Object.keys(this.connections).reduce((acc, val) =>
-          ("state" in this.connections[val] && this.connections[val].state === "request" ?  {
-              ...acc,
-              [val]: this.connections[val]
-          } : acc
-        ), {})
+       return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "request")
       },
       responseStateConnections(){
-        return Object.keys(this.connections).reduce((acc, val) =>
-        // return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "response");
-          ("state" in this.connections[val] && this.connections[val].state === "response" ?  {
-              ...acc,
-              [val]: this.connections[val]
-          } : acc
-        ), {})
+        return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "response")
       },
       pendingConnections(){
-        // return Object.values(this.connections).filter(
-        //     conn => "state" in conn &&
-        //     conn.state != "active"
-        //     ...);
-        return Object.keys(this.connections).reduce((acc, val) =>
-          ("state" in this.connections[val] && //state != active and state != invitation and state != error
-            this.connections[val].state != "active" &&
-            this.connections[val].state != "invitation" &&
-            this.connections[val].state != "error" ? acc : {
-              ...acc,
-              [val]: this.connections[val]
-          }
-        ), {})
+        return Object.values(this.connections).filter(
+          conn => "state" in conn &&
+          conn.state != "active" &&
+          conn.state != "invitation" &&
+          conn.state != "error"
+          )
       },
       openInvitations(){
-        return this.connectionsInvitationModeFilterForOnce(this.invitationConnections) // Open invitations (state == invitation and mode == once)
+        return Object.values(this.connections).filter(
+          conn => 
+            "state"             in conn && 
+            conn.state          === "invitation" && 
+          //==========================================
+            "invitation_mode"   in conn &&
+            conn.invitation_mode != "once"
+          ) 
       },
       multiUseInvitations(){
-        return this.connectionsInvitationModeFilterForMulti(this.invitationConnections) // Multiuse Invitations (state == invitation and mode == multi)
-      },
-      invitationConnections(){
-        return Object.keys(this.connections).reduce((acc, val) =>
-          ("state" in this.connections[val] && this.connections[val].state === "invitation" ?  {
-              ...acc,
-              [val]: this.connections[val]
-          } : acc
-        ), {})
+        return Object.values(this.connections).filter(
+          conn => 
+            "invitation_mode"   in  conn && 
+            conn.invitation_mode !=  "multi" &&
+          //==========================================
+            "state"             in  conn && 
+            conn.state          === "invitation"
+          ) 
       },
       inactiveConnections(){
-        return Object.keys(this.connections).reduce((acc, val) =>
-          ("state" in this.connections[val] && this.connections[val].state === "inactive" ?  {
-              ...acc,
-              [val]: this.connections[val]
-          } : acc
-        ), {})
+        return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "inactive")
       },
       staticConnections(){
-        return Object.keys(this.connections).reduce((acc, val) =>
-          ("state" in this.connections[val] && this.connections[val].state === "static" ?  {
-              ...acc,
-              [val]: this.connections[val]
-          } : acc
-        ), {})
+        return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "static")
       },
       initedStateConnections(){
-        return Object.keys(this.connections).reduce((acc, val) =>
-          ("state" in this.connections[val] && this.connections[val].state === "init" ?  {
-              ...acc,
-              [val]: this.connections[val]
-          } : acc
-        ), {})
+        return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "init")
       },
       errorStateConnections(){
-        return Object.keys(this.connections).reduce((acc, val) =>
-          ("state" in this.connections[val] && this.connections[val].state === "error" ?  {
-              ...acc,
-              [val]: this.connections[val]
-          } : acc
-        ), {})
+        return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "error")
       },
       basicmessage_history: function () {
         return this.message_history.filter(function(h){
