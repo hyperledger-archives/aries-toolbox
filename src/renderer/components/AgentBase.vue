@@ -202,7 +202,7 @@
             <el-input v-model="agent_invitation_form.invitation" style="width:100px;"> </el-input>
         </el-form-group>
         <el-form-item>
-            <el-button type="primary" @click="addStaticAgent()">Add Agent</el-button>
+            <el-button type="primary" @click="addAgent()">Add Agent</el-button>
         </el-form-item>
         </el-form>
         <p>Add Static Agent:</p>
@@ -694,11 +694,11 @@
 </style>
 
 <script>
-  const DIDComm = require('encryption-envelope-js');
   const bs58 = require('bs58');
   const rp = require('request-promise');
 
-  import { mapState, mapActions } from "vuex"
+  import { mapState, mapActions } from "vuex";
+  import { from_store } from '../connection_detail.js';
 
   import VueJsonPretty from 'vue-json-pretty';
   import VJsoneditor from 'v-jsoneditor';
@@ -721,11 +721,9 @@
       //=========================================================================================================================
       async fetchAgentData(){
         //load from vue store
-        // this is cloned from the datastore to allow fixing the key encodings.
-        this.connection = JSON.parse(JSON.stringify(await this.get_connection(this.id)));
-        // strange fixing of the encoding
-        this.connection.my_key.privateKey = bs58.decode(this.connection.my_key.privateKey_b58);
-        this.connection.my_key.publicKey = bs58.decode(this.connection.my_key.publicKey_b58);
+        this.connection = from_store(await this.get_connection(this.id), this.processInbound);
+
+        this.message_history = this.connection.message_history;
 
         this.connection_loaded = true;
       },
@@ -736,7 +734,7 @@
             "return_route": "all"
           }
         }
-        this.send_message(query_msg);
+        this.connection.send_message(query_msg);
       },
       async run_protocol_discovery(){
         //send query
@@ -744,10 +742,10 @@
           "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/query",
           "query": "*"
         };
-        this.send_message(query_msg);
+        this.connection.send_message(query_msg);
       },
       async getAgentDids(){
-        this.send_message( {
+        this.connection.send_message( {
           "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/get-list-dids",
           "~transport": {
             "return_route": "all"
@@ -764,7 +762,7 @@
         msg = this.did_form.did ? {...msg,"did":this.did_form.did} : msg
         msg = this.did_form.seed ? {...msg,"seed":this.did_form.seed} : msg
         msg = this.did_form.label ? {...msg, "metadata": {"label":this.did_form.label}} : msg
-        this.send_message(msg)
+        this.connection.send_message(msg)
       },
       async updateAgentConnection(editForm){
         let query_msg = {
@@ -773,7 +771,7 @@
             "label": editForm.label,
             "role": editForm.role,
         }
-        this.send_message(query_msg);
+        this.connection.send_message(query_msg);
       },
       async deleteAgentConnection(connection){
         let query_msg = {
@@ -783,7 +781,7 @@
               "return_route": "all"
             }
         }
-        this.send_message(query_msg);
+        this.connection.send_message(query_msg);
       },
       async removeSchema(id,ledger_id){
         let query_msg = {
@@ -794,7 +792,7 @@
               "return_route": "all"
             }
         }
-        this.send_message(query_msg);
+        this.connection.send_message(query_msg);
         delete this.schemas[id]// TODO:remove this after aca-py support is added.
       },
       async fetchNewInvite(){
@@ -814,7 +812,15 @@
         this.invite_accept_form = "auto"
         this.invite_public_form = false
         this.invite_multi_use_form = true
-        this.send_message(query_msg);
+        this.connection.send_message(query_msg);
+      },
+      async addAgent() {
+        let receive_invite_msg = {
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/receive-invitation",
+          "invitation": this.agent_invitation_form.invitation,
+          "accept": "auto"
+        };
+        this.connection.send_message(receive_invite_msg);
       },
       async addStaticAgent(){
         let query_msg ={
@@ -828,19 +834,17 @@
             "return_route": "all"
           }
         }
-        this.send_message(query_msg);
+        this.connection.send_message(query_msg);
       },
       async compose_send(){
-        this.last_sent_msg_id = '@id' in this.compose_json ? this.compose_json['@id'] : (new Date()).getTime().toString()
-        this.compose_json['@id']= this.last_sent_msg_id
-        this.send_message(this.compose_json, true);
+        this.connection.send_message(this.compose_json, true);
       },
       async basicmessage_send(){
         let msg = {
           "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message",
           "content": this.basicmessage_compose
         };
-        this.send_message(msg);
+        this.connection.send_message(msg);
         this.basicmessage_compose = "";
       },
       async storeSchema(){
@@ -853,7 +857,7 @@
               "return_route": "all"
             }
         }
-        this.send_message(query_msg);
+        this.connection.send_message(query_msg);
         this.schemas['123412341234'] = { // TODO:remove this after aca-py support is added.
             "id":'123412341234',
             "name": this.schemas_form.name,
@@ -872,7 +876,7 @@
               "return_route": "all"
             }
         }
-        this.send_message(query_msg);
+        this.connection.send_message(query_msg);
       },
       async createCredentialDefinition(){
           let query_msg = {
@@ -882,7 +886,7 @@
               "return_route": "all"
           }
         }
-        this.send_message(query_msg);
+        this.connection.send_message(query_msg);
       },
       async removeTrustedIssuer(id){
         let query_msg = {
@@ -892,7 +896,7 @@
               "return_route": "all"
             }
         }
-        this.send_message(query_msg);
+        this.connection.send_message(query_msg);
         delete this.trusted_issuers[id]// TODO:remove this after aca-py support is added.
       },
       async resolveTrustedIssuer(did){
@@ -903,7 +907,7 @@
               "return_route": "all"
             }
         }
-        this.send_message(query_msg);
+        this.connection.send_message(query_msg);
         delete this.trusted_issuers[did]// TODO:remove this after aca-py support is added.
       },
       async storeTrustedIssuer(){
@@ -915,7 +919,7 @@
               "return_route": "all"
             }
         }
-        this.send_message(query_msg);
+        this.connection.send_message(query_msg);
         this.trusted_issuers[this.trusted_issuers_form.did] = { // TODO:remove this after aca-py support is added.
             "id":this.trusted_issuers_form.did,
             "label": this.trusted_issuers_form.label,
@@ -935,51 +939,13 @@
               "return_route": "all"
           }
         }
-        this.send_message(query_msg)
+        this.connection.send_message(query_msg)
         this.pres_def_form.temp_attrs= []
         this.pres_def_form.requested_attributes= []
         this.pres_def_form.requested_attribute= ''
         this.pres_def_form.restriction= ''
         this.pres_def_form.name= ''
         this.pres_def_form.version= ''
-      },
-      async send_message(msg, set_return_route = true){
-        var vm = this; //safe reference to view model
-        msg['@id'] = '@id' in msg ? msg['@id'] : (new Date()).getTime().toString(); // add id
-        console.log('response_requested' in msg, msg);
-        set_return_route = 'response_requested' in msg ? msg['response_requested'] : set_return_route // clear configurations
-        delete msg['response_request']
-        // add transport from configuration
-        msg['~transport'] = set_return_route ? {'return_route': 'all'} : {'return_route': 'none'} //Aries RFC 0092 https://github.com/hyperledger/aries-rfcs/blob/be5635174e202f8604c521e09d98b04ac7a70930/features/0092-transport-return-route/README.md
-        this.message_history_add(msg, "Sent");
-        console.log("sending message", msg);
-        console.log("to", bs58.decode(this.connection.did_doc.service[0].recipientKeys[0]));
-        const didcomm = new DIDComm.DIDComm();
-        await didcomm.Ready;
-        const packedMsg = await didcomm.packMessage(JSON.stringify(msg), [bs58.decode(this.connection.did_doc.service[0].recipientKeys[0])], this.connection.my_key);
-        //send request
-        var options = {
-            method: 'POST',
-            uri: this.connection.did_doc.service[0].serviceEndpoint,
-            body: packedMsg,
-        };
-        rp(options)
-            .then(async function (parsedBody) {
-              if (!parsedBody) { // POST succeeded...
-                console.log("No response for post; continuing.");
-                return;
-              }
-              const unpackedResponse = await didcomm.unpackMessage(parsedBody, vm.connection.my_key);
-              //console.log("unpacked", unpackedResponse);
-              const response = JSON.parse(unpackedResponse.message);
-
-              //TODO: Process signed fields
-              console.log("received message", response);
-              vm.processInbound(response);
-            })
-            .catch(function (err) { // POST failed...
-              console.log("request post err", err);
-            });
       },
       //=========================================================================================================================
       //-------------------------Inbound Messages---------------------------------------------------------------------------
@@ -1030,14 +996,8 @@
         //console.log(msg.protocols);
         this.supported_protocols = msg.protocols;
       },
-      async message_history_add(msg, direction){
-        this.message_history.push({
-          'msg':msg,
-          'direction': direction,
-        });
-      },
       async processInbound(msg){
-        this.message_history_add(msg, "Received");
+        this.connection.message_history_add(msg, "Received");
         var handlers = {
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/disclose": this.ProtocolDisclose,
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-list": this.fetchedConnectionList,
@@ -1124,9 +1084,6 @@
           [...this.pres_def_form.requested_attributes[index].restrictions,
           this.pres_def_form.temp_attrs[index].restriction]
         this.pres_def_form.temp_attrs[index].restriction = '';
-      },
-      async message_history_clear(){
-        this.message_history.splice(0, this.message_history.length);//clear all entries
       },
       async schema_attributes_clear(){
         this.schemas_form.attributes = [];
@@ -1614,17 +1571,23 @@
         ), {})
       },
       basicmessage_history: function () {
-        return this.message_history.filter(function(h){
-          return h.msg['@type'] == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message";
-        });
+        if (this.connection_loaded) {
+          return this.connection.message_history.filter(function(h){
+            return h.msg['@type'] == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message";
+          });
+        }
+        return [];
       },
       msgHistoryGroupedByThid(){
-        return this.message_history.reduce(function(acc, cur, i) {
-          var id = ('~thread'in cur.msg && 'thid' in cur.msg['~thread']) ? cur.msg['~thread'].thid : cur.msg['@id']
-          acc[id] = acc[id] || []
-          acc[id].push(cur)
-          return acc },
-          {})
+        if (this.connection_loaded) {
+          return this.connection.message_history.reduce(function(acc, cur, i) {
+            var id = ('~thread'in cur.msg && 'thid' in cur.msg['~thread']) ? cur.msg['~thread'].thid : cur.msg['@id']
+            acc[id] = acc[id] || []
+            acc[id].push(cur)
+            return acc },
+            {})
+        }
+        return [];
       },
       most_recent_sent_msgs(){
         return this.msgHistoryGroupedByThid[this.last_sent_msg_id]

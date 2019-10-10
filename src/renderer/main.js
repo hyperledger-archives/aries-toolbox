@@ -8,7 +8,7 @@ import router from './router'
 import store from './store'
 
 //if (!process.env.IS_WEB)
-  Vue.use(require('vue-electron'));
+Vue.use(require('vue-electron'));
 Vue.use(ElementUI)
 Vue.http = Vue.prototype.$http = axios;
 Vue.config.productionTip = false;
