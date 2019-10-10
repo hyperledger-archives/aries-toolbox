@@ -5,47 +5,36 @@
       <a class="navbar-brand" href="#">{{connection.label}}</a>
       <!-- active privileged did -->
       <el-form :model=active_ledger_selector>
-          <el-select v-model="active_ledger_selector.did" filterable placeholder="activate did" >
+          <!-- <el-select v-model="active_ledger_selector.did" filterable placeholder="activate did" > -->
+          <el-select v-model="selectedActiveDid" 
+          filterable placeholder="activate did">
             <el-option
-              v-for="did in dids"
+              v-for="did in Object.values(dids)"
               :key="did.did"
               :label="did.did"
-              :value="did.did">
+              :value="did">
             </el-option>
           </el-select>
-          <el-select v-model="active_ledger_selector.ledger" filterable placeholder="activate ledger" >
+          <!-- <el-select v-if="false" v-model="active_ledger_selector.ledger" filterable placeholder="activate ledger" >
             <el-option
               v-for="ledger in ledgers"
               :key="ledger.name"
               :label="ledger.name"
               :value="ledger.name">
             </el-option>
-          </el-select>
+          </el-select> -->
       </el-form>
     </nav>
 
     <el-tabs type="border-card">
     <el-tab-pane label="Dids">
-      <p>Dids:</p>
-      <el-collapse v-model="expanded_dids_items">
-            <div v-for="(did, key) in dids" :key="key">
-                <el-collapse-item v-bind:title="'did: ' + did.did + ', vk: ' + did.verkey" :name="key">
-                    <el-row>
-                        <div>
-                              <vue-json-pretty
-                                :deep=1
-                                :data="did">
-                              </vue-json-pretty>
-                              <!--
-                                - button identify did permission on ledger
-                                - button activate did
-                                - publish did on active ledger -->
-                            <el-button v-on:click="collapse_expanded_did_item(key)">^</el-button>
-                        </div>
-                    </el-row>
-                </el-collapse-item>
-            </div>
-        </el-collapse>
+      <agent-did-list
+            title="Dids:"
+            activeDid="activeDid()"
+            v-bind:list="Object.values(dids)"
+            v-on:did-update="updateAgentDid"
+            v-on:did-activate="activateAgentDid"
+            v-on:did-resolve="resolveTrustedIssuer"></agent-did-list>
         <p>Create a Did:</p>
         <el-form :model=did_form>
         <el-form-group >
@@ -662,13 +651,16 @@
 
   import VueJsonPretty from 'vue-json-pretty';
   import VJsoneditor from 'v-jsoneditor';
-  import AgentConnectionList from './AgentConnectionList.vue'
+  import AgentConnectionList from './AgentConnectionList.vue';
+  import AgentDidList from './AgentDidList.vue';
+
   export default {
     name: 'agent-base',
     components: {
       VueJsonPretty,
       VJsoneditor,
-      AgentConnectionList
+      AgentConnectionList,
+      AgentDidList,
     },
     methods: {
       ...mapActions("Connections", ["get_connection"]),
@@ -724,6 +716,39 @@
         msg = this.did_form.label ? {...msg, "metadata": {"label":this.did_form.label}} : msg
         this.connection.send_message(msg)
       },
+      async getAgentActivePublicDid(did){
+        let query_msg = {
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/get-public-did",
+          "~transport": {
+            "return_route": "all"
+          }
+        }
+          this.connection.send_message(query_msg);
+      },
+      async activateAgentDid(did){
+        let query_msg = {
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/set-public-did",
+          "did": did.did,
+          "~transport": {
+            "return_route": "all"
+          }
+        }
+        this.connection.send_message(query_msg);
+      },
+      async updateAgentDid(editForm){
+        let query_msg = {
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/set-did-metadata",
+            "did": editForm.did,
+            "metadata": { 
+              ...editForm.metadata,
+              'label':editForm.label
+            },
+            "~transport": {
+              "return_route": "all"
+            }
+        }
+        this.connection.send_message(query_msg);
+      },      
       async updateAgentConnection(editForm){
         let query_msg = {
             "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/update",
@@ -930,6 +955,14 @@
           this.did_form.seed = ""
           this.did_form.label = ""
           this.didsUpdateForm = this.dids
+          //if "public" in info.metadata and info.metadata["public"] is True:
+          if('metadata' in msg.result && 
+             'public' in msg.result.metadata && 
+             msg.result.metadata.public === true){
+              this.public_did = msg.result.did
+              this.active_ledger_selector.did = this.public_did
+          }
+          this.getAgentDids()
         }
       },
       async fetchedConnectionList(msg){
@@ -1112,6 +1145,7 @@
         'connection_loaded': false,
         'message_history':[],
         'last_sent_msg_id':'',
+        'public_did':'',
         'ledgers':{
           '12345234':{
             'id':'12345234',
@@ -1564,12 +1598,24 @@
         console.log("schemas",schemas)
         return schemas
       },
+      getActiveDid(){
+        return this.public_did
+      },
+      selectedActiveDid: {
+        get () {
+          return this.public_did;
+        },
+        set (optionValue) {
+          this.activateAgentDid(optionValue);
+        },
+      },
     },
     async created () {
       // fetch the data when the view is created and the data is
       // already being observed
       await this.fetchAgentData();
       await this.getAgentDids();
+      await this.getAgentActivePublicDid();
       await this.run_protocol_discovery();
       await this.fetchAgentConnections();
       // await this.fetchNewInvite(); // do not automatically create invite
