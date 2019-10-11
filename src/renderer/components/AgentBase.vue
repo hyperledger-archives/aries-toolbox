@@ -175,44 +175,13 @@
 
         </el-row>
       </el-tab-pane>
-
-      <el-tab-pane label="Compose">
-        <input type="button" class="btn btn-secondary" v-on:click="compose_send()" value="Send"/>
-        <v-jsoneditor v-model="compose_json">
-        </v-jsoneditor>
-        <div class="message-display" v-for="(msg, index) in most_recent_sent_msgs" :key="index">
-          <i>{{msg.direction}}</i>
-          <vue-json-pretty
-            :deep=1
-            :data="msg.msg">
-          </vue-json-pretty>
-        </div>
-      </el-tab-pane>
-
-      <el-tab-pane label="BasicMessage">
-        <div style="margin-bottom: 1em;">
-          <el-input placeholder="Message to send" @keyup.enter.native="basicmessage_send" v-model="basicmessage_compose" style="width:500px;"></el-input>
-          <el-button type="primary" @click="basicmessage_send">Send</el-button>
-
-        </div>
-        <div v-for="m in basicmessage_history.slice().reverse()" :key="m.msg['@id']">
-          <div :class="'basicmessage-'+m.direction">{{m.msg.content}}</div>
-        </div>
-
-      </el-tab-pane>
-      <el-tab-pane label="Message History">
-
-        <input type="button" class="btn btn-secondary" v-on:click="message_history_clear()" value="Clear"/>
-        <div class="message-display" v-for="m in message_history.slice().reverse()" :key="m.msg['@id']">
-         <i>{{m.direction}}</i>
-          <vue-json-pretty
-            :deep=1
-            :data="m.msg">
-          </vue-json-pretty>
-        </div>
-
-      </el-tab-pane>
       <el-tab-pane label="Schema">
+        <el-row>
+          <agent-schema-list
+            title="Schemas:"
+            editable="false"
+            v-bind:list="Object.values(invitations)"
+            v-on:schema-send="publishSchema"></agent-schema-list>
       <p>Schemas:</p>
       <el-collapse v-model="exspanded_schemas_items">
             <div v-for="(schema, key, index) in schemas">
@@ -249,9 +218,10 @@
             <el-button type="primary" @click="schema_add_attribute" >add attribute</el-button>
         </el-form-group>
         <el-form-item>
-            <el-button type="primary" @click="storeSchema()">create new schema</el-button>
+            <el-button type="primary" @click="publishSchema()">create new schema</el-button>
         </el-form-item>
         </el-form>
+        </el-row>
       </el-tab-pane>
       <el-tab-pane label="Credential Issuance">
         <!--
@@ -597,6 +567,40 @@
       </el-tab-pane>
       <el-tab-pane label="Verifications">
       </el-tab-pane>
+      <el-tab-pane label="Compose">
+        <input type="button" class="btn btn-secondary" v-on:click="compose_send()" value="Send"/>
+        <v-jsoneditor v-model="compose_json">
+        </v-jsoneditor>
+        <div class="message-display" v-for="(msg, index) in most_recent_sent_msgs" :key="index">
+          <i>{{msg.direction}}</i>
+          <vue-json-pretty
+            :deep=1
+            :data="msg.msg">
+          </vue-json-pretty>
+        </div>
+      </el-tab-pane>
+      <el-tab-pane label="BasicMessage">
+        <div style="margin-bottom: 1em;">
+          <el-input placeholder="Message to send to the connected Agent" @keyup.enter.native="basicmessage_send" v-model="basicmessage_compose" style="width:500px;"></el-input>
+          <el-button type="primary" @click="basicmessage_send">Send</el-button>
+
+        </div>
+        <div v-for="m in basicmessage_history.slice().reverse()" :key="m.msg['@id']">
+          <div :class="'basicmessage-'+m.direction">{{m.msg.content}}</div>
+        </div>
+
+      </el-tab-pane>
+      <el-tab-pane label="Message History">
+
+        <input type="button" class="btn btn-secondary" v-on:click="message_history_clear()" value="Clear"/>
+        <div class="message-display" v-for="m in message_history.slice().reverse()" :key="m.msg['@id']">
+         <i>{{m.direction}}</i>
+          <vue-json-pretty
+            :deep=1
+            :data="m.msg">
+          </vue-json-pretty>
+        </div>
+
       </el-tab-pane>
       <el-tab-pane label="Protocol Discovery">
 
@@ -653,6 +657,7 @@
   import VJsoneditor from 'v-jsoneditor';
   import AgentConnectionList from './AgentConnectionList.vue';
   import AgentDidList from './AgentDidList.vue';
+  import AgentSchemaList from './AgentSchemaList.vue';
 
   export default {
     name: 'agent-base',
@@ -741,7 +746,8 @@
             "did": editForm.did,
             "metadata": { 
               ...editForm.metadata,
-              'label':editForm.label
+              'label':editForm.label,
+              'permission':editForm.permission,
             },
             "~transport": {
               "return_route": "all"
@@ -832,36 +838,41 @@
         this.connection.send_message(msg);
         this.basicmessage_compose = "";
       },
-      async storeSchema(){
+      async getSchemas(){
+        let msg = {
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-get-list",
+          "~transport": {
+            "return_route": "all"
+          }
+        };
+        this.connection.send_message(msg);
+      },
+      async getSchema(){
+        let msg = {
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-get",
+          "schema_id":this.schemas_form.schema_id,
+          "~transport": {
+            "return_route": "all"
+          }
+        };
+        this.connection.send_message(msg);
+        this.schemas_form.schema_id = '';
+      },
+      async publishSchema(name,version,attributes){
         let query_msg = {
-            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/store-schema",
-            "name": this.schemas_form.name,
-            "version": this.schemas_form.version,
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/send-schema",
+            "schema_name": this.schemas_form.name,
+            "schema_version": this.schemas_form.version,
             "attributes": this.schemas_form.attributes,
             "~transport": {
               "return_route": "all"
             }
         }
         this.connection.send_message(query_msg);
-        this.schemas['123412341234'] = { // TODO:remove this after aca-py support is added.
-            "id":'123412341234',
-            "name": this.schemas_form.name,
-            "version": this.schemas_form.version,
-            "attributes": this.schemas_form.attributes,}
+
         this.schemas_form.attributes = []
         this.schemas_form.name =""
         this.schemas_form.version =""
-      },
-      async publishSchema(schema_id,pool_id){
-        let query_msg = {
-            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/publish-schema",
-            "schema_id": schema_id,
-            "pool_id": pool_id,//optional
-            "~transport": {
-              "return_route": "all"
-            }
-        }
-        this.connection.send_message(query_msg);
       },
       async createCredentialDefinition(){
           let query_msg = {
@@ -977,6 +988,24 @@
           this.connections[msg.connection.connection_id] = msg.connection
           this.connectionUpdateForm = this.connections;
       },
+      // ---------------------- shcema handlers --------------------
+      async getSchemaListResponse(msg){
+        if('response' in msg){
+          this.schemas = msg.results
+        }
+      },
+      async sendSchemaResponse(msg){
+          if ('schema' in msg && 'schema_id' in msg.schema) {
+            return this.getSchemas();
+          }
+      },
+      async getSchemaResponse(msg){
+        if ('schema' in msg) {
+          this.schemas = this.schemas.filter(
+            item => item.schema_id != msg.schema.schema_id
+          );
+        }
+      },
       async newInvitation(msg){
         console.log(msg.invitation)
         this.invitations[ msg.connection_id] = {
@@ -1001,6 +1030,9 @@
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-info":this.updatedConnection,// handle added statuc agent
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/list-dids":this.receivedAgentDids,
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/did":this.updatedDid,
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-list": this.getSchemaListResponse,
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-id": this.sendSchemaResponse,
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema": this.getSchemaResponse,
         };
         var handler = handlers[msg['@type']];
         if(handler){
@@ -1180,7 +1212,7 @@
             },
           },
         },
-        'schemas':{
+        'schemas':[]/* {
           '3552d86c-fc14-480a-bd22-e0be147aadc6':{
             'id':'3552d86c-fc14-480a-bd22-e0be147aadc6',
             'name':'digital_id',
@@ -1222,8 +1254,9 @@
               ],
             }}
           }
-        },
+        } */,
         'schemas_form':{
+          'schema_id':'',
           'attributes':[],
           'name':'',
           'version':'',
@@ -1615,10 +1648,11 @@
       // fetch the data when the view is created and the data is
       // already being observed
       await this.fetchAgentData();
-      await this.getAgentDids();
-      await this.getAgentActivePublicDid();
-      await this.run_protocol_discovery();
-      await this.fetchAgentConnections();
+      this.getAgentDids();
+      this.getAgentActivePublicDid();
+      this.getSchemas();
+      this.run_protocol_discovery();
+      this.fetchAgentConnections();
       // await this.fetchNewInvite(); // do not automatically create invite
     },
     watch:{}
