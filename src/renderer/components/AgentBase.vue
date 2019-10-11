@@ -6,7 +6,7 @@
       <!-- active privileged did -->
       <el-form :model=active_ledger_selector>
           <!-- <el-select v-model="active_ledger_selector.did" filterable placeholder="activate did" > -->
-          <el-select v-model="selectedActiveDid" 
+          <el-select  v-model="selectedActiveDid" 
           filterable placeholder="activate did">
             <el-option
               v-for="did in Object.values(dids)"
@@ -46,12 +46,12 @@
             <el-input v-model="did_form.label" style="width:100px;"> </el-input>
         </el-form-group>
         <el-form-item>
-            <el-button type="primary" @click="createDid()">add trusted issuer</el-button>
+            <el-button type="primary" @click="createDid()">Create DID</el-button>
         </el-form-item>
         </el-form>
       </el-tab-pane>
 
-    <el-tab-pane label="Ledger">
+    <!-- <el-tab-pane label="Ledger">
       <p>Ledgers:</p>
       <el-collapse v-model="expanded_ledger_items">
             <div v-for="(ledger, key) in ledgers" :key="key">
@@ -63,7 +63,7 @@
                                 :data="ledger">
                               </vue-json-pretty>
                               <el-form class="ledger-form">
-                                <!-- activate ledger -->
+                                <!-- activate ledger --><!--
                                 <el-form-item >
                                   <el-button type="primary" @click="removeLedger(ledger)">delete</el-button>
                                 </el-form-item>
@@ -86,7 +86,7 @@
             <el-button type="primary" @click="addLedger()">add new ledger</el-button>
         </el-form-item>
         </el-form>
-      </el-tab-pane>
+      </el-tab-pane> -->
       <el-tab-pane label="Connections">
         <el-row>
           <agent-connection-list
@@ -116,7 +116,7 @@
           <agent-connection-list
             title="New Invitations:"
             editable="false"
-            v-bind:list="invitations"
+            v-bind:list="Object.values(invitations)"
             v-on:connection-editted="updateAgentConnection"
             v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
           <agent-connection-list
@@ -979,11 +979,12 @@
       },
       async newInvitation(msg){
         console.log(msg.invitation)
-        const newInvite = this.invitations[ msg.connection_id] = {
+        this.invitations[ msg.connection_id] = {
           //... msg.invitation, // invitations is not a json yet...
           "invitation": msg.invitation,
           "connection_id" : msg.connection_id,
           "invitation_url": msg.invitation_url}
+      
       },
       async ProtocolDisclose(msg){
         //console.log(msg.protocols);
@@ -1606,7 +1607,7 @@
           return this.public_did;
         },
         set (optionValue) {
-          this.activateAgentDid(optionValue);
+          return this.activateAgentDid(optionValue);
         },
       },
     },
