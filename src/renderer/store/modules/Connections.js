@@ -6,9 +6,9 @@ const mutations = {
   ADD_CONNECTION (state, detail) {
     state.agent_list.push(detail);
   },
-  DELETE_CONNECTION (state, label) {
+  DELETE_CONNECTION (state, id) {
     state.agent_list = state.agent_list.filter(function(element, index, arr){
-      return element.label != label;
+      return element.id != id;
     });
   }
 };
@@ -23,7 +23,7 @@ const actions = {
   delete_connection (context, detail) {
     // do something async
     console.log("add_connection called", detail);
-    context.commit('DELETE_CONNECTION', detail.label);
+    context.commit('DELETE_CONNECTION', detail.id);
   },
   get_connection (context, id) {
     // do something async
