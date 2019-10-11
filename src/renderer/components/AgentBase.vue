@@ -189,7 +189,7 @@
                     <el-row>
                         <div>
                               <vue-json-pretty
-                                :deep=1
+                                :deep=2
                                 :data="schema">
                               </vue-json-pretty>
                             <el-button v-on:click="collapse_expanded_schemas(key)">^</el-button>
