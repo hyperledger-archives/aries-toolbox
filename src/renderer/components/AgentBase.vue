@@ -180,20 +180,18 @@
           <agent-schema-list
             title="Schemas:"
             editable="false"
-            v-bind:list="Object.values(invitations)"
+            v-bind:list="schemas"
             v-on:schema-send="publishSchema"></agent-schema-list>
       <p>Schemas:</p>
       <el-collapse v-model="exspanded_schemas_items">
-            <div v-for="(schema, key, index) in schemas">
-                <el-collapse-item v-bind:title="schema.name +','+ schema.version" :name="key">
+            <div v-for="(schema, index) in schemas">
+                <el-collapse-item v-bind:title="schema.schema_name +','+ schema.schema_version" :name="key">
                     <el-row>
                         <div>
                               <vue-json-pretty
                                 :deep=1
                                 :data="schema">
                               </vue-json-pretty>
-                            <el-button @click="publishSchema(key,'global_pool')">Publish</el-button>
-                            <el-button v-if="!schema.ledger" type="primary" @click="removeSchema(key,'global_pool')">delete</el-button>
                             <el-button v-on:click="collapse_expanded_schemas(key)">^</el-button>
                         </div>
                     </el-row>
@@ -990,12 +988,12 @@
       },
       // ---------------------- shcema handlers --------------------
       async getSchemaListResponse(msg){
-        if('response' in msg){
+        if('results' in msg){
           this.schemas = msg.results
         }
       },
       async sendSchemaResponse(msg){
-          if ('schema' in msg && 'schema_id' in msg.schema) {
+          if ('schema_id' in msg) {
             return this.getSchemas();
           }
       },
