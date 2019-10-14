@@ -1,6 +1,7 @@
 const DIDComm = require('encryption-envelope-js');
 const bs58 = require('bs58');
 const rp = require('request-promise');
+const uuidv4 = require('uuid/v4');
 
 class ConnectionDetail {
     constructor(id, label, did_doc, my_key, inbound_processor = null) {
@@ -16,7 +17,7 @@ class ConnectionDetail {
 
     async send_message(msg, set_return_route = true) {
         var cd = this; // Safe reference to connection detail
-        msg['@id'] = '@id' in msg ? msg['@id'] : (new Date()).getTime().toString(); // add id
+        msg['@id'] = '@id' in msg ? msg['@id'] : (uuidv4().toString()); // add id
         this.last_sent_msg_id = msg['@id']
         if (set_return_route) {
             if (!("~transport" in msg)) {
@@ -26,7 +27,7 @@ class ConnectionDetail {
         }
         this.message_history_add(msg, "Sent");
         console.log("sending message", msg);
-        console.log("to", bs58.decode(this.did_doc.service[0].recipientKeys[0]));
+        //console.log("to", bs58.decode(this.did_doc.service[0].recipientKeys[0]));
         const didcomm = new DIDComm.DIDComm();
         await didcomm.Ready;
         const packedMsg = await didcomm.packMessage(JSON.stringify(msg), [bs58.decode(this.did_doc.service[0].recipientKeys[0])], this.my_key);
@@ -81,7 +82,7 @@ class ConnectionDetail {
 
 function new_connection(label, did_doc, my_key, inbound_processor) {
     return new ConnectionDetail(
-        new Date().getTime(),
+        (uuidv4().toString()),
         label,
         did_doc,
         my_key,

@@ -46,6 +46,7 @@ const DIDComm = require('encryption-envelope-js');
 //import DIDComm from 'didcomm-js';
 import { mapState, mapActions } from "vuex"
 import { new_connection } from '../connection_detail.js';
+const uuidv4 = require('uuid/v4');
 
 export default {
   name: 'connection-list',
@@ -206,7 +207,7 @@ export default {
       //create connection request
 
       var req = {
-        "@id": (new Date()).getTime().toString(),
+        "@id":  (uuidv4().toString()),
         "~transport": {
           "return_route": "all"
         },

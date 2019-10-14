@@ -177,22 +177,22 @@
       </el-tab-pane>
       <el-tab-pane label="Schema">
         <el-row>
-          <agent-schema-list
+<!--           <agent-schema-list
             title="Schemas:"
             editable="false"
             v-bind:list="schemas"
-            v-on:schema-send="publishSchema"></agent-schema-list>
+            v-on:schema-send="publishSchema"></agent-schema-list> -->
       <p>Schemas:</p>
       <el-collapse v-model="exspanded_schemas_items">
-            <div v-for="(schema, index) in schemas">
-                <el-collapse-item v-bind:title="schema.schema_name +','+ schema.schema_version" :name="key">
+            <div v-for="schema in schemas" :key="schema.schema_id">
+                <el-collapse-item v-bind:title="schema.schema_name +','+ schema.schema_version" :name="schema.schema_id">
                     <el-row>
                         <div>
                               <vue-json-pretty
                                 :deep=2
                                 :data="schema">
                               </vue-json-pretty>
-                            <el-button v-on:click="collapse_expanded_schemas(key)">^</el-button>
+                            <el-button v-on:click="collapse_expanded_schemas(schema.schema_id)">^</el-button>
                         </div>
                     </el-row>
                 </el-collapse-item>
@@ -207,7 +207,7 @@
             <el-input v-model="schemas_form.version" style="width:100px;"> </el-input>
           <p>Attributes:</p>
           <ul>
-            <li v-for='attribute in schemas_form.attributes'>
+            <li v-for='(attribute,index) in schemas_form.attributes' :key="attribute+index">
               {{ attribute }}
             </li>
           </ul>
@@ -224,7 +224,7 @@
       <el-tab-pane label="Credential Issuance">
         <!--
           /**
-          * credential
+          * issuer credential
           * states
           * - proposals - <stretch goal>
           *     requested credential, recieved from a "send-proposal" API call.
@@ -242,8 +242,8 @@
         -->
         <p>Credential Definitions:</p>
         <el-collapse v-model="exspanded_cred_def_items">
-            <div v-for="(cred_def, key, index) in cred_defs">
-                <el-collapse-item v-bind:title="cred_def.cred_def_id" :name="key">
+            <div v-for="(cred_def,index) in cred_defs" :key="cred_def.cred_def_id">
+                <el-collapse-item v-bind:title="cred_def.cred_def_id" :name="cred_def.cred_def_id">
                     <el-row>
                         <div>
                           <vue-json-pretty
@@ -251,9 +251,9 @@
                             :data="cred_def">
                           </vue-json-pretty>
                           <el-collapse v-model="exspanded_credential_issuer_items">
-                          <el-collapse-item title='Issue a credential offer' :name="key">
-                            <el-row>
-                              <div v-for="(attribute, key, index) in cred_def.primary.r" v-if="key!='master_secret'" prop="cred_def">
+                          <el-collapse-item title='Issue a credential offer' :name="cred_def.cred_def_id">
+                            <!-- <el-row>
+                              <div v-for="(attribute, key, index) in JSON.parse(cred_def.cred_def_json).value.primary.r" v-if="key!='master_secret'" :key=key prop="cred_def">
                                 <span slot="label">{{key}}:</span>
                                   <el-input v-model="cred_def_form[cred_def.cred_def_id].attributes[index]" style="width:100px;"> </el-input>
                               </div>
@@ -270,11 +270,10 @@
                                 </el-form-item>
                               </el-form>
                               <el-button @click="issueCredentialOffer(key,'global_pool')">Issue a credential offer</el-button>
-                            </el-row>
+                            </el-row> -->
                           </el-collapse-item>
                           </el-collapse>
-
-                        <el-button v-on:click="collapse_expanded_cred_def(key)">^</el-button>
+                        <el-button v-on:click="collapse_expanded_cred_def(cred_def.cred_def_id)">^</el-button>
                         </div>
                     </el-row>
                 </el-collapse-item>
@@ -282,7 +281,7 @@
         </el-collapse>
         <p>Create Credential Definition:</p>
         <el-form :model=cred_def_form>
-        <el-form-item label="select ledger:" >
+        <el-form-item v-if="false && schemas" label="select ledger:" >
             <el-select v-model="cred_def_form.ledger" filterable placeholder="sov" >
               <el-option
                 v-for="ledger in ledgers"
@@ -296,8 +295,8 @@
             <el-select v-model="cred_def_form.schema" filterable placeholder="schema">
               <el-option
                 v-for="schema in schemas"
-                :key="schema.id"
-                :label="schema.name +' '+ schema.version"
+                :key="schema.schema_id"
+                :label="schema.schema_name +' '+ schema.schema_version"
                 :value="schema">
               </el-option>
             </el-select>
@@ -323,46 +322,14 @@
             </el-select>
         </el-form-item> -->
         <el-form-item>
-          <el-button type="primary" @click="createCredentialDefinition()">create new credential definition</el-button>
-        </el-form-item>
-        </el-form>
-      </el-tab-pane>
-      <el-tab-pane label="Trusted Issuers">
-      <p>Issuers:</p>
-      <el-collapse v-model="expanded_issuers_items">
-            <div v-for="(did, key, index) in trusted_issuers">
-                <el-collapse-item v-bind:title="did.label +', '+ did.id" :name="key">
-                    <el-row>
-                        <div>
-                              <vue-json-pretty
-                                :deep=1
-                                :data="did">
-                              </vue-json-pretty>
-                            <el-button type="primary" @click="removeTrustedIssuer(key)">delete</el-button>
-                            <el-button type="primary" @click="resolveTrustedIssuer(key)">resolve issuer did</el-button>
-                            <el-button v-on:click="collapse_expanded_trusted_issuer(key)">^</el-button>
-                        </div>
-                    </el-row>
-                </el-collapse-item>
-            </div>
-        </el-collapse>
-        <p>Add Trusted Issuer:</p>
-        <el-form :model=trusted_issuers_form>
-        <el-form-group >
-          <span slot="label">Did:</span>
-            <el-input v-model="trusted_issuers_form.did" style="width:100px;"> </el-input>
-          <span slot="label">Label:</span>
-            <el-input v-model="trusted_issuers_form.label" style="width:100px;"> </el-input>
-        </el-form-group>
-        <el-form-item>
-            <el-button type="primary" @click="storeTrustedIssuer()">add trusted issuer</el-button>
+          <el-button type="primary" @click="sendCredentialDefinition()">create new credential definition</el-button>
         </el-form-item>
         </el-form>
       </el-tab-pane>
       <el-tab-pane label="My Credentials">
         <!--
           /**
-          * credential
+          * Holder Credential
           * states
           * - proposals -<stretch goal>
           *     request credential,
@@ -378,10 +345,42 @@
            */
         -->
       </el-tab-pane>
+      <el-tab-pane label="Trusted Issuers">
+      <p>Issuers:</p>
+      <el-collapse v-model="expanded_issuers_items">
+<!--             <div v-for="(did, key) in trusted_issuers" :key="key">
+                <el-collapse-item v-bind:title="did.label +', '+ did.id" :name="key">
+                    <el-row>
+                        <div>
+                              <vue-json-pretty
+                                :deep=1
+                                :data="did">
+                              </vue-json-pretty>
+                            <el-button type="primary" @click="removeTrustedIssuer(key)">delete</el-button>
+                            <el-button type="primary" @click="resolveTrustedIssuer(key)">resolve issuer did</el-button>
+                            <el-button v-on:click="collapse_expanded_trusted_issuer(key)">^</el-button>
+                        </div>
+                    </el-row>
+                </el-collapse-item>
+            </div> -->
+        </el-collapse>
+        <p>Add Trusted Issuer:</p>
+        <el-form :model=trusted_issuers_form>
+        <!-- <el-form-group >
+          <span slot="label">Did:</span>
+            <el-input v-model="trusted_issuers_form.did" style="width:100px;"> </el-input>
+          <span slot="label">Label:</span>
+            <el-input v-model="trusted_issuers_form.label" style="width:100px;"> </el-input>
+        </el-form-group> -->
+        <el-form-item>
+            <el-button type="primary" @click="storeTrustedIssuer()">add trusted issuer</el-button>
+        </el-form-item>
+        </el-form>
+      </el-tab-pane>
       <el-tab-pane label="Presentation">
       <p>Presentation Definitions:</p>
         <el-collapse v-model="exspanded_pres_def_items">
-            <div v-for="(pres_def, key, index) in presentation_definitions">
+            <!-- <div v-for="(pres_def, key) in presentation_definitions" :key="key">
                 <el-collapse-item v-bind:title="pres_def.name" :name="key">
                     <el-row>
                         <div>
@@ -404,7 +403,7 @@
                                   </el-select>
                                 </el-form-item>
                               </el-form>
-                              <el-button @click="issuePresentationRequest(pres_def.pres_def_id,pres_def_form.connection)">issue a credential presentation request</el-button>
+                              <el-button @click="verifierRequestPresentation(pres_def.pres_def_id,pres_def_form.connection)">issue a credential presentation request</el-button>
                             </el-row>
                           </el-collapse-item>
                           </el-collapse>
@@ -412,24 +411,24 @@
                         </div>
                     </el-row>
                 </el-collapse-item>
-            </div>
+            </div> -->
         </el-collapse>
         <p>Create Presentation Definition:</p>
         <el-form :model=pres_def_form>
-        <el-form-group >
+        <!-- <el-form-group >
           <span slot="label">Name:</span>
             <el-input v-model="pres_def_form.name" style="width:100px;"> </el-input>
           <span slot="label">Version:</span>
             <el-input v-model="pres_def_form.version" style="width:100px;"> </el-input>
           <p>Request Attributes:</p>
           <ul>
-            <li v-for='(attribute,index) in pres_def_form.requested_attributes'>
+            <li v-for='(attribute,index) in pres_def_form.requested_attributes' :key="index">
               <vue-json-pretty
                 :deep=3
                 :data="attribute">
               </vue-json-pretty>
               <ul>
-                <li v-for='restriction in pres_def_form.requested_attributes[index].restrictions'>
+                <li v-for='restriction in pres_def_form.requested_attributes[index].restrictions' :key="restriction+index">
                   {{restriction.issuer_did}}
                 </li>
               </ul>
@@ -456,13 +455,13 @@
           <span slot="label">Attribute:</span>
             <el-input @keyup.enter.native="add_pres_def_attribute" v-model="pres_def_form.requested_attribute" style="width:100px;"> </el-input>
             <el-button type="primary" @click="add_pres_def_attribute" >add request attribute</el-button>
-        </el-form-group>
+        </el-form-group> -->
         <el-form-item>
             <el-button type="primary" @click="storePresentationDefinition()">create new presentation definition</el-button>
         </el-form-item>
           <p>Presentation Requests Sent:</p>
-          <el-collapse v-model="expanded_pres_req_sent_items">
-            <div v-for="(pres_req, key, index) in sentPresentationRequests">
+          <!-- <el-collapse v-model="expanded_pres_req_sent_items">
+            <div v-for="(pres_req, key, index) in sentPresentationRequests" :key="key" :index="index">
                 <el-collapse-item v-bind:title="labelFromConnection(pres_req.connection_id)" :name="key">
                     <el-row>
                         <div>
@@ -475,10 +474,10 @@
                     </el-row>
                 </el-collapse-item>
             </div>
-          </el-collapse>
+          </el-collapse> -->
           <p>Presentation Requests Received:</p>
           <el-collapse v-model="expanded_pres_req_rec_items">
-            <div v-for="(pres_req, key, index) in receivedPresentationRequests">
+            <!-- <div v-for="(pres_req, key) in receivedPresentationRequests" :key="key">
                 <el-collapse-item v-bind:title="labelFromConnection(pres_req.connection_id)" :name="key">
                     <el-row>
                         <div>
@@ -490,11 +489,11 @@
                         </div>
                     </el-row>
                 </el-collapse-item>
-            </div>
+            </div> -->
           </el-collapse>
           <p>Presentations Sent:</p>
           <el-collapse v-model="expanded_pres_sent_items">
-            <div v-for="(pres_req, key, index) in sentPresentations">
+            <!-- <div v-for="(pres_req, key) in sentPresentations" :key="key">
                 <el-collapse-item v-bind:title="labelFromConnection(pres_req.connection_id)" :name="key">
                     <el-row>
                         <div>
@@ -506,11 +505,11 @@
                         </div>
                     </el-row>
                 </el-collapse-item>
-            </div>
+            </div> -->
           </el-collapse>
           <p>Presentations Received:</p>
           <el-collapse v-model="expanded_pres_rec_items">
-            <div v-for="(pres_req, key, index) in receivedPresentations">
+            <!-- <div v-for="(pres_req, key) in receivedPresentations" :key="key">
                 <el-collapse-item v-bind:title="labelFromConnection(pres_req.connection_id)" :name="key">
                     <el-row>
                         <div>
@@ -522,11 +521,11 @@
                         </div>
                     </el-row>
                 </el-collapse-item>
-            </div>
+            </div> -->
           </el-collapse>
           <p>Presentations :</p>
           <el-collapse v-model="expanded_pres_ver_items">
-            <div v-for="(pres_req, key, index) in verifiedPresentations">
+            <div v-for="pres_req in verifiedPresentations">
                 <!-- <el-collapse-item v-bind:title="labelFromConnection(pres_req.connection_id)" :name="key">
                     <el-row>
                         <div>
@@ -608,7 +607,7 @@
             <th>Protocol</th>
             <th>Roles</th>
           </tr>
-          <tr v-for="p in supported_protocols">
+          <tr v-for="p in supported_protocols" :key="p.pid">
             <td>{{p.pid}}</td>
             <td>{{p.roles}}</td>
           </tr>
@@ -772,18 +771,6 @@
         }
         this.connection.send_message(query_msg);
       },
-      async removeSchema(id,ledger_id){
-        let query_msg = {
-            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/remove-schema",
-            "schema_id": id,
-            "ledger_id": ledger_id,
-            "~transport": {
-              "return_route": "all"
-            }
-        }
-        this.connection.send_message(query_msg);
-        delete this.schemas[id]// TODO:remove this after aca-py support is added.
-      },
       async fetchNewInvite(){
         let query_msg = {
           "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/create-invitation",
@@ -836,6 +823,7 @@
         this.connection.send_message(msg);
         this.basicmessage_compose = "";
       },
+      //================================ schema events ================================
       async getSchemas(){
         let msg = {
           "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-get-list",
@@ -872,19 +860,139 @@
         this.schemas_form.name =""
         this.schemas_form.version =""
       },
-      async createCredentialDefinition(){
+      //================================ Credential Definition events ================================
+      async sendCredentialDefinition(){
           let query_msg = {
-            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/publish-credential-definition",
-            "schema_id": this.cred_def_form.schema.ledgers[this.cred_def_form.ledger].seq_number,
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/send-credential-definition",
+            "schema_id": this.cred_def_form.schema.schema_id,
             "~transport": {
               "return_route": "all"
           }
         }
         this.connection.send_message(query_msg);
       },
+      async getCredentialDefinition(){
+          let query_msg = {
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/credential-definition-get",
+            "cred_def_id": this.cred_def_form.selected_cred_def_id,
+            "~transport": {
+              "return_route": "all"
+          }
+        }
+        this.connection.send_message(query_msg);
+      },
+      async getCredentialDefinitionlist(){
+          let query_msg = {
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/credential-definition-get-list",
+            "~transport": {
+              "return_route": "all"
+          }
+        }
+        this.connection.send_message(query_msg);
+      },
+      //================================ Issuer events ================================
+      async issueCredential(issueCredentialOfferForm){
+          let query_msg = {
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/send-credential",
+            "connection_id": issueCredentialOfferForm.connection_id ,
+            "credential_definition_id": issueCredentialOfferForm.credential_definition_id ,
+            "comment": issueCredentialOfferForm.comment , //optional
+            "credential_proposal": issueCredentialOfferForm.credential_proposal ,
+            "~transport": {
+              "return_route": "all"
+          }
+        }
+        this.connection.send_message(query_msg);
+      },
+      async verifierRequestPresentation(requestPresentationForm){
+          let query_msg = {
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/request-presentation",
+            "connection_id": requestPresentationForm.connection_id ,
+            "comment": requestPresentationForm.comment , //optional
+            "proof_request": requestPresentationForm.credential_proposal ,
+            "~transport": {
+              "return_route": "all"
+          }
+        }
+        this.connection.send_message(query_msg);
+      },
+      async getIssuedCredentials(){
+          let query_msg = {
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/credentials-get-list",
+            //'connection_id': ,// optional filter
+            //'credential_definition_id': ,// optional filters
+            //'schema_id': ,// optional filter
+            "~transport": {
+              "return_route": "all"
+          }
+        }
+        this.connection.send_message(query_msg);
+      },
+      async getIssuersPresentations(){
+          let query_msg = {
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentations-get-list",
+            //'connection_id': ,// optional filter
+            //'verified': ,// optional filter
+            "~transport": {
+              "return_route": "all"
+          }
+        }
+        this.connection.send_message(query_msg);
+      },
+     //================================ Holder events ================================
+      async sendCredentialProposal(holderCredentialProposalForm){
+          let query_msg = {
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/send-credential-proposal",
+            "connection_id": holderCredentialProposalForm.connection_id ,
+            "credential_definition_id": holderCredentialProposalForm.credential_definition_id ,
+            "comment": holderCredentialProposalForm.comment , //optional
+            "credential_proposal": holderCredentialProposalForm.credential_proposal ,
+            "~transport": {
+              "return_route": "all"
+          }
+        }
+        this.connection.send_message(query_msg);
+      },
+      async sendPresentationProposal(holderCredentialProposalForm){
+          let query_msg = {
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/send-presentation-proposal",
+            "connection_id": holderCredentialProposalForm.connection_id ,
+            "auto_present": holderCredentialProposalForm.auto_present , //optional, default to false
+            "comment": holderCredentialProposalForm.comment , //optional
+            "presentation_proposal": holderCredentialProposalForm.presentation_proposal ,
+            "~transport": {
+              "return_route": "all"
+          }
+        }
+        this.connection.send_message(query_msg);
+      },
+      async getHoldersCredentials(){
+          let query_msg = {
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credentials-get-list",
+            //'connection_id': ,// optional filter
+            //'credential_definition_id': ,// optional filters
+            //'schema_id': ,// optional filter
+            "~transport": {
+              "return_route": "all"
+          }
+        }
+        this.connection.send_message(query_msg);
+      },
+      async getHoldersPresentations(){
+          let query_msg = {
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credentials-get-list",
+            //'connection_id': ,// optional filter
+            //'verified': ,// optional filters
+            "~transport": {
+              "return_route": "all"
+          }
+        }
+        this.connection.send_message(query_msg);
+      },
+     //================================ trusted issuer events ================================
       async removeTrustedIssuer(id){
         let query_msg = {
-            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/remove-trusted-issuer",
+            "@type": "",
             "issuer_did": id,
             "~transport": {
               "return_route": "all"
@@ -895,7 +1003,7 @@
       },
       async resolveTrustedIssuer(did){
         let query_msg = {
-            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/resolve-did",
+            "@type": "",
             "issuer_did": did,
             "~transport": {
               "return_route": "all"
@@ -906,14 +1014,14 @@
       },
       async storeTrustedIssuer(){
           let query_msg = {
-            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/store-trusted-issuer",
+            "@type": "",
             "did": this.trusted_issuers_form.did,
             "label": this.trusted_issuers_form.label,
             "~transport": {
               "return_route": "all"
             }
         }
-        this.connection.send_message(query_msg);
+        //this.connection.send_message(query_msg);
         this.trusted_issuers[this.trusted_issuers_form.did] = { // TODO:remove this after aca-py support is added.
             "id":this.trusted_issuers_form.did,
             "label": this.trusted_issuers_form.label,
@@ -921,26 +1029,7 @@
         this.trusted_issuers_form.did = ""
         this.trusted_issuers_form.label = ""
       },
-      async issuePresentationRequest(pres_def_id,connection_id){
-          let query_msg = {
-            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/create-presentation-definition",
-            "requested_attributes":this.presentation_definitions[pres_def_id].requested_attributes,
-            "name":this.presentation_definitions[pres_def_id].name,
-            "connection_id":connection_id,
-            "version":this.presentation_definitions[pres_def_id].version,
-            "requested_predicates":this.presentation_definitions[pres_def_id].requested_predicates,
-            "~transport": {
-              "return_route": "all"
-          }
-        }
-        this.connection.send_message(query_msg)
-        this.pres_def_form.temp_attrs= []
-        this.pres_def_form.requested_attributes= []
-        this.pres_def_form.requested_attribute= ''
-        this.pres_def_form.restriction= ''
-        this.pres_def_form.name= ''
-        this.pres_def_form.version= ''
-      },
+
       //=========================================================================================================================
       //-------------------------Inbound Messages---------------------------------------------------------------------------
       //=========================================================================================================================
@@ -1004,6 +1093,62 @@
           );
         }
       },
+      // ---------------------- cred def handlers --------------------
+      async credentialDefinitionCreatedDirective(msg){
+        if ('cred_def_id' in msg){
+          return this.getCredentialDefinitionlist();
+        }
+      },
+      async credentialDefinitionReadDirective(msg){// does this work???? Do we need this?
+        if ('credential_definition' in msg){
+          var index = this.cred_defs.indexOf(msg.credential_definition);
+          if (index !== -1) {
+            this.cred_defs[index] = msg.credential_definition;
+          }
+          else{
+            this.cred_defs.push(msg.credential_definition);
+          }
+        }
+      },
+      async credentialDefinitionListDirective(msg){
+        if('results' in msg){
+          this.cred_defs = msg.results
+          this.cred_def_form = this.cred_defs
+        }      
+      },
+      // ---------------------- issuerance handlers --------------------
+      async issuerCredentialListDirective(msg){
+        if('results'in msg ){
+          this.issuer_credentials = msg.results;
+        }
+      },
+      async varifierRequestPresentationRecordDirective(msg){
+        if('results'in msg ){
+          return this.getIssuersPresentations();
+        }
+      },
+      async varifierPresentaionListDirective(msg){
+        if('results'in msg ){// should be 'presentations~attach'
+          this.issuer_presentaions = msg.results;
+        }
+      },
+      // ---------------------- holder handlers ------------------------
+      async holderCredentialRecord(msg){
+        return this.getHoldersCredentials();
+      },
+      async holderPresentationRecord(msg){
+        return this.getHoldersPresentations();
+      },
+      async holderCredentialListRecord(msg){
+        if('results'in msg ){
+          this.holder_credentials = msg.results;
+        }
+      },
+      async holderPresentationListRecord(msg){
+        if('results'in msg ){
+          this.holder_presentations = msg.results;
+        }
+      },
       async newInvitation(msg){
         console.log(msg.invitation)
         this.invitations[ msg.connection_id] = {
@@ -1020,17 +1165,34 @@
       async processInbound(msg){
         this.connection.message_history_add(msg, "Received");
         var handlers = {
+          //=============================== Credential Definitions ===============================
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/disclose": this.ProtocolDisclose,
+          //=============================== Connections ==========================================
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-list": this.fetchedConnectionList,
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection": this.updatedConnection,
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/ack": this.fetchAgentConnections,
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation": this.newInvitation,
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-info":this.updatedConnection,// handle added statuc agent
+          //=============================== Dids =================================================
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/list-dids":this.receivedAgentDids,
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/did":this.updatedDid,
+          //=============================== Schemas ==============================================
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-list": this.getSchemaListResponse,
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-id": this.sendSchemaResponse,
           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema": this.getSchemaResponse,
+          //=============================== Credential Definitions ===============================
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/credential-definition-id": this.credentialDefinitionCreatedDirective,
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/credential-definition": this.credentialDefinitionReadDirective,
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/credential-definition-list": this.credentialDefinitionListDirective,
+          //=============================== Credential Issuance ==================================
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/credentials-list": this.issuerCredentialListDirective,
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/request-presentation": this.varifierRequestPresentationRecordDirective,
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentations-list": this.varifierPresentaionListDirective,
+          //=============================== Credential Holder ====================================
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credential-exchange": this.holderCredentialRecord,
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/presentation-exchange": this.holderPresentationRecord,
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credentials-list": this.holderCredentialListRecord,
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/presentations-list": this.holderPresentationListRecord,
         };
         var handler = handlers[msg['@type']];
         if(handler){
@@ -1210,49 +1372,7 @@
             },
           },
         },
-        'schemas':[]/* {
-          '3552d86c-fc14-480a-bd22-e0be147aadc6':{
-            'id':'3552d86c-fc14-480a-bd22-e0be147aadc6',
-            'name':'digital_id',
-            'version':'1.9',
-            'attributes':[
-              'first_name',
-              'last_name',
-              'address',
-              'age',
-            ],
-          },
-          '2452d86c-fc14-480a-bd12-e0be147aade4':{
-            'id':'2452d86c-fc14-480a-bd12-e0be147aade4',
-            'name':'registration',
-            'version':'1.0.0',
-            'attributes':[
-              'address_line_1',
-              'entity_status_effective',
-              'entity_name_effective',
-              'registration_date',
-              'entity_status',
-              'entity_type',
-              'address_line_2',
-              'addressee',
-              'country',
-              'corp_num',
-              'postal_code',
-              'province',
-              'city',
-              'legal_name',
-            ],
-            'ledgers':{'sov':{
-              'name':'sov',
-              'txn_id':'SAF2vMgCJd2PsqUpa5U2DX:2:registration:1.0.0',
-              'seq_number':'9',
-              'cred_defs':[
-                'SAF2vMgCJd2PsqUpa5U2DX:3:CL:9:tag',
-                'JTUsfPMn1GGZLScyfqf9LU:3:CL:9:tag'
-              ],
-            }}
-          }
-        } */,
+        'schemas':[],
         'schemas_form':{
           'schema_id':'',
           'attributes':[],
@@ -1260,55 +1380,8 @@
           'version':'',
           'attribute':'',
         },
-        'cred_defs':{
-          '3462d86c-fc14-480a-bd12-e0be147aadv7':{ //TODO: build this from the results of a single credential_definition_id
-            'cred_def_id':'3462d86c-fc14-480a-bd12-e0be147aadv7',
-            'schema_id':'2452d86c-fc14-480a-bd12-e0be147aade4',
-            'schema_name':'registration',
-            'schema_version':'name',
-            'schema':[
-              'address_line_1',
-              'entity_status_effective',
-              'entity_name_effective',
-              'registration_date',
-              'entity_status',
-              'entity_type',
-              'address_line_2',
-              'addressee',
-              'country',
-              'corp_num',
-              'postal_code',
-              'province',
-              'city',
-              'legal_name',
-            ],
-            'cred_def_txnId':'SAF2vMgCJd2PsqUpa5U2DX:3:CL:9:Test',
-            'primary':{
-              'r':{
-                'entity_type':'4276818453997252235377809066552492903559006624154502170264010343561770...',
-                'address_line_2':'5835005062870123542337957832281874621008837246206493273019909805920578...',
-                'country':'1879513305160086851616079950364687554755887149912307898056492171417669...',
-                'master_secret':'5680719163826958582523499906964107839414241499724912816054845682277627...',
-                'city':'5070038307979790521329819136698583890861707690369236453378984162125954...',
-                'postal_code':'3112351950987780712431706032057718465524884751214233553363879722705800...',
-                'address_line_1':'7306529829675381076177399279526662495198464609142708900879759969343811...',
-                'legal_name':'4802617220397946068690549708166702621003071126577937165396665038376228...',
-                'registration_date':'2878132445424190585639532906296244810676938826012262151226024338975400...',
-                'addressee':'1001391556670028112842868976612783831982121929639458722631916162375175...',
-                'entity_status_effective':'6788510089214435350045257149388833744569568756412683331576858511590760...',
-                'corp_num':'6785661010439948560109655157528808585675707924690100517693559960557987...',
-                'entity_status':'1321064407231181370798210517190814593144851682644978311734511298020384...',
-                'entity_name_effective':'7571297275652047907551972817989506568944796137349719074126081162087488...',
-                'province':'9476317241642994808753854337446098807999115489895643485448317420223689...',
-              },
-            },
-          },
-        },
-        'cred_def_form':{
-          'schema':'',
-          '3462d86c-fc14-480a-bd12-e0be147aadv7': {'attributes':[]},// TODO: create this structure dynamically at start.
-          'ledger':'',
-        },
+        'cred_defs':[],
+        'cred_def_form':{},
         'pres_def_form':{
           'temp_attrs':[],
           'requested_attributes':[],
@@ -1508,6 +1581,7 @@
        *
        */
       //=========================================================================================================================
+      // ---------------------- Connection Filters --------------------      
       activeConnections(){
         return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "active")
       },
@@ -1557,6 +1631,181 @@
       errorStateConnections(){
         return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "error")
       },
+      // ---------------------- Credential Definition Filters --------------------      
+      /* credentialDefinition(){
+        return this.cred_defs.filter(cred => "state" in cred && cred.state === "STATE_OFFER_SENT")
+      }, */
+      // ---------------------- Issuer Credential Filters --------------------      
+      issuerOfferSentStateCredentials(){
+        return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "STATE_OFFER_SENT")
+      },
+      issuerReceivedRequestStateCredentials(){
+        return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "STATE_REQUEST_RECEIVED")
+      },
+      issuerIssuedStateCredentials(){
+        return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "STATE_ISSUED")
+      },
+      issuerStoredStateCredentials(){
+        return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "STATE_STORED")
+      },
+      // ---------------------- Holder Credential Filters --------------------      
+      holderOfferReceivedStateCredentials(){
+        return this.holder_credentials.filter(cred => "state" in cred && cred.state === "STATE_OFFER_RECEIVED")
+      },
+      holderSentRequestStateCredentials(){
+        return this.holder_credentials.filter(cred => "state" in cred && cred.state === "STATE_REQUEST_SENT")
+      },
+      holderReceivedStateCredentials(){
+        return this.holder_credentials.filter(cred => "state" in cred && cred.state === "STATE_CREDENTIAL_RECEIVED")
+      },
+      holderStoredStateCredentials(){
+        return this.holder_credentials.filter(cred => "state" in cred && cred.state === "STATE_STORED")
+      },
+      // ---------------------- Presentation Definitions Filters --------------------     
+    /**
+     * Roles 
+     *  'prover'
+     *  'verifier'
+     * States
+     *  "proposal_sent"
+     *  "proposal_received"
+     *  "request_sent"
+     *  "request_received"
+     *  "presentation_sent"
+     *  "presentation_received"
+     *  "verified"
+     *  */ 
+      // ---------------------- verifier Presentation Filters --------------------     
+      verifierSentProposals(){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange && 
+            exchange.state === "proposal_sent"  && 
+          //==========================================
+            "role" in exchange &&
+            "verifier" === exchange.role
+        )
+      },
+      verifierReceivedProposals: function(exchange){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange && 
+            exchange.state === "proposal_received" && 
+          //==========================================
+            "role" in exchange &&
+            "verifier" === exchange.role)
+      },
+      verifierSentRequests(){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange &&
+            exchange.state === "request_sent" && 
+          //==========================================
+            "role" in exchange &&
+            "verifier" === exchange.role)
+      },
+      verifierReceivedRequests(){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange &&
+            exchange.state === "request_received" && 
+          //==========================================
+            "role" in exchange &&
+            "verifier" === exchange.role)
+      },
+      verifierSentPresentations(){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange &&
+            exchange.state === "presentation_sent" &&
+          //==========================================
+            "role" in exchange &&
+            "verifier" === exchange.role )
+      },
+      verifierReceivedPresentations(){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange &&
+            exchange.state === "presentation_received" &&
+          //==========================================
+            "role" in exchange &&
+            "verifier" === exchange.role )
+      },
+      verifierVerifiedPresentation(){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange &&
+            exchange.state === "verified" &&
+          //==========================================
+            "role" in exchange &&
+            "verifier" === exchange.role )
+      },
+      // ---------------------- Prover Presentation Filters --------------------
+      proverSentProposals(){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange && 
+            exchange.state === "proposal_sent"  && 
+          //==========================================
+            "role" in exchange &&
+            "prover" === exchange.role
+        )
+      },
+      proverReceivedProposals: function(exchange){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange && 
+            exchange.state === "proposal_received" && 
+          //==========================================
+            "role" in exchange &&
+            "prover" === exchange.role)
+      },
+      proverSentRequests(){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange &&
+            exchange.state === "request_sent" && 
+          //==========================================
+            "role" in exchange &&
+            "prover" === exchange.role)
+      },
+      proverReceivedRequests(){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange &&
+            exchange.state === "request_received" && 
+          //==========================================
+            "role" in exchange &&
+            "prover" === exchange.role)
+      },
+      proverSentPresentations(){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange &&
+            exchange.state === "presentation_sent" &&
+          //==========================================
+            "role" in exchange &&
+            "prover" === exchange.role )
+      },
+      proverReceivedPresentations(){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange &&
+            exchange.state === "presentation_received" &&
+          //==========================================
+            "role" in exchange &&
+            "prover" === exchange.role )
+      },
+      proverVerifiedPresentation(){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange &&
+            exchange.state === "verified" &&
+          //==========================================
+            "role" in exchange &&
+            "prover" === exchange.role )
+      },
+      // ---------------------- Basic Message History --------------------      
       basicmessage_history: function () {
         if (this.connection_loaded) {
           return this.connection.message_history.filter(function(h){
@@ -1649,6 +1898,11 @@
       this.getAgentDids();
       this.getAgentActivePublicDid();
       this.getSchemas();
+      this.getCredentialDefinitionlist();
+      this.getIssuedCredentials();
+      this.getIssuersPresentations();
+      this.getHoldersCredentials();
+      this.getHoldersPresentations();
       this.run_protocol_discovery();
       this.fetchAgentConnections();
       // await this.fetchNewInvite(); // do not automatically create invite
