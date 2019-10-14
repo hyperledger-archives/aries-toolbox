@@ -176,48 +176,11 @@
           </el-tab-pane>
           <el-tab-pane label="Schema">
             <el-row>
-              <!--           <agent-schema-list
+              <agent-schema-list
                 title="Schemas:"
                 editable="false"
                 v-bind:list="schemas"
-                v-on:schema-send="publishSchema"></agent-schema-list> -->
-              <p>Schemas:</p>
-              <el-collapse v-model="exspanded_schemas_items">
-                <div v-for="schema in schemas" :key="schema.schema_id">
-                  <el-collapse-item v-bind:title="schema.schema_name +','+ schema.schema_version" :name="schema.schema_id">
-                    <el-row>
-                      <div>
-                        <vue-json-pretty
-                          :deep=2
-                          :data="schema">
-                        </vue-json-pretty>
-                        <el-button v-on:click="collapse_expanded_schemas(schema.schema_id)">^</el-button>
-                      </div>
-                    </el-row>
-                  </el-collapse-item>
-                </div>
-              </el-collapse>
-              <p>Create schema:</p>
-              <el-form :model=schemas_form>
-                <el-form-group >
-                  <span slot="label">Name:</span>
-                  <el-input v-model="schemas_form.name" style="width:100px;"> </el-input>
-                  <span slot="label">Version:</span>
-                  <el-input v-model="schemas_form.version" style="width:100px;"> </el-input>
-                  <p>Attributes:</p>
-                  <ul>
-                    <li v-for='(attribute,index) in schemas_form.attributes' :key="attribute+index">
-                      {{ attribute }}
-                    </li>
-                  </ul>
-                  <span slot="label">Attribute:</span>
-                  <el-input @keyup.enter.native="schema_add_attribute" v-model="schemas_form.attribute" style="width:100px;"> </el-input>
-                  <el-button type="primary" @click="schema_add_attribute" >add attribute</el-button>
-                </el-form-group>
-                <el-form-item>
-                  <el-button type="primary" @click="publishSchema()">create new schema</el-button>
-                </el-form-item>
-              </el-form>
+                v-on:schema-send="publishSchema"></agent-schema-list>
             </el-row>
           </el-tab-pane>
           <el-tab-pane label="Credential Issuance">
@@ -662,6 +625,7 @@ export default {
     VJsoneditor,
     AgentConnectionList,
     AgentDidList,
+    AgentSchemaList,
   },
   methods: {
     ...mapActions("Connections", ["get_connection"]),
@@ -843,21 +807,14 @@ export default {
       this.connection.send_message(msg);
       this.schemas_form.schema_id = '';
     },
-    async publishSchema(name,version,attributes){
+    async publishSchema(form){
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/send-schema",
-        "schema_name": this.schemas_form.name,
-        "schema_version": this.schemas_form.version,
-        "attributes": this.schemas_form.attributes,
-        "~transport": {
-          "return_route": "all"
-        }
+        "schema_name": form.name,
+        "schema_version": form.version,
+        "attributes": form.attributes,
       }
       this.connection.send_message(query_msg);
-
-      this.schemas_form.attributes = []
-      this.schemas_form.name =""
-      this.schemas_form.version =""
     },
     //================================ Credential Definition events ================================
     async sendCredentialDefinition(){
