@@ -177,7 +177,7 @@
           <el-tab-pane label="Credential Issuance">
             <el-row>
               <agent-schema-list
-                title="Schemas:"
+                title="Schemas"
                 editable="false"
                 v-bind:list="schemas"
                 @schema-send="publishSchema"
@@ -189,6 +189,13 @@
                 v-bind:schemas="schemas"
                 @cred-def-send="publishCredDef"
                 @cred-def-get="getCredentialDefinition"></agent-cred-def-list>
+              <agent-issue-cred-list
+                title="Issued Credentials"
+                editable="false"
+                v-bind:list="issuer_credentials"
+                v-bind:connections="activeConnections"
+                v-bind:cred_defs="issuerCredDefs"
+                @issue="issueCredential"></agent-issue-cred-list>
             </el-row>
           </el-tab-pane>
           <el-tab-pane label="My Credentials">
@@ -521,6 +528,7 @@ import AgentConnectionList from './AgentConnectionList.vue';
 import AgentDidList from './AgentDidList.vue';
 import AgentSchemaList from './AgentSchemaList.vue';
 import AgentCredDefList from './AgentCredDefList.vue';
+import AgentIssueCredList from './AgentIssueCredList.vue';
 
 export default {
   name: 'agent-base',
@@ -531,6 +539,7 @@ export default {
     AgentDidList,
     AgentSchemaList,
     AgentCredDefList,
+    AgentIssueCredList,
   },
   methods: {
     ...mapActions("Connections", ["get_connection"]),
@@ -742,15 +751,15 @@ export default {
       this.connection.send_message(query_msg);
     },
     //================================ Issuer events ================================
-    async issueCredential(issueCredentialOfferForm){
+    async issueCredential(form){
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/send-credential",
-        "connection_id": issueCredentialOfferForm.connection_id ,
-        "credential_definition_id": issueCredentialOfferForm.credential_definition_id ,
-        "comment": issueCredentialOfferForm.comment , //optional
-        "credential_proposal": issueCredentialOfferForm.credential_proposal ,
-        "~transport": {
-          "return_route": "all"
+        "connection_id": form.connection_id,
+        "credential_definition_id": form.credential_definition_id,
+        "comment": form.comment, //optional
+        "credential_proposal": {
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/credential-preview",
+          "attributes": form.attributes
         }
       }
       this.connection.send_message(query_msg);
@@ -761,9 +770,6 @@ export default {
         "connection_id": requestPresentationForm.connection_id ,
         "comment": requestPresentationForm.comment , //optional
         "proof_request": requestPresentationForm.credential_proposal ,
-        "~transport": {
-          "return_route": "all"
-        }
       }
       this.connection.send_message(query_msg);
     },
@@ -773,9 +779,6 @@ export default {
         //'connection_id': ,// optional filter
         //'credential_definition_id': ,// optional filters
         //'schema_id': ,// optional filter
-        "~transport": {
-          "return_route": "all"
-        }
       }
       this.connection.send_message(query_msg);
     },
@@ -798,9 +801,6 @@ export default {
         "credential_definition_id": holderCredentialProposalForm.credential_definition_id ,
         "comment": holderCredentialProposalForm.comment , //optional
         "credential_proposal": holderCredentialProposalForm.credential_proposal ,
-        "~transport": {
-          "return_route": "all"
-        }
       }
       this.connection.send_message(query_msg);
     },
@@ -967,7 +967,10 @@ export default {
         this.cred_def_form = this.cred_defs
       }      
     },
-    // ---------------------- issuerance handlers --------------------
+    // ---------------------- issuance handlers --------------------
+    async issuerCredentialRecord(msg) {
+      return this.getIssuedCredentials();
+    },
     async issuerCredentialListDirective(msg){
       if('results'in msg ){
         this.issuer_credentials = msg.results;
@@ -1036,6 +1039,7 @@ export default {
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/credential-definition": this.credentialDefinitionReadDirective,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/credential-definition-list": this.credentialDefinitionListDirective,
         //=============================== Credential Issuance ==================================
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/credential-exchange": this.issuerCredentialRecord,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/credentials-list": this.issuerCredentialListDirective,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/request-presentation": this.varifierRequestPresentationRecordDirective,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentations-list": this.varifierPresentaionListDirective,
@@ -1241,6 +1245,7 @@ export default {
         'name':'',
         'version':'',
       },
+      'issuer_credentials': [],
       'trusted_issuers_form':{
         'did':'',
         'label':'',
@@ -1483,6 +1488,9 @@ export default {
       return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "error")
     },
     // ---------------------- Credential Definition Filters --------------------      
+    issuerCredDefs() {
+      return Object.values(this.cred_defs).filter(cred_def => cred_def.author == "self");
+    },
     /* credentialDefinition(){
         return this.cred_defs.filter(cred => "state" in cred && cred.state === "STATE_OFFER_SENT")
       }, */
