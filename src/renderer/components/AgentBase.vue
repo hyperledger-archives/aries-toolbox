@@ -174,119 +174,22 @@
 
             </el-row>
           </el-tab-pane>
-          <el-tab-pane label="Schema">
+          <el-tab-pane label="Credential Issuance">
             <el-row>
               <agent-schema-list
                 title="Schemas:"
                 editable="false"
                 v-bind:list="schemas"
-                v-on:schema-send="publishSchema"></agent-schema-list>
+                @schema-send="publishSchema"
+                @schema-get="getSchema"></agent-schema-list>
+              <agent-cred-def-list
+                title="Credential Definitions"
+                editable="false"
+                v-bind:list="cred_defs"
+                v-bind:schemas="schemas"
+                @cred-def-send="publishCredDef"
+                @cred-def-get="getCredentialDefinition"></agent-cred-def-list>
             </el-row>
-          </el-tab-pane>
-          <el-tab-pane label="Credential Issuance">
-            <!--
-              /**
-              * issuer credential
-              * states
-              * - proposals - <stretch goal>
-              *     requested credential, recieved from a "send-proposal" API call.
-              *         <Button> send offer
-              * - STATE_OFFER_SENT -
-              *     pending credential offer made to a holder, result of "send-offer" API call.
-              * - STATE_REQUEST_RECEIVED -
-              *     request from holder containing credential attribute data and blinded secret. result of "send-request"
-              *         <Button> issue
-              * - STATE_ISSUED
-              *     issued with data from request. result of "issue" API call.
-              * - STATE_STORED
-              *     ack received
-              */
-            -->
-            <p>Credential Definitions:</p>
-            <el-collapse v-model="exspanded_cred_def_items">
-              <div v-for="(cred_def,index) in cred_defs" :key="cred_def.cred_def_id">
-                <el-collapse-item v-bind:title="cred_def.cred_def_id" :name="cred_def.cred_def_id">
-                  <el-row>
-                    <div>
-                      <vue-json-pretty
-                        :deep=2
-                        :data="cred_def">
-                      </vue-json-pretty>
-                      <el-collapse v-model="exspanded_credential_issuer_items">
-                        <el-collapse-item title='Issue a credential offer' :name="cred_def.cred_def_id">
-                          <!-- <el-row>
-                            <div v-for="(attribute, key, index) in JSON.parse(cred_def.cred_def_json).value.primary.r" v-if="key!='master_secret'" :key=key prop="cred_def">
-                            <span slot="label">{{key}}:</span>
-                            <el-input v-model="cred_def_form[cred_def.cred_def_id].attributes[index]" style="width:100px;"> </el-input>
-                            </div>
-                            <el-form :model=cred_def_form>
-                            <el-form-item label="select connection:" >
-                            <el-select v-model="cred_def_form.connection" filterable placeholder="select connection to issue to:" >
-                            <el-option
-                            v-for="connection in activeConnections"
-                            :key="connection.connection_id"
-                            :label="connection.their_label +' ('+connection.connection_id+')'"
-                            :value="connection.connection_id">
-                            </el-option>
-                            </el-select>
-                            </el-form-item>
-                            </el-form>
-                            <el-button @click="issueCredentialOffer(key,'global_pool')">Issue a credential offer</el-button>
-                            </el-row> -->
-                        </el-collapse-item>
-                      </el-collapse>
-                      <el-button v-on:click="collapse_expanded_cred_def(cred_def.cred_def_id)">^</el-button>
-                    </div>
-                  </el-row>
-                </el-collapse-item>
-              </div>
-            </el-collapse>
-            <p>Create Credential Definition:</p>
-            <el-form :model=cred_def_form>
-              <el-form-item v-if="false && schemas" label="select ledger:" >
-                <el-select v-model="cred_def_form.ledger" filterable placeholder="sov" >
-                  <el-option
-                    v-for="ledger in ledgers"
-                    :key="ledger.id"
-                    :label="ledger.name"
-                    :value="ledger.id">
-                  </el-option>
-                </el-select>
-              </el-form-item>
-              <el-form-item label="select schema:" prop="cred_def_form">
-                <el-select v-model="cred_def_form.schema" filterable placeholder="schema">
-                  <el-option
-                    v-for="schema in schemas"
-                    :key="schema.schema_id"
-                    :label="schema.schema_name +' '+ schema.schema_version"
-                    :value="schema">
-                  </el-option>
-                </el-select>
-              </el-form-item>
-              <!--         <el-form-item label="select ledger:" >
-                <el-select v-model="cred_def_form.ledger" filterable placeholder="sov" >
-                <el-option
-                v-for="ledger in ledgers"
-                :key="ledger.id"
-                :label="ledger.name"
-                :value="ledger.id">
-                </el-option>
-                </el-select>
-                </el-form-item>
-                <el-form-item v-if="cred_def_form.ledger in ledgers" label="select schema:" prop="cred_def_form">
-                <el-select v-model="cred_def_form" filterable placeholder="schema">
-                <el-option
-                v-for="schema in ledgerSchemas(ledgers[cred_def_form.ledger].name)"
-                :key="schema.id"
-                :label="schema.name +' '+ schema.version"
-                :value="schema.id">
-                </el-option>
-                </el-select>
-                </el-form-item> -->
-                <el-form-item>
-                  <el-button type="primary" @click="sendCredentialDefinition()">create new credential definition</el-button>
-                </el-form-item>
-            </el-form>
           </el-tab-pane>
           <el-tab-pane label="My Credentials">
             <!--
@@ -617,6 +520,7 @@ import VJsoneditor from 'v-jsoneditor';
 import AgentConnectionList from './AgentConnectionList.vue';
 import AgentDidList from './AgentDidList.vue';
 import AgentSchemaList from './AgentSchemaList.vue';
+import AgentCredDefList from './AgentCredDefList.vue';
 
 export default {
   name: 'agent-base',
@@ -626,6 +530,7 @@ export default {
     AgentConnectionList,
     AgentDidList,
     AgentSchemaList,
+    AgentCredDefList,
   },
   methods: {
     ...mapActions("Connections", ["get_connection"]),
@@ -796,16 +701,12 @@ export default {
       };
       this.connection.send_message(msg);
     },
-    async getSchema(){
+    async getSchema(schema_id){
       let msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-get",
-        "schema_id":this.schemas_form.schema_id,
-        "~transport": {
-          "return_route": "all"
-        }
+        "schema_id": schema_id,
       };
       this.connection.send_message(msg);
-      this.schemas_form.schema_id = '';
     },
     async publishSchema(form){
       let query_msg = {
@@ -817,23 +718,17 @@ export default {
       this.connection.send_message(query_msg);
     },
     //================================ Credential Definition events ================================
-    async sendCredentialDefinition(){
+    async publishCredDef(form){
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/send-credential-definition",
-        "schema_id": this.cred_def_form.schema.schema_id,
-        "~transport": {
-          "return_route": "all"
-        }
+        "schema_id": form.schema_id,
       }
       this.connection.send_message(query_msg);
     },
-    async getCredentialDefinition(){
+    async getCredentialDefinition(cred_def_id){
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/credential-definition-get",
-        "cred_def_id": this.cred_def_form.selected_cred_def_id,
-        "~transport": {
-          "return_route": "all"
-        }
+        "cred_def_id": cred_def_id,
       }
       this.connection.send_message(query_msg);
     },
