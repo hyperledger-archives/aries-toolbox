@@ -127,7 +127,7 @@ export default {
         attributes: this.issueForm.attributes,
       }
       this.issueForm.connection_id = '';
-      this.issueForm.cred_def_id = '';
+      this.issueForm.selected_cred_def = {};
       this.issueForm.comment = '';
       this.issueForm.attributes = [];
 
