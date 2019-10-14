@@ -4,10 +4,10 @@
     <el-collapse v-model="expanded_items">
       <ul class="list">
         <el-collapse-item
-          v-for="(connection) in list"
+          v-for="(connection, index) in list"
           v-bind:title="get_name(connection)"
           :name="connection.connection_id"
-          :key="title+connection.connection_id">
+          :key="connection.connection_id">
           <el-row>
             <div>
               <vue-json-pretty

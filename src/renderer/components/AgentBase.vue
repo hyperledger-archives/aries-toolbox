@@ -184,15 +184,15 @@
             v-on:schema-send="publishSchema"></agent-schema-list> -->
       <p>Schemas:</p>
       <el-collapse v-model="exspanded_schemas_items">
-            <div v-for="(schema, index) in schemas" :key="schema.schema_id">
-                <el-collapse-item v-bind:title="schema.schema_name +','+ schema.schema_version" :name="key">
+            <div v-for="schema in schemas" :key="schema.schema_id">
+                <el-collapse-item v-bind:title="schema.schema_name +','+ schema.schema_version" :name="schema.schema_id">
                     <el-row>
                         <div>
                               <vue-json-pretty
                                 :deep=2
                                 :data="schema">
                               </vue-json-pretty>
-                            <el-button v-on:click="collapse_expanded_schemas(key)">^</el-button>
+                            <el-button v-on:click="collapse_expanded_schemas(schema.schema_id)">^</el-button>
                         </div>
                     </el-row>
                 </el-collapse-item>
@@ -207,7 +207,7 @@
             <el-input v-model="schemas_form.version" style="width:100px;"> </el-input>
           <p>Attributes:</p>
           <ul>
-            <li v-for='attribute in schemas_form.attributes'>
+            <li v-for='(attribute,index) in schemas_form.attributes' :key="attribute+index">
               {{ attribute }}
             </li>
           </ul>
@@ -224,7 +224,7 @@
       <el-tab-pane label="Credential Issuance">
         <!--
           /**
-          * credential
+          * issuer credential
           * states
           * - proposals - <stretch goal>
           *     requested credential, recieved from a "send-proposal" API call.
@@ -242,7 +242,7 @@
         -->
         <p>Credential Definitions:</p>
         <el-collapse v-model="exspanded_cred_def_items">
-            <div v-for="cred_def in cred_defs">
+            <div v-for="(cred_def,index) in cred_defs" :key="cred_def.cred_def_id">
                 <el-collapse-item v-bind:title="cred_def.cred_def_id" :name="cred_def.cred_def_id">
                     <el-row>
                         <div>
@@ -252,8 +252,8 @@
                           </vue-json-pretty>
                           <el-collapse v-model="exspanded_credential_issuer_items">
                           <el-collapse-item title='Issue a credential offer' :name="cred_def.cred_def_id">
-                            <el-row>
-                              <div v-for="(attribute, key, index) in cred_def.primary.r" v-if="key!='master_secret'" prop="cred_def">
+                            <!-- <el-row>
+                              <div v-for="(attribute, key, index) in JSON.parse(cred_def.cred_def_json).value.primary.r" v-if="key!='master_secret'" :key=key prop="cred_def">
                                 <span slot="label">{{key}}:</span>
                                   <el-input v-model="cred_def_form[cred_def.cred_def_id].attributes[index]" style="width:100px;"> </el-input>
                               </div>
@@ -270,11 +270,10 @@
                                 </el-form-item>
                               </el-form>
                               <el-button @click="issueCredentialOffer(key,'global_pool')">Issue a credential offer</el-button>
-                            </el-row>
+                            </el-row> -->
                           </el-collapse-item>
                           </el-collapse>
-
-                        <el-button v-on:click="collapse_expanded_cred_def(key)">^</el-button>
+                        <el-button v-on:click="collapse_expanded_cred_def(cred_def.cred_def_id)">^</el-button>
                         </div>
                     </el-row>
                 </el-collapse-item>
@@ -282,7 +281,7 @@
         </el-collapse>
         <p>Create Credential Definition:</p>
         <el-form :model=cred_def_form>
-        <el-form-item label="select ledger:" >
+        <el-form-item v-if="false && schemas" label="select ledger:" >
             <el-select v-model="cred_def_form.ledger" filterable placeholder="sov" >
               <el-option
                 v-for="ledger in ledgers"
@@ -296,8 +295,8 @@
             <el-select v-model="cred_def_form.schema" filterable placeholder="schema">
               <el-option
                 v-for="schema in schemas"
-                :key="schema.id"
-                :label="schema.name +' '+ schema.version"
+                :key="schema.schema_id"
+                :label="schema.schema_name +' '+ schema.schema_version"
                 :value="schema">
               </el-option>
             </el-select>
@@ -323,46 +322,14 @@
             </el-select>
         </el-form-item> -->
         <el-form-item>
-          <el-button type="primary" @click="createCredentialDefinition()">create new credential definition</el-button>
-        </el-form-item>
-        </el-form>
-      </el-tab-pane>
-      <el-tab-pane label="Trusted Issuers">
-      <p>Issuers:</p>
-      <el-collapse v-model="expanded_issuers_items">
-            <div v-for="(did, key, index) in trusted_issuers">
-                <el-collapse-item v-bind:title="did.label +', '+ did.id" :name="key">
-                    <el-row>
-                        <div>
-                              <vue-json-pretty
-                                :deep=1
-                                :data="did">
-                              </vue-json-pretty>
-                            <el-button type="primary" @click="removeTrustedIssuer(key)">delete</el-button>
-                            <el-button type="primary" @click="resolveTrustedIssuer(key)">resolve issuer did</el-button>
-                            <el-button v-on:click="collapse_expanded_trusted_issuer(key)">^</el-button>
-                        </div>
-                    </el-row>
-                </el-collapse-item>
-            </div>
-        </el-collapse>
-        <p>Add Trusted Issuer:</p>
-        <el-form :model=trusted_issuers_form>
-        <el-form-group >
-          <span slot="label">Did:</span>
-            <el-input v-model="trusted_issuers_form.did" style="width:100px;"> </el-input>
-          <span slot="label">Label:</span>
-            <el-input v-model="trusted_issuers_form.label" style="width:100px;"> </el-input>
-        </el-form-group>
-        <el-form-item>
-            <el-button type="primary" @click="storeTrustedIssuer()">add trusted issuer</el-button>
+          <el-button type="primary" @click="sendCredentialDefinition()">create new credential definition</el-button>
         </el-form-item>
         </el-form>
       </el-tab-pane>
       <el-tab-pane label="My Credentials">
         <!--
           /**
-          * credential
+          * Holder Credential
           * states
           * - proposals -<stretch goal>
           *     request credential,
@@ -378,10 +345,42 @@
            */
         -->
       </el-tab-pane>
+      <el-tab-pane label="Trusted Issuers">
+      <p>Issuers:</p>
+      <el-collapse v-model="expanded_issuers_items">
+<!--             <div v-for="(did, key) in trusted_issuers" :key="key">
+                <el-collapse-item v-bind:title="did.label +', '+ did.id" :name="key">
+                    <el-row>
+                        <div>
+                              <vue-json-pretty
+                                :deep=1
+                                :data="did">
+                              </vue-json-pretty>
+                            <el-button type="primary" @click="removeTrustedIssuer(key)">delete</el-button>
+                            <el-button type="primary" @click="resolveTrustedIssuer(key)">resolve issuer did</el-button>
+                            <el-button v-on:click="collapse_expanded_trusted_issuer(key)">^</el-button>
+                        </div>
+                    </el-row>
+                </el-collapse-item>
+            </div> -->
+        </el-collapse>
+        <p>Add Trusted Issuer:</p>
+        <el-form :model=trusted_issuers_form>
+        <!-- <el-form-group >
+          <span slot="label">Did:</span>
+            <el-input v-model="trusted_issuers_form.did" style="width:100px;"> </el-input>
+          <span slot="label">Label:</span>
+            <el-input v-model="trusted_issuers_form.label" style="width:100px;"> </el-input>
+        </el-form-group> -->
+        <el-form-item>
+            <el-button type="primary" @click="storeTrustedIssuer()">add trusted issuer</el-button>
+        </el-form-item>
+        </el-form>
+      </el-tab-pane>
       <el-tab-pane label="Presentation">
       <p>Presentation Definitions:</p>
         <el-collapse v-model="exspanded_pres_def_items">
-            <div v-for="(pres_def, key, index) in presentation_definitions">
+            <!-- <div v-for="(pres_def, key) in presentation_definitions" :key="key">
                 <el-collapse-item v-bind:title="pres_def.name" :name="key">
                     <el-row>
                         <div>
@@ -412,24 +411,24 @@
                         </div>
                     </el-row>
                 </el-collapse-item>
-            </div>
+            </div> -->
         </el-collapse>
         <p>Create Presentation Definition:</p>
         <el-form :model=pres_def_form>
-        <el-form-group >
+        <!-- <el-form-group >
           <span slot="label">Name:</span>
             <el-input v-model="pres_def_form.name" style="width:100px;"> </el-input>
           <span slot="label">Version:</span>
             <el-input v-model="pres_def_form.version" style="width:100px;"> </el-input>
           <p>Request Attributes:</p>
           <ul>
-            <li v-for='(attribute,index) in pres_def_form.requested_attributes'>
+            <li v-for='(attribute,index) in pres_def_form.requested_attributes' :key="index">
               <vue-json-pretty
                 :deep=3
                 :data="attribute">
               </vue-json-pretty>
               <ul>
-                <li v-for='restriction in pres_def_form.requested_attributes[index].restrictions'>
+                <li v-for='restriction in pres_def_form.requested_attributes[index].restrictions' :key="restriction+index">
                   {{restriction.issuer_did}}
                 </li>
               </ul>
@@ -456,13 +455,13 @@
           <span slot="label">Attribute:</span>
             <el-input @keyup.enter.native="add_pres_def_attribute" v-model="pres_def_form.requested_attribute" style="width:100px;"> </el-input>
             <el-button type="primary" @click="add_pres_def_attribute" >add request attribute</el-button>
-        </el-form-group>
+        </el-form-group> -->
         <el-form-item>
             <el-button type="primary" @click="storePresentationDefinition()">create new presentation definition</el-button>
         </el-form-item>
           <p>Presentation Requests Sent:</p>
-          <el-collapse v-model="expanded_pres_req_sent_items">
-            <div v-for="(pres_req, key, index) in sentPresentationRequests">
+          <!-- <el-collapse v-model="expanded_pres_req_sent_items">
+            <div v-for="(pres_req, key, index) in sentPresentationRequests" :key="key" :index="index">
                 <el-collapse-item v-bind:title="labelFromConnection(pres_req.connection_id)" :name="key">
                     <el-row>
                         <div>
@@ -475,10 +474,10 @@
                     </el-row>
                 </el-collapse-item>
             </div>
-          </el-collapse>
+          </el-collapse> -->
           <p>Presentation Requests Received:</p>
           <el-collapse v-model="expanded_pres_req_rec_items">
-            <div v-for="(pres_req, key, index) in receivedPresentationRequests">
+            <!-- <div v-for="(pres_req, key) in receivedPresentationRequests" :key="key">
                 <el-collapse-item v-bind:title="labelFromConnection(pres_req.connection_id)" :name="key">
                     <el-row>
                         <div>
@@ -490,11 +489,11 @@
                         </div>
                     </el-row>
                 </el-collapse-item>
-            </div>
+            </div> -->
           </el-collapse>
           <p>Presentations Sent:</p>
           <el-collapse v-model="expanded_pres_sent_items">
-            <div v-for="(pres_req, key, index) in sentPresentations">
+            <!-- <div v-for="(pres_req, key) in sentPresentations" :key="key">
                 <el-collapse-item v-bind:title="labelFromConnection(pres_req.connection_id)" :name="key">
                     <el-row>
                         <div>
@@ -506,11 +505,11 @@
                         </div>
                     </el-row>
                 </el-collapse-item>
-            </div>
+            </div> -->
           </el-collapse>
           <p>Presentations Received:</p>
           <el-collapse v-model="expanded_pres_rec_items">
-            <div v-for="(pres_req, key, index) in receivedPresentations">
+            <!-- <div v-for="(pres_req, key) in receivedPresentations" :key="key">
                 <el-collapse-item v-bind:title="labelFromConnection(pres_req.connection_id)" :name="key">
                     <el-row>
                         <div>
@@ -522,11 +521,11 @@
                         </div>
                     </el-row>
                 </el-collapse-item>
-            </div>
+            </div> -->
           </el-collapse>
           <p>Presentations :</p>
           <el-collapse v-model="expanded_pres_ver_items">
-            <div v-for="(pres_req, key, index) in verifiedPresentations">
+            <div v-for="pres_req in verifiedPresentations">
                 <!-- <el-collapse-item v-bind:title="labelFromConnection(pres_req.connection_id)" :name="key">
                     <el-row>
                         <div>
@@ -608,7 +607,7 @@
             <th>Protocol</th>
             <th>Roles</th>
           </tr>
-          <tr v-for="p in supported_protocols">
+          <tr v-for="p in supported_protocols" :key="p.pid">
             <td>{{p.pid}}</td>
             <td>{{p.roles}}</td>
           </tr>
@@ -862,20 +861,10 @@
         this.schemas_form.version =""
       },
       //================================ Credential Definition events ================================
-      async createCredentialDefinition(){
-          let query_msg = {
-            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/publish-credential-definition",
-            "schema_id": this.cred_def_form.schema.ledgers[this.cred_def_form.ledger].seq_number,
-            "~transport": {
-              "return_route": "all"
-          }
-        }
-        this.connection.send_message(query_msg);
-      },
       async sendCredentialDefinition(){
           let query_msg = {
             "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/send-credential-definition",
-            "schema_id": this.cred_def_form.select_schema_id,
+            "schema_id": this.cred_def_form.schema.schema_id,
             "~transport": {
               "return_route": "all"
           }
@@ -1110,7 +1099,7 @@
           return this.getCredentialDefinitionlist();
         }
       },
-      async credentialDefinitionReadDirective(msg){
+      async credentialDefinitionReadDirective(msg){// does this work???? Do we need this?
         if ('credential_definition' in msg){
           var index = this.cred_defs.indexOf(msg.credential_definition);
           if (index !== -1) {
@@ -1122,8 +1111,9 @@
         }
       },
       async credentialDefinitionListDirective(msg){
-        if('results'){
-          this.cred_defs = msg.credential_definition
+        if('results' in msg){
+          this.cred_defs = msg.results
+          this.cred_def_form = this.cred_defs
         }      
       },
       // ---------------------- issuerance handlers --------------------
@@ -1391,11 +1381,7 @@
           'attribute':'',
         },
         'cred_defs':[],
-        'cred_def_form':{
-          'schema':'',
-          '3462d86c-fc14-480a-bd12-e0be147aadv7': {'attributes':[]},// TODO: create this structure dynamically at start.
-          'ledger':'',
-        },
+        'cred_def_form':{},
         'pres_def_form':{
           'temp_attrs':[],
           'requested_attributes':[],
@@ -1595,6 +1581,7 @@
        *
        */
       //=========================================================================================================================
+      // ---------------------- Connection Filters --------------------      
       activeConnections(){
         return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "active")
       },
@@ -1644,6 +1631,181 @@
       errorStateConnections(){
         return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "error")
       },
+      // ---------------------- Credential Definition Filters --------------------      
+      /* credentialDefinition(){
+        return this.cred_defs.filter(cred => "state" in cred && cred.state === "STATE_OFFER_SENT")
+      }, */
+      // ---------------------- Issuer Credential Filters --------------------      
+      issuerOfferSentStateCredentials(){
+        return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "STATE_OFFER_SENT")
+      },
+      issuerReceivedRequestStateCredentials(){
+        return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "STATE_REQUEST_RECEIVED")
+      },
+      issuerIssuedStateCredentials(){
+        return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "STATE_ISSUED")
+      },
+      issuerStoredStateCredentials(){
+        return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "STATE_STORED")
+      },
+      // ---------------------- Holder Credential Filters --------------------      
+      holderOfferReceivedStateCredentials(){
+        return this.holder_credentials.filter(cred => "state" in cred && cred.state === "STATE_OFFER_RECEIVED")
+      },
+      holderSentRequestStateCredentials(){
+        return this.holder_credentials.filter(cred => "state" in cred && cred.state === "STATE_REQUEST_SENT")
+      },
+      holderReceivedStateCredentials(){
+        return this.holder_credentials.filter(cred => "state" in cred && cred.state === "STATE_CREDENTIAL_RECEIVED")
+      },
+      holderStoredStateCredentials(){
+        return this.holder_credentials.filter(cred => "state" in cred && cred.state === "STATE_STORED")
+      },
+      // ---------------------- Presentation Definitions Filters --------------------     
+    /**
+     * Roles 
+     *  'prover'
+     *  'verifier'
+     * States
+     *  "proposal_sent"
+     *  "proposal_received"
+     *  "request_sent"
+     *  "request_received"
+     *  "presentation_sent"
+     *  "presentation_received"
+     *  "verified"
+     *  */ 
+      // ---------------------- verifier Presentation Filters --------------------     
+      verifierSentProposals(){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange && 
+            exchange.state === "proposal_sent"  && 
+          //==========================================
+            "role" in exchange &&
+            "verifier" === exchange.role
+        )
+      },
+      verifierReceivedProposals: function(exchange){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange && 
+            exchange.state === "proposal_received" && 
+          //==========================================
+            "role" in exchange &&
+            "verifier" === exchange.role)
+      },
+      verifierSentRequests(){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange &&
+            exchange.state === "request_sent" && 
+          //==========================================
+            "role" in exchange &&
+            "verifier" === exchange.role)
+      },
+      verifierReceivedRequests(){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange &&
+            exchange.state === "request_received" && 
+          //==========================================
+            "role" in exchange &&
+            "verifier" === exchange.role)
+      },
+      verifierSentPresentations(){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange &&
+            exchange.state === "presentation_sent" &&
+          //==========================================
+            "role" in exchange &&
+            "verifier" === exchange.role )
+      },
+      verifierReceivedPresentations(){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange &&
+            exchange.state === "presentation_received" &&
+          //==========================================
+            "role" in exchange &&
+            "verifier" === exchange.role )
+      },
+      verifierVerifiedPresentation(){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange &&
+            exchange.state === "verified" &&
+          //==========================================
+            "role" in exchange &&
+            "verifier" === exchange.role )
+      },
+      // ---------------------- Prover Presentation Filters --------------------
+      proverSentProposals(){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange && 
+            exchange.state === "proposal_sent"  && 
+          //==========================================
+            "role" in exchange &&
+            "prover" === exchange.role
+        )
+      },
+      proverReceivedProposals: function(exchange){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange && 
+            exchange.state === "proposal_received" && 
+          //==========================================
+            "role" in exchange &&
+            "prover" === exchange.role)
+      },
+      proverSentRequests(){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange &&
+            exchange.state === "request_sent" && 
+          //==========================================
+            "role" in exchange &&
+            "prover" === exchange.role)
+      },
+      proverReceivedRequests(){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange &&
+            exchange.state === "request_received" && 
+          //==========================================
+            "role" in exchange &&
+            "prover" === exchange.role)
+      },
+      proverSentPresentations(){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange &&
+            exchange.state === "presentation_sent" &&
+          //==========================================
+            "role" in exchange &&
+            "prover" === exchange.role )
+      },
+      proverReceivedPresentations(){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange &&
+            exchange.state === "presentation_received" &&
+          //==========================================
+            "role" in exchange &&
+            "prover" === exchange.role )
+      },
+      proverVerifiedPresentation(){
+        return this.presentation_exchanges.filter(
+          exchange => 
+            "state" in exchange &&
+            exchange.state === "verified" &&
+          //==========================================
+            "role" in exchange &&
+            "prover" === exchange.role )
+      },
+      // ---------------------- Basic Message History --------------------      
       basicmessage_history: function () {
         if (this.connection_loaded) {
           return this.connection.message_history.filter(function(h){
