@@ -170,7 +170,6 @@
                   <el-button type="primary" @click="addStaticAgent()">Add Static Agent</el-button>
                 </el-form-item>
               </el-form>
-
             </el-row>
           </el-tab-pane>
           <el-tab-pane label="Credential Issuance">
@@ -198,23 +197,6 @@
             </el-row>
           </el-tab-pane>
           <el-tab-pane label="My Credentials">
-            <!--
-              /**
-              * Holder Credential
-              * states
-              * - proposals -
-              *     request credential,
-              *         <Button> select connection , select cred_def and send request,
-              * - STATE_OFFER_RECEIVED -
-              *         <Button> send request
-              * - STATE_REQUEST_SENT -
-              * - STATE_CREDENTIAL_RECEIVED
-              *     issued with data from request. result of "issue" API call.
-              *       <Button> Accept , send ack or problem report
-              * - STATE_STORED
-              *    
-              */
-            -->
             <el-row>
               <agent-cred-def-list
                 title="Retrieved Credential Definitions"
@@ -232,36 +214,13 @@
             </el-row>
           </el-tab-pane>
           <el-tab-pane label="Trusted Issuers">
-            <p>Issuers:</p>
-            <el-collapse v-model="expanded_issuers_items">
-              <!--             <div v-for="(did, key) in trusted_issuers" :key="key">
-                <el-collapse-item v-bind:title="did.label +', '+ did.id" :name="key">
-                <el-row>
-                <div>
-                <vue-json-pretty
-                :deep=1
-                :data="did">
-                </vue-json-pretty>
-                <el-button type="primary" @click="removeTrustedIssuer(key)">delete</el-button>
-                <el-button type="primary" @click="resolveTrustedIssuer(key)">resolve issuer did</el-button>
-                <el-button v-on:click="collapse_expanded_trusted_issuer(key)">^</el-button>
-                </div>
-                </el-row>
-                </el-collapse-item>
-                </div> -->
-            </el-collapse>
-            <p>Add Trusted Issuer:</p>
-            <el-form :model=trusted_issuers_form>
-              <!-- <el-form-group >
-                <span slot="label">Did:</span>
-                <el-input v-model="trusted_issuers_form.did" style="width:100px;"> </el-input>
-                <span slot="label">Label:</span>
-                <el-input v-model="trusted_issuers_form.label" style="width:100px;"> </el-input>
-                </el-form-group> -->
-                <el-form-item>
-                  <el-button type="primary" @click="storeTrustedIssuer()">add trusted issuer</el-button>
-                </el-form-item>
-            </el-form>
+            <el-row>
+              <agent-trust
+                title="Trusted Dids"
+                v-bind:trusted_issuers= "trusted_issuers"
+                @remove-did= "removeTrustedIssuer"
+                @store-did= "storeTrustedIssuer"></agent-trust>
+            </el-row>
           </el-tab-pane>
           <el-tab-pane label="Presentation">
             <p>Presentation Definitions:</p>
@@ -544,6 +503,7 @@ import AgentSchemaList from './AgentSchemaList.vue';
 import AgentCredDefList from './AgentCredDefList.vue';
 import AgentIssueCredList from './AgentIssueCredList.vue';
 import AgentMyCredentialsList from './AgentMyCredentialsList.vue';
+import AgentTrust from './AgentTrust.vue';
 
 export default {
   name: 'agent-base',
@@ -555,7 +515,8 @@ export default {
     AgentSchemaList,
     AgentCredDefList,
     AgentIssueCredList,
-    AgentMyCredentialsList
+    AgentMyCredentialsList,
+    AgentTrust,
   },
   methods: {
     ...mapActions("Connections", ["get_connection"]),
@@ -882,16 +843,16 @@ export default {
       this.connection.send_message(query_msg);
     },
     //================================ trusted issuer events ================================
-    async removeTrustedIssuer(id){
-      let query_msg = {
+    async removeTrustedIssuer(did){
+      /*let query_msg = {
         "@type": "",
         "issuer_did": id,
         "~transport": {
           "return_route": "all"
         }
-      }
-      this.connection.send_message(query_msg);
-      delete this.trusted_issuers[id]// TODO:remove this after aca-py support is added.
+      } */
+      //this.connection.send_message(query_msg);
+      this.$delete(this.trusted_issuers,did.id)// TODO:remove this after aca-py support is added.
     },
     async resolveTrustedIssuer(did){
       let query_msg = {
@@ -902,24 +863,21 @@ export default {
         }
       }
       this.connection.send_message(query_msg);
-      delete this.trusted_issuers[did]// TODO:remove this after aca-py support is added.
     },
-    async storeTrustedIssuer(){
-      let query_msg = {
+    async storeTrustedIssuer(trusted_did){
+      /* let query_msg = {
         "@type": "",
-        "did": this.trusted_issuers_form.did,
-        "label": this.trusted_issuers_form.label,
+        "did": trusted_did.id,
+        "label": trusted_did.label,
         "~transport": {
           "return_route": "all"
         }
-      }
+      } */
       //this.connection.send_message(query_msg);
-      this.trusted_issuers[this.trusted_issuers_form.did] = { // TODO:remove this after aca-py support is added.
-        "id":this.trusted_issuers_form.did,
-        "label": this.trusted_issuers_form.label,
+      this.trusted_issuers[trusted_did.id] = { // TODO:remove this after aca-py support is added.
+        "id":trusted_did.id,
+        "label": trusted_did.label,
       }
-      this.trusted_issuers_form.did = ""
-      this.trusted_issuers_form.label = ""
     },
 
     //=========================================================================================================================
@@ -1256,18 +1214,6 @@ export default {
       },
       'dids':{},
       'trusted_issuers':{
-        'mgtqGEF8EBQHBLREdRoJ4':{
-          'did':'mgtqGEF8EBQHBLREdRoJ4',
-          'label':'Sovrin Foundation',
-          'ledgers':{
-            'sov':{
-              'name':'sov',
-              'role':'2',
-              'doc':'{"endpoint":"https://sovrin.org/"}',
-              'verkey':'~7neGXtV1n3S5j1xzzZBz62',
-            },
-          },
-        },
       },
       'schemas':[],
       'schemas_form':{
