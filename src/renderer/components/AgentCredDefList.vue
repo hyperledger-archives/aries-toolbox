@@ -11,6 +11,7 @@
           @click="retrieve">Retreive</el-button>
       </el-input>
       <el-button
+        v-if="can_create"
         type="primary"
         icon="el-icon-plus"
         @click="createFormActive = true">Create</el-button>
@@ -63,7 +64,7 @@ import VueJsonPretty from 'vue-json-pretty';
 
 export default {
   name: 'agent-cred-def-list',
-  props: ['title', 'list', 'editable', 'schemas'],
+  props: ['title', 'list', 'can_create', 'schemas'],
   components: {
     VueJsonPretty,
   },
