@@ -62,7 +62,6 @@
         :data="ledger">
         </vue-json-pretty>
         <el-form class="ledger-form">
-        <!-- activate ledger --><!--
           <el-form-item >
           <el-button type="primary" @click="removeLedger(ledger)">delete</el-button>
           </el-form-item>
@@ -873,7 +872,7 @@ export default {
     },
     async getHoldersPresentations(){
       let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credentials-get-list",
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/presentations-get-list",
         //'connection_id': ,// optional filter
         //'verified': ,// optional filters
         "~transport": {
@@ -1015,7 +1014,7 @@ export default {
       return this.getIssuedCredentials();
     },
     async issuerCredentialListDirective(msg){
-      if('results'in msg ){
+      if('results' in msg ){
         this.issuer_credentials = msg.results;
       }
     },
