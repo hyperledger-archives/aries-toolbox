@@ -45,7 +45,7 @@
         <el-form-item label="Credential Definition:" :label-width="formLabelWidth">
           <el-select
             v-model="issueForm.selected_cred_def"
-            filterable
+            remote
             placeholder="Credential Definition"
             @change="update_attributes">
             <el-option
@@ -95,7 +95,7 @@ export default {
       issueFormActive: false,
       issueForm: {
         connection_id: '',
-        selected_cred_def: {},
+        selected_cred_def: null,
         comment: '',
         attributes: []
       },
