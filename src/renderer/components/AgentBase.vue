@@ -653,6 +653,10 @@ export default {
         "accept": "auto"
       };
       this.connection.send_message(receive_invite_msg);
+      this.agent_invitation_form.invitation = "";
+      setTimeout(() => {
+        return this.fetchAgentConnections();
+      }, 4000);
     },
     async addStaticAgent(){
       let query_msg ={
