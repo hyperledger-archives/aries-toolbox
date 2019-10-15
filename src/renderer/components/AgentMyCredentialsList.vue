@@ -26,12 +26,12 @@
         </el-collapse-item>
       </ul>
     </el-collapse>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <!-- <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <a class="navbar-brand" href="#">Offers</a>
-      <!-- <el-button
+      <el-button
         type="primary"
         icon="el-icon-plus"
-        @click="offerFormActive = true">Accept Offer</el-button> -->
+        @click="offerFormActive = true">Accept Offer</el-button>
     </nav>
     <el-collapse v-model="expanded_items">
       <ul class="list">
@@ -51,7 +51,7 @@
           </el-row>
         </el-collapse-item>
       </ul>
-    </el-collapse>
+    </el-collapse> -->
     <el-dialog title="Propose Credential" :visible.sync="proposalFormActive">
       <el-form :model="proposalForm">
         <el-form-item label="Connection:" :label-width="formLabelWidth">
