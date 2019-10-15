@@ -1,13 +1,19 @@
 <template >
-  <div v-if="list.length">
+  <div>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <a class="navbar-brand" href="#">{{ title }}</a>
-      <el-form>
+      <el-input
+        v-model="retrieve_schema_id"
+        style="width: 300px;">
         <el-button
-          type="primary"
-          icon="el-icon-plus"
-          @click="createFormActive = true">Create</el-button>
-      </el-form>
+          slot="append"
+          icon="el-icon-search"
+          @click="retrieve">Retreive</el-button>
+      </el-input>
+      <el-button
+        type="primary"
+        icon="el-icon-plus"
+        @click="createFormActive = true">Create</el-button>
     </nav>
     <el-collapse v-model="expanded_items">
       <ul class="list">
@@ -81,6 +87,7 @@ export default {
         version: '',
         attributes: [],
       },
+      retrieve_schema_id: '',
       formLabelWidth: '100px'
     }
   },
@@ -106,6 +113,11 @@ export default {
       this.createForm.version = '';
       this.createForm.attributes = [];
       this.$emit('schema-send', values);
+      this.createFormActive = false;
+    },
+    retrieve: function() {
+      this.$emit('schema-get', this.retrieve_schema_id);
+      this.retrieve_schema_id = '';
     }
   }
 }
