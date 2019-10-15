@@ -202,7 +202,7 @@
               /**
               * Holder Credential
               * states
-              * - proposals -<stretch goal>
+              * - proposals -
               *     request credential,
               *         <Button> select connection , select cred_def and send request,
               * - STATE_OFFER_RECEIVED -
@@ -212,9 +212,24 @@
               *     issued with data from request. result of "issue" API call.
               *       <Button> Accept , send ack or problem report
               * - STATE_STORED
-              *
+              *    
               */
             -->
+            <el-row>
+              <agent-cred-def-list
+                title="Retrieved Credential Definitions"
+                v-bind:can_create="false"
+                v-bind:list="cred_defs"
+                v-bind:schemas="schemas"
+                @cred-def-get="getCredentialDefinition"></agent-cred-def-list>
+              <agent-my-credentials-list
+                title="Credentials"
+                editable="false"
+                v-bind:credentials="holder_credentials"
+                v-bind:cred_defs="cred_defs"
+                v-bind:connections="activeConnections"
+                @propose="sendCredentialProposal"></agent-my-credentials-list>
+            </el-row>
           </el-tab-pane>
           <el-tab-pane label="Trusted Issuers">
             <p>Issuers:</p>
@@ -528,6 +543,7 @@ import AgentDidList from './AgentDidList.vue';
 import AgentSchemaList from './AgentSchemaList.vue';
 import AgentCredDefList from './AgentCredDefList.vue';
 import AgentIssueCredList from './AgentIssueCredList.vue';
+import AgentMyCredentialsList from './AgentMyCredentialsList.vue';
 
 export default {
   name: 'agent-base',
@@ -539,6 +555,7 @@ export default {
     AgentSchemaList,
     AgentCredDefList,
     AgentIssueCredList,
+    AgentMyCredentialsList
   },
   methods: {
     ...mapActions("Connections", ["get_connection"]),
@@ -557,6 +574,30 @@ export default {
 
       this.connection_loaded = true;
     },
+    async run_protocol_discovery(){
+      //send query
+      let query_msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/query",
+        "query": "*"
+      };
+      this.connection.send_message(query_msg);
+    },
+    //================================ connection events ================================
+    /**
+     * # Message Types
+     *  # event             | ->  | directive
+     * ==========================================
+        connection-get-list       -> connection-list
+        connection-get            -> connection //TODO: use
+        create-invitation         -> invitation
+        receive-invitation        -> connection
+        accept-invitation         -> <no handler> //TODO: use
+        accept-request            -> <no handler> //TODO: use
+        establish-inbound         -> <no handler> //TODO: use
+        delete                    -> ack
+        update                    -> connection
+        create-static-connection  -> static-connection-info
+     */
     async fetchAgentConnections(){
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-get-list",
@@ -566,14 +607,71 @@ export default {
       }
       this.connection.send_message(query_msg);
     },
-    async run_protocol_discovery(){
-      //send query
+    async updateAgentConnection(editForm){
       let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/query",
-        "query": "*"
-      };
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/update",
+        "connection_id": editForm.connection_id,
+        "label": editForm.label,
+        "role": editForm.role,
+      }
       this.connection.send_message(query_msg);
     },
+    async deleteAgentConnection(connection){
+      let query_msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/delete",
+        "connection_id": connection.connection_id,
+        "~transport": {
+          "return_route": "all"
+        }
+      }
+      this.connection.send_message(query_msg);
+    },
+    async fetchNewInvite(){
+      let query_msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/create-invitation",
+        "label": this.invite_label_form,
+        "role": this.invite_role_form,
+        "accept": this.invite_accept_form,
+        "public": this.invite_public_form,
+        "multi_use": this.invite_multi_use_form,
+        "~transport": {
+          "return_route": "all"
+        }
+      }
+      this.invite_label_form = "master"
+      this.invite_role_form = "normal"
+      this.invite_accept_form = "auto"
+      this.invite_public_form = false
+      this.invite_multi_use_form = true
+      this.connection.send_message(query_msg);
+    },
+    async addAgent() {
+      let receive_invite_msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/receive-invitation",
+        "invitation": this.agent_invitation_form.invitation,
+        "accept": "auto"
+      };
+      this.connection.send_message(receive_invite_msg);
+      this.agent_invitation_form.invitation = "";
+      setTimeout(() => {
+        return this.fetchAgentConnections();
+      }, 4000);
+    },
+    async addStaticAgent(){
+      let query_msg ={
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/create-static-connection",
+        "label": this.static_agent_form.label,
+        "role": this.static_agent_form.role,
+        "static_did": this.static_agent_form.static_did,
+        "static_key": this.static_agent_form.static_key,
+        "static_endpoint": this.static_agent_form.static_endpoint,
+        "~transport": {
+          "return_route": "all"
+        }
+      }
+      this.connection.send_message(query_msg);
+    },
+    //================================ Did events ================================
     async getAgentDids(){
       this.connection.send_message( {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/get-list-dids",
@@ -628,66 +726,7 @@ export default {
       }
       this.connection.send_message(query_msg);
     },      
-    async updateAgentConnection(editForm){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/update",
-        "connection_id": editForm.connection_id,
-        "label": editForm.label,
-        "role": editForm.role,
-      }
-      this.connection.send_message(query_msg);
-    },
-    async deleteAgentConnection(connection){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/delete",
-        "connection_id": connection.connection_id,
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      this.connection.send_message(query_msg);
-    },
-    async fetchNewInvite(){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/create-invitation",
-        "label": this.invite_label_form,
-        "role": this.invite_role_form,
-        "accept": this.invite_accept_form,
-        "public": this.invite_public_form,
-        "multi_use": this.invite_multi_use_form,
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      this.invite_label_form = "master"
-      this.invite_role_form = "normal"
-      this.invite_accept_form = "auto"
-      this.invite_public_form = false
-      this.invite_multi_use_form = true
-      this.connection.send_message(query_msg);
-    },
-    async addAgent() {
-      let receive_invite_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/receive-invitation",
-        "invitation": this.agent_invitation_form.invitation,
-        "accept": "auto"
-      };
-      this.connection.send_message(receive_invite_msg);
-    },
-    async addStaticAgent(){
-      let query_msg ={
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/create-static-connection",
-        "label": this.static_agent_form.label,
-        "role": this.static_agent_form.role,
-        "static_did": this.static_agent_form.static_did,
-        "static_key": this.static_agent_form.static_key,
-        "static_endpoint": this.static_agent_form.static_endpoint,
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      this.connection.send_message(query_msg);
-    },
+
     async compose_send(){
       this.connection.send_message(this.compose_json, true);
     },
@@ -793,13 +832,16 @@ export default {
       this.connection.send_message(query_msg);
     },
     //================================ Holder events ================================
-    async sendCredentialProposal(holderCredentialProposalForm){
+    async sendCredentialProposal(form){
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/send-credential-proposal",
-        "connection_id": holderCredentialProposalForm.connection_id ,
-        "credential_definition_id": holderCredentialProposalForm.credential_definition_id ,
-        "comment": holderCredentialProposalForm.comment , //optional
-        "credential_proposal": holderCredentialProposalForm.credential_proposal ,
+        "connection_id": form.connection_id,
+        "credential_definition_id": form.credential_definition_id,
+        "comment": form.comment, //optional
+        "credential_proposal": {
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/credential-preview",
+          "attributes": form.attributes
+        }
       }
       this.connection.send_message(query_msg);
     },
@@ -922,8 +964,9 @@ export default {
       this.connectionUpdateForm = connections
     },
     async updatedConnection(msg){
-      this.connections[msg.connection.connection_id] = msg.connection
-      this.connectionUpdateForm = this.connections;
+      return this.fetchAgentConnections();
+      /* this.connections[msg.connection.connection_id] = msg.connection
+      this.connectionUpdateForm = this.connections; */
     },
     // ---------------------- shcema handlers --------------------
     async getSchemaListResponse(msg){
@@ -1244,7 +1287,142 @@ export default {
         'name':'',
         'version':'',
       },
-      'issuer_credentials': [],
+      'issuer_credentials':[
+        {
+        "credential_definition_id": "HTu6kykpm55HcjmRoVt4aV:3:CL:74269:default",
+        "role": "issuer",
+        "created_at": "2019-10-15 05:33:07.248797Z",
+        "initiator": "self",
+        "state": "offer_sent",
+        "schema_id": "HTu6kykpm55HcjmRoVt4aV:2:TedTested:0.5",
+        "credential_proposal_dict": {
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/credential-preview",
+            "attributes": [
+          {
+            "name": "4",
+            "value": "5"
+          },
+          {
+            "name": "3",
+            "value": "6"
+          },
+          {
+            "name": "2",
+            "value": "7"
+          },
+          {
+            "name": "1",
+            "value": "8"
+          }]
+        },
+        "connection_id": "78db5935-bc51-4dcf-a0bc-a7a75fa34df9",
+        "thread_id": "a47c551a-6ed1-4d7e-8f86-3a0285c0afbb",
+        "updated_at": "2019-10-15 05:33:07.258704Z",
+        "auto_offer": false,
+        "credential_offer":  {
+          "schema_id": "HTu6kykpm55HcjmRoVt4aV:2:TedTested:0.5",
+          "cred_def_id": "HTu6kykpm55HcjmRoVt4aV:3:CL:74269:default",
+          "key_correctness_proof": {
+            "c": "6607313407885854507837744068778047945673084368157418893783112615321600278256",
+            "xz_cap": "28990855913124265253647838625465343851640476736427518891141705853260502648496109881280900256626118578543571956433272072604364891241789486784904144804939423326001686397719734374550830669027844009545425557101311833225953484522807547417124207444421830145193500513077863012198512555635746670856232882228719400338375101807072060106949263559379989189703762342576186598886309553764111750130568057843050880495400075535483347140975929910923749775158365938761871651937056096766219345285254543880662415772271092304141414362242717928126458961442051232183228324013819536120738703489223056431691025005946380175791713121862932049677008155152018625697881621992035279904345574537581463555124724985447327188644",
+            "xr_cap": [
+              [
+                "2",
+                "28138469658880031618879668159436292681868675714102930392735155837199052236560394247461338556873204919816139750002193966400013698354341584572476829070266792144153433830834234653362757292399458321532972664824861575128724722675417641598922534760691943772770770772751261614945424556583958943728808229055502650230012048541429091771648869251395492700464256628557089107269926487204454696634302080031879432605308867470432626748300801229501885827262411828779597357815571042385700283753568765541716248021439748101972186665571249657324720746603327100490046434327791564791263520047655871419963843700867672276710677853253764878714030428613019993507068429751689703268284279099082109018519195630388846440379"
+              ],
+              [
+                "3",
+                "95446094017206433705786332838513553387839950240765848487062349011190578240339573603227530123253475048063960064761231934165019821775514199039651071928385942181019441629548643150079760628407724833906798616694134880517686535675807042959988234861132603804428328525057295166003635604693479282629343622784917876591011943344527185184649881824025713939363163731886420111416846249205785186004431286359901832216558209765919664277152442797438225172367828544851046686386436557070014744437330710734292594284188298528067757660787789150034388341031380440268830291902835541429771516602764671374688406978808121047692658761116371264599569132132483506029647636959743318654858338574955861319311785128308412356877"
+              ],
+              [
+                "master_secret",
+                "120664944207498861765821153391532988468862051161720196925484359045612440595038445706211942486619275512522121890224369218524835971709635143500886849407710594222673425678286651692942108566696346241836574352669466875485891976952204674937608715577567794869366036643905464044836280064983549869430434405616880193895576571781136787554804087532097717985351332559299557810514267172671830834011055651245468481510277303761261589594965768570065614481369833428553977684744032127261936977925367620297590768597983914501908320331874034465103171521816250692890585472043175302375159419295840282352392026998800854310471026095753214810097585023580342917820322609239558551765678195670294445356075690530999370320321"
+              ],
+              [
+                "4",
+                "35698302129959431537175271619941147841853270248464601308248031332147376250130983277377354985361650783348780151670545105579886453475044187426171755783828939952258921699829794224975010550535229364997571800736395921801845191127081857701731794411014969978815715173373489218843866720190880123562526639358772124868709661877354988866180800349937394150162469297870721141373421563603685028204653880422457527476322640034469859369167754443141246420515049409639624156298028720205857807006082292507413197265028008514810456329967043912247413082718754570336282817992846282654315097467461037857208632975931467215122605625862303956150955519401208567398194692588649843471191809886396530927981203538703428435769"
+              ],
+              [
+                "1",
+                "146757483027592237180558284067201227890691587886291436657325546816650598561606062693096366221056750016450225633541443539342566805056994834389511749620293344040108012902486481182343929317987770861682614138336972205427740048483310270605972210829249059832353357472581856429198217999541897374981278495664311715232163799049861874552528517115388386525426208589731835371458918258370469010841689608754698580778035065652079888603478809192783230338879179676441029011278227683972185999419919381673601117038965713030389652137665262820793689452091493895510445620277176964474407173817552680117329534134918231757754439825449952728449047466267255868146920941401805267893855691094851773376925749481749121466607"
+              ]
+          ]
+          },
+          "nonce": "669153507874699409372348"
+          },
+        "auto_issue": true,
+        "credential_exchange_id": "3e159cc8-1980-48a2-84a2-61bd88c9e92a"
+        }
+      ],
+      'issuer_presentaions':[],
+      'holder_credentials':[
+        {
+        "credential_definition_id": "HTu6kykpm55HcjmRoVt4aV:3:CL:74269:default",
+        "role": "issuer",
+        "created_at": "2019-10-15 05:33:07.248797Z",
+        "initiator": "self",
+        "state": "offer_received",
+        "schema_id": "HTu6kykpm55HcjmRoVt4aV:2:TedTested:0.5",
+        "credential_proposal_dict": {
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/credential-preview",
+            "attributes": [
+          {
+            "name": "4",
+            "value": "5"
+          },
+          {
+            "name": "3",
+            "value": "6"
+          },
+          {
+            "name": "2",
+            "value": "7"
+          },
+          {
+            "name": "1",
+            "value": "8"
+          }]
+        },
+        "connection_id": "78db5935-bc51-4dcf-a0bc-a7a75fa34df9",
+        "thread_id": "a47c551a-6ed1-4d7e-8f86-3a0285c0afbb",
+        "updated_at": "2019-10-15 05:33:07.258704Z",
+        "auto_offer": false,
+        "credential_offer":  {
+          "schema_id": "HTu6kykpm55HcjmRoVt4aV:2:TedTested:0.5",
+          "cred_def_id": "HTu6kykpm55HcjmRoVt4aV:3:CL:74269:default",
+          "key_correctness_proof": {
+            "c": "6607313407885854507837744068778047945673084368157418893783112615321600278256",
+            "xz_cap": "28990855913124265253647838625465343851640476736427518891141705853260502648496109881280900256626118578543571956433272072604364891241789486784904144804939423326001686397719734374550830669027844009545425557101311833225953484522807547417124207444421830145193500513077863012198512555635746670856232882228719400338375101807072060106949263559379989189703762342576186598886309553764111750130568057843050880495400075535483347140975929910923749775158365938761871651937056096766219345285254543880662415772271092304141414362242717928126458961442051232183228324013819536120738703489223056431691025005946380175791713121862932049677008155152018625697881621992035279904345574537581463555124724985447327188644",
+            "xr_cap": [
+              [
+                "2",
+                "28138469658880031618879668159436292681868675714102930392735155837199052236560394247461338556873204919816139750002193966400013698354341584572476829070266792144153433830834234653362757292399458321532972664824861575128724722675417641598922534760691943772770770772751261614945424556583958943728808229055502650230012048541429091771648869251395492700464256628557089107269926487204454696634302080031879432605308867470432626748300801229501885827262411828779597357815571042385700283753568765541716248021439748101972186665571249657324720746603327100490046434327791564791263520047655871419963843700867672276710677853253764878714030428613019993507068429751689703268284279099082109018519195630388846440379"
+              ],
+              [
+                "3",
+                "95446094017206433705786332838513553387839950240765848487062349011190578240339573603227530123253475048063960064761231934165019821775514199039651071928385942181019441629548643150079760628407724833906798616694134880517686535675807042959988234861132603804428328525057295166003635604693479282629343622784917876591011943344527185184649881824025713939363163731886420111416846249205785186004431286359901832216558209765919664277152442797438225172367828544851046686386436557070014744437330710734292594284188298528067757660787789150034388341031380440268830291902835541429771516602764671374688406978808121047692658761116371264599569132132483506029647636959743318654858338574955861319311785128308412356877"
+              ],
+              [
+                "master_secret",
+                "120664944207498861765821153391532988468862051161720196925484359045612440595038445706211942486619275512522121890224369218524835971709635143500886849407710594222673425678286651692942108566696346241836574352669466875485891976952204674937608715577567794869366036643905464044836280064983549869430434405616880193895576571781136787554804087532097717985351332559299557810514267172671830834011055651245468481510277303761261589594965768570065614481369833428553977684744032127261936977925367620297590768597983914501908320331874034465103171521816250692890585472043175302375159419295840282352392026998800854310471026095753214810097585023580342917820322609239558551765678195670294445356075690530999370320321"
+              ],
+              [
+                "4",
+                "35698302129959431537175271619941147841853270248464601308248031332147376250130983277377354985361650783348780151670545105579886453475044187426171755783828939952258921699829794224975010550535229364997571800736395921801845191127081857701731794411014969978815715173373489218843866720190880123562526639358772124868709661877354988866180800349937394150162469297870721141373421563603685028204653880422457527476322640034469859369167754443141246420515049409639624156298028720205857807006082292507413197265028008514810456329967043912247413082718754570336282817992846282654315097467461037857208632975931467215122605625862303956150955519401208567398194692588649843471191809886396530927981203538703428435769"
+              ],
+              [
+                "1",
+                "146757483027592237180558284067201227890691587886291436657325546816650598561606062693096366221056750016450225633541443539342566805056994834389511749620293344040108012902486481182343929317987770861682614138336972205427740048483310270605972210829249059832353357472581856429198217999541897374981278495664311715232163799049861874552528517115388386525426208589731835371458918258370469010841689608754698580778035065652079888603478809192783230338879179676441029011278227683972185999419919381673601117038965713030389652137665262820793689452091493895510445620277176964474407173817552680117329534134918231757754439825449952728449047466267255868146920941401805267893855691094851773376925749481749121466607"
+              ]
+          ]
+          },
+          "nonce": "669153507874699409372348"
+          },
+        "auto_issue": true,
+        "credential_exchange_id": "3e159cc8-1980-48a2-84a2-61bd88c9e92a"
+        }],
+      'holder_presentaions':[],
+      'presentation_exchanges':[],
       'trusted_issuers_form':{
         'did':'',
         'label':'',
@@ -1287,98 +1465,7 @@ export default {
           ]
         }
       },
-      'presentation_exchanges': {
-        '0012d86c-fc14-480a-bd12-e0be147lbew9':
-        {
-          'presentation_exchange_id':'0012d86c-fc14-480a-bd12-e0be147lbew9',// "string",
-          'connection_id':'fd507eb3-8acf-40c2-9bbd-78cbcc52a3e4',// "string",
-          'thread_id':'0170119952737',// "string",
-          'initiator':'self' , // "string",
-          'state':'request_sent',// "string",
-          'presentation_request':{},// {},
-          'presentation':{},// {},
-          'auto_present': false,
-          'verified':'',// 'verified', // "string"
-          'error_msg':'',// "string",
-          'updated_at':'2019-10-03 16:25:52.934302Z',// "string",
-          'created_at':'2019-10-03 16:25:05.875156Z',// "string",
-        },
-        '0022d86c-fc14-480a-bd12-e0be147lbew9':
-        {
-          'presentation_exchange_id':'0022d86c-fc14-480a-bd12-e0be147lbew9',// "string",
-          'connection_id':'00207eb3-8acf-40c2-9bbd-78cbcc52a3e4',// "string",
-          'thread_id':'0270119952737',// "string",
-          'initiator':'external' , // "string",
-          'state':'request_received',// "string",
-          'presentation_request':{},// {},
-          'presentation':{},// {},
-          'auto_present': false,
-          'verified':'',// 'verified', // "string"
-          'error_msg':'',// "string",
-          'updated_at':'2019-10-03 16:25:52.934302Z',// "string",
-          'created_at':'2019-10-03 16:25:05.875156Z',// "string",
-        },
-        '0032d86c-fc14-480a-bd12-e0be147lbew9':
-        {
-          'presentation_exchange_id':'0032d86c-fc14-480a-bd12-e0be147lbew9',// "string",
-          'connection_id':'00307eb3-8acf-40c2-9bbd-78cbcc52a3e4',// "string",
-          'thread_id':'0370119952737',// "string",
-          'initiator':'self' , // "string",
-          'state':'presentation_sent',// "string",
-          'presentation_request':{},// {},
-          'presentation':{},// {},
-          'auto_present': false,
-          'verified':'',// 'verified', // "string"
-          'error_msg':'',// "string",
-          'updated_at':'2019-10-03 16:25:52.934302Z',// "string",
-          'created_at':'2019-10-03 16:25:05.875156Z',// "string",
-        },
-        '0042d86c-fc14-480a-bd12-e0be147lbew9':
-        {
-          'presentation_exchange_id':'0042d86c-fc14-480a-bd12-e0be147lbew9',// "string",
-          'connection_id':'00407eb3-8acf-40c2-9bbd-78cbcc52a3e4',// "string",
-          'thread_id':'0470119952737',// "string",
-          'initiator':'external' , // "string",
-          'state':'presentation_received',// "string",
-          'presentation_request':{},// {},
-          'presentation':{},// {},
-          'auto_present': false,
-          'verified':'',// 'verified', // "string"
-          'error_msg':'',// "string",
-          'updated_at':'2019-10-03 16:25:52.934302Z',// "string",
-          'created_at':'2019-10-03 16:25:05.875156Z',// "string",
-        },
-        '0062d86c-fc14-480a-bd12-e0be147lbew9':
-        {
-          'presentation_exchange_id':'0062d86c-fc14-480a-bd12-e0be147lbew9',// "string",
-          'connection_id':'00607eb3-8acf-40c2-9bbd-78cbcc52a3e4',// "string",
-          'thread_id':'0670119952737',// "string",
-          'initiator':'self' , // "string",
-          'state':'verified',// "string",
-          'presentation_request':{},// {},
-          'presentation':{},// {},
-          'auto_present': false,
-          'verified':'verified', // "string"
-          'error_msg':'',// "string",
-          'updated_at':'2019-10-03 16:25:52.934302Z',// "string",
-          'created_at':'2019-10-03 16:25:05.875156Z',// "string",
-        },
-        '0052d86c-fc14-480a-bd12-e0be147lbew9':
-        {
-          'presentation_exchange_id':'0052d86c-fc14-480a-bd12-e0be147lbew9',// "string",
-          'connection_id':'00507eb3-8acf-40c2-9bbd-78cbcc52a3e4',// "string",
-          'thread_id':'0570119952737',// "string",
-          'initiator':'external' , // "string",
-          'state':'verified',// "string",
-          'presentation_request':{},// {},
-          'presentation':{},// {},
-          'auto_present': false,
-          'verified':'verified', // "string"
-          'error_msg':'',// "string",
-          'updated_at':'2019-10-03 16:25:52.934302Z',// "string",
-          'created_at':'2019-10-03 16:25:05.875156Z',// "string",
-        },
-      },
+      'presentation_exchanges': [],
       'supported_protocols': [],
       'compose_json': {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping",
@@ -1491,33 +1578,33 @@ export default {
       return Object.values(this.cred_defs).filter(cred_def => cred_def.author == "self");
     },
     /* credentialDefinition(){
-        return this.cred_defs.filter(cred => "state" in cred && cred.state === "STATE_OFFER_SENT")
+        return this.cred_defs.filter(cred => "state" in cred && cred.state === "offer_sent")
       }, */
     // ---------------------- Issuer Credential Filters --------------------      
     issuerOfferSentStateCredentials(){
-      return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "STATE_OFFER_SENT")
+      return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "offer_sent")
     },
     issuerReceivedRequestStateCredentials(){
-      return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "STATE_REQUEST_RECEIVED")
+      return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "request_received")
     },
     issuerIssuedStateCredentials(){
-      return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "STATE_ISSUED")
+      return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "issued")
     },
     issuerStoredStateCredentials(){
-      return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "STATE_STORED")
+      return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "stored")
     },
     // ---------------------- Holder Credential Filters --------------------      
     holderOfferReceivedStateCredentials(){
-      return this.holder_credentials.filter(cred => "state" in cred && cred.state === "STATE_OFFER_RECEIVED")
+      return this.holder_credentials.filter(cred => "state" in cred && cred.state === "offer_received")
     },
     holderSentRequestStateCredentials(){
-      return this.holder_credentials.filter(cred => "state" in cred && cred.state === "STATE_REQUEST_SENT")
+      return this.holder_credentials.filter(cred => "state" in cred && cred.state === "request_sent")
     },
     holderReceivedStateCredentials(){
-      return this.holder_credentials.filter(cred => "state" in cred && cred.state === "STATE_CREDENTIAL_RECEIVED")
+      return this.holder_credentials.filter(cred => "state" in cred && cred.state === "credential_received")
     },
     holderStoredStateCredentials(){
-      return this.holder_credentials.filter(cred => "state" in cred && cred.state === "STATE_STORED")
+      return this.holder_credentials.filter(cred => "state" in cred && cred.state === "stored")
     },
     // ---------------------- Presentation Definitions Filters --------------------     
     /**
@@ -1654,7 +1741,7 @@ export default {
         "role" in exchange &&
         "prover" === exchange.role )
     },
-    proverVerifiedPresentation(){
+    proverVerifiedPresentations(){
       return this.presentation_exchanges.filter(
         exchange => 
         "state" in exchange &&
@@ -1686,7 +1773,7 @@ export default {
     most_recent_sent_msgs(){
       return this.msgHistoryGroupedByThid[this.last_sent_msg_id]
     },
-    sentPresentationRequests(){
+    /* sentPresentationRequests(){
       return Object.keys(this.presentation_exchanges).reduce((acc, val) =>
         ("request_sent" === this.presentation_exchanges[val].state ?  {
           ...acc,
@@ -1701,7 +1788,7 @@ export default {
           [val]: this.presentation_exchanges[val]
         } : acc
         ), {})
-    },
+    }, */
     sentPresentations(){
       return Object.keys(this.presentation_exchanges).reduce((acc, val) =>
         ("presentation_sent" === this.presentation_exchanges[val].state ?  {
