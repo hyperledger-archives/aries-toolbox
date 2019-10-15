@@ -183,14 +183,13 @@
                 @schema-get="getSchema"></agent-schema-list>
               <agent-cred-def-list
                 title="Credential Definitions"
-                editable="false"
+                v-bind:can_create="true"
                 v-bind:list="cred_defs"
                 v-bind:schemas="schemas"
                 @cred-def-send="publishCredDef"
                 @cred-def-get="getCredentialDefinition"></agent-cred-def-list>
               <agent-issue-cred-list
                 title="Issued Credentials"
-                editable="false"
                 v-bind:list="issuer_credentials"
                 v-bind:connections="activeConnections"
                 v-bind:cred_defs="issuerCredDefs"
