@@ -1,5 +1,5 @@
 <template >
-  <div v-if="list.length">
+  <div v-if="true">
     <el-collapse v-model="expanded_items">
       <ul class="list">
         <el-collapse-item
