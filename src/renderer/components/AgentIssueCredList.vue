@@ -10,7 +10,7 @@
     <el-collapse v-model="expanded_items">
       <ul class="list">
         <el-collapse-item
-          v-if="issued_credential.length"
+          v-if="list.length"
           v-for="issued_credential in list"
           v-bind:title="connection_map[issued_credential.connection_id].their_label + ' ' + issued_credential.credential_definition_id"
           :name="issued_credential.credential_definition_id"
@@ -135,7 +135,6 @@ export default {
       this.issueFormActive = false;
     },
     update_attributes: function(cred_def) {
-      console.log(cred_def);
       var comp = this;
       cred_def.attributes.forEach(name => {
         comp.issueForm.attributes.push({
