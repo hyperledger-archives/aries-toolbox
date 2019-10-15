@@ -216,11 +216,19 @@
               */
             -->
             <el-row>
+              <agent-cred-def-list
+                title="Retrieved Credential Definitions"
+                v-bind:can_create="false"
+                v-bind:list="cred_defs"
+                v-bind:schemas="schemas"
+                @cred-def-get="getCredentialDefinition"></agent-cred-def-list>
               <agent-my-credentials-list
                 title="Credentials"
                 editable="false"
-                v-bind:credentials = "this.holder_credentials"
-                ></agent-my-credentials-list>
+                v-bind:credentials="holder_credentials"
+                v-bind:cred_defs="cred_defs"
+                v-bind:connections="activeConnections"
+                @propose="sendCredentialProposal"></agent-my-credentials-list>
             </el-row>
           </el-tab-pane>
           <el-tab-pane label="Trusted Issuers">
@@ -824,13 +832,16 @@ export default {
       this.connection.send_message(query_msg);
     },
     //================================ Holder events ================================
-    async sendCredentialProposal(holderCredentialProposalForm){
+    async sendCredentialProposal(form){
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/send-credential-proposal",
-        "connection_id": holderCredentialProposalForm.connection_id ,
-        "credential_definition_id": holderCredentialProposalForm.credential_definition_id ,
-        "comment": holderCredentialProposalForm.comment , //optional
-        "credential_proposal": holderCredentialProposalForm.credential_proposal ,
+        "connection_id": form.connection_id,
+        "credential_definition_id": form.credential_definition_id,
+        "comment": form.comment, //optional
+        "credential_proposal": {
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/credential-preview",
+          "attributes": form.attributes
+        }
       }
       this.connection.send_message(query_msg);
     },

@@ -28,10 +28,10 @@
     </el-collapse>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <a class="navbar-brand" href="#">Offers</a>
-      <el-button
+      <!-- <el-button
         type="primary"
         icon="el-icon-plus"
-        @click="offerFormActive = true">Accept Offer</el-button>
+        @click="offerFormActive = true">Accept Offer</el-button> -->
     </nav>
     <el-collapse v-model="expanded_items">
       <ul class="list">
@@ -52,11 +52,11 @@
         </el-collapse-item>
       </ul>
     </el-collapse>
-    <!-- <el-dialog title="Issue Credential" :visible.sync="proposalFormActive">
-      <el-form :model="issueForm">
+    <el-dialog title="Propose Credential" :visible.sync="proposalFormActive">
+      <el-form :model="proposalForm">
         <el-form-item label="Connection:" :label-width="formLabelWidth">
           <el-select
-            v-model="issueForm.connection_id"
+            v-model="proposalForm.connection_id"
             filterable
             placeholder="Connection">
             <el-option
@@ -69,7 +69,7 @@
         </el-form-item>
         <el-form-item label="Credential Definition:" :label-width="formLabelWidth">
           <el-select
-            v-model="issueForm.selected_cred_def"
+            v-model="proposalForm.selected_cred_def"
             filterable
             placeholder="Credential Definition"
             @change="update_attributes">
@@ -85,11 +85,11 @@
           label="Comment (optional)"
           :label-width="formLabelWidth">
           <el-input
-            v-model="issueForm.comment"
+            v-model="proposalForm.comment"
             type="textarea"></el-input>
         </el-form-item>
         <el-form-item
-          v-for="attribute in issueForm.attributes"
+          v-for="attribute in proposalForm.attributes"
           :label="attribute.name"
           :label-width="formLabelWidth"
           :key="attribute.name">
@@ -98,10 +98,10 @@
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="issueFormActive = false">Cancel</el-button>
-        <el-button type="primary" @click="issue">Confirm</el-button>
+        <el-button @click="proposalFormActive = false">Cancel</el-button>
+        <el-button type="primary" @click="propose">Confirm</el-button>
       </span>
-    </el-dialog> -->
+    </el-dialog>
   </div>
 </template>
 
@@ -113,7 +113,9 @@ export default {
   props: [
     'title',
     'editable',
-    'credentials'
+    'credentials',
+    'connections',
+    'cred_defs'
     ],
   components: {
     VueJsonPretty,
@@ -121,15 +123,14 @@ export default {
   data () {
     return {
       expanded_items:[],
-      proposalFormActive:'',
-      offerFormActive:'',
-      createFormActive: false,
-      createForm: {
-        name: '',
-        version: '',
-        attributes: [],
+      proposalFormActive: false,
+      proposalForm: {
+        connection_id: '',
+        selected_cred_def: {},
+        comment: '',
+        attributes: []
       },
-      formLabelWidth: '100px'
+      formLabelWidth: '200px'
     }
   },
   methods: {
@@ -138,24 +139,39 @@ export default {
         item => item != schema.schema_id
       );
     },
-    /* add_attribute: function() {
-      this.createForm.attributes.push('');
-    },
-    remove_attribute: function(index) {
-      this.createForm.attributes.splice(index, 1);
-    },
-    create: function() {
+    propose: function() {
       let values = {
-        name: this.createForm.name,
-        version: this.createForm.version,
-        attributes: this.createForm.attributes
+        connection_id: this.proposalForm.connection_id,
+        credential_definition_id: this.proposalForm.selected_cred_def.cred_def_id,
+        comment: this.proposalForm.comment,
+        attributes: this.proposalForm.attributes,
       }
-      this.createForm.name = '';
-      this.createForm.version = '';
-      this.createForm.attributes = [];
-      this.$emit('schema-send', values);
-    } */
-  },computed:{
+      this.proposalForm.connection_id = '';
+      this.proposalForm.selected_cred_def = {};
+      this.proposalForm.comment = '';
+      this.proposalForm.attributes = [];
+
+      this.$emit('propose', values);
+      this.proposalFormActive = false;
+    },
+    update_attributes: function(cred_def) {
+      var comp = this;
+      cred_def.attributes.forEach(name => {
+        comp.proposalForm.attributes.push({
+          name: name,
+          value: ''
+        });
+      });
+    },
+  },
+  computed: {
+    connection_map: function() {
+      let map =  this.connections.reduce((acc, item) => {
+        acc[item.connection_id] = item;
+        return acc;
+      }, {});
+      return map;
+    },
     offerReceivedStateCredentials(){
       return this.credentials.filter(cred => "state" in cred && cred.state === "offer_received")
     },
