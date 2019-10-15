@@ -1,19 +1,16 @@
 <template >
-  <div >
+  <div>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <a class="navbar-brand" href="#">{{ title }}</a>
-      <el-form>
-        <!-- <el-button
-          type="primary"
-          icon="el-icon-plus"
-          @click="createFormActive = true">send proposal</el-button> -->
-      </el-form>
+      <el-button
+        type="primary"
+        icon="el-icon-plus"
+        @click="proposalFormActive = true">Send Credential Proposal</el-button>
     </nav>
-    <div v-if="true">
     <el-collapse v-model="expanded_items">
       <ul class="list">
         <el-collapse-item
-          v-for="credential in [credentials]"
+          v-for="credential in storedStateCredentials"
           v-bind:title="credential.credential_exchange_id"
           :name="credential.credential_exchange_id"
           :key="credential.credential_exchange_id">
@@ -29,27 +26,86 @@
         </el-collapse-item>
       </ul>
     </el-collapse>
-  </div>
-    <credential-list
-                title="credentials:"
-                v-bind:list="credentials"></credential-list>
-    <credential-list
-                title="Offers:"
-                v-bind:list="offer_received_credentials"></credential-list>
-    <credential-list
-                title="Requests:"
-                v-bind:list="sent_request_credentials"></credential-list>
-    <!-- <credential-list
-                title="Received:"
-                v-bind:list="received_credentials"> -->
-    <credential-list
-                title="Issued:"
-                v-bind:list="issued_credentials"></credential-list>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <a class="navbar-brand" href="#">Offers</a>
+      <el-button
+        type="primary"
+        icon="el-icon-plus"
+        @click="offerFormActive = true">Accept Offer</el-button>
+    </nav>
+    <el-collapse v-model="expanded_items">
+      <ul class="list">
+        <el-collapse-item
+          v-for="credential in offerReceivedStateCredentials"
+          v-bind:title="credential.credential_exchange_id"
+          :name="credential.credential_exchange_id"
+          :key="credential.credential_exchange_id">
+          <el-row>
+            <div>
+              <vue-json-pretty
+                :deep=1
+                :data="credential">
+              </vue-json-pretty>
+            </div>
+            <el-button v-on:click="collapse_expanded(credential)">^</el-button>
+          </el-row>
+        </el-collapse-item>
+      </ul>
+    </el-collapse>
+    <!-- <el-dialog title="Issue Credential" :visible.sync="proposalFormActive">
+      <el-form :model="issueForm">
+        <el-form-item label="Connection:" :label-width="formLabelWidth">
+          <el-select
+            v-model="issueForm.connection_id"
+            filterable
+            placeholder="Connection">
+            <el-option
+              v-for="connection in connections"
+              :key="connection.connection_id"
+              :label="connection.their_label"
+              :value="connection.connection_id">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="Credential Definition:" :label-width="formLabelWidth">
+          <el-select
+            v-model="issueForm.selected_cred_def"
+            filterable
+            placeholder="Credential Definition"
+            @change="update_attributes">
+            <el-option
+              v-for="cred_def in cred_defs"
+              :key="cred_def.cred_def_id"
+              :label="cred_def.cred_def_id"
+              :value="cred_def">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item
+          label="Comment (optional)"
+          :label-width="formLabelWidth">
+          <el-input
+            v-model="issueForm.comment"
+            type="textarea"></el-input>
+        </el-form-item>
+        <el-form-item
+          v-for="attribute in issueForm.attributes"
+          :label="attribute.name"
+          :label-width="formLabelWidth"
+          :key="attribute.name">
+          <el-input
+            v-model="attribute.value"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="issueFormActive = false">Cancel</el-button>
+        <el-button type="primary" @click="issue">Confirm</el-button>
+      </span>
+    </el-dialog> -->
   </div>
 </template>
 
 <script>
-import AgentCredentialList from './AgentCredentialList.vue'
 import VueJsonPretty from 'vue-json-pretty';
 
 export default {
@@ -57,26 +113,16 @@ export default {
   props: [
     'title',
     'editable',
-    'credentials',
-    'offer_received_credentials',
-    'sent_request_credentials',
-    'received_credentials',
-    'issued_credentials',
-    'sent_proposals',
-    'received_proposals',
-    'sent_requests',
-    'received_requests',
-    'sent_presentations',
-    'received_presentations',
-    'verified_presentations'
+    'credentials'
     ],
   components: {
     VueJsonPretty,
-    AgentCredentialList,
   },
   data () {
     return {
       expanded_items:[],
+      proposalFormActive:'',
+      offerFormActive:'',
       createFormActive: false,
       createForm: {
         name: '',
@@ -109,6 +155,24 @@ export default {
       this.createForm.attributes = [];
       this.$emit('schema-send', values);
     } */
+  },computed:{
+    offerReceivedStateCredentials(){
+      return this.credentials.filter(cred => "state" in cred && cred.state === "offer_received")
+    },
+    sentRequestStateCredentials(){
+      return this.credentials.filter(cred => "state" in cred && cred.state === "request_sent")
+    },
+    receivedStateCredentials(){
+      return this.credentials.filter(
+        cred => 
+          "state" in cred && 
+          cred.state === "credential_received" &&
+          cred.state === "stored"
+      )
+    },
+    storedStateCredentials(){
+      return this.credentials.filter(cred => "state" in cred && cred.state === "stored")
+    },
   }
 }
 </script>

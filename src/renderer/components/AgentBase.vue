@@ -217,20 +217,9 @@
             -->
             <el-row>
               <agent-my-credentials-list
-                title="Credentials:"
+                title="Credentials"
                 editable="false"
-                v-bind:credentials = this.holder_credentials
-                v-bind:offer_received_credentials = "holderOfferReceivedStateCredentials"
-                v-bind:sent_request_credentials = "holderSentRequestStateCredentials"
-                v-bind:received_credentials = "holderReceivedStateCredentials"
-                v-bind:issued_credentials = "holderStoredStateCredentials"
-                v-bind:sent_proposals = "proverSentProposals"
-                    v-bind:received_proposals = "proverReceivedProposals"
-                    v-bind:sent_requests = "proverSentRequests"
-                v-bind:received_requests = "proverReceivedRequests"
-                v-bind:sent_presentations = "proverSentPresentations"
-                    v-bind:received_presentations = "proverReceivedPresentations"
-                v-bind:verified_presentations = "proverVerifiedPresentations"
+                v-bind:credentials = "this.holder_credentials"
                 ></agent-my-credentials-list>
             </el-row>
           </el-tab-pane>
