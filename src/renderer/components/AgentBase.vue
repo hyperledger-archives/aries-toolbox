@@ -293,7 +293,7 @@
               /**
               * Holder Credential
               * states
-              * - proposals -<stretch goal>
+              * - proposals -
               *     request credential,
               *         <Button> select connection , select cred_def and send request,
               * - STATE_OFFER_RECEIVED -
@@ -303,9 +303,26 @@
               *     issued with data from request. result of "issue" API call.
               *       <Button> Accept , send ack or problem report
               * - STATE_STORED
-              *
+              *    
               */
             -->
+            <el-row>
+              <agent-my-credentials-list
+                title="Credentials:"
+                editable="false"
+                v-bind:offer_received_credentials = "holderOfferReceivedStateCredentials"
+                v-bind:sent_request_credentials = "holderSentRequestStateCredentials"
+                v-bind:received_credentials = "holderReceivedStateCredentials"
+                v-bind:issued_credentials = "holderStoredStateCredentials"
+                v-bind:sent_proposals = "proverSentProposals"
+                    v-bind:received_proposals = "proverReceivedProposals"
+                    v-bind:sent_requests = "proverSentRequests"
+                v-bind:received_requests = "proverReceivedRequests"
+                v-bind:sent_presentations = "proverSentPresentations"
+                    v-bind:received_presentations = "proverReceivedPresentations"
+                v-bind:verified_presentations = "proverVerifiedPresentations"
+                ></agent-my-credentials-list>
+            </el-row>
           </el-tab-pane>
           <el-tab-pane label="Trusted Issuers">
             <p>Issuers:</p>
@@ -617,7 +634,6 @@ import VJsoneditor from 'v-jsoneditor';
 import AgentConnectionList from './AgentConnectionList.vue';
 import AgentDidList from './AgentDidList.vue';
 import AgentSchemaList from './AgentSchemaList.vue';
-
 export default {
   name: 'agent-base',
   components: {
@@ -644,6 +660,30 @@ export default {
 
       this.connection_loaded = true;
     },
+    async run_protocol_discovery(){
+      //send query
+      let query_msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/query",
+        "query": "*"
+      };
+      this.connection.send_message(query_msg);
+    },
+    //================================ connection events ================================
+    /**
+     * # Message Types
+     *  # event             | ->  | directive
+     * ==========================================
+        connection-get-list       -> connection-list
+        connection-get            -> connection //TODO: use
+        create-invitation         -> invitation
+        receive-invitation        -> connection
+        accept-invitation         -> <no handler> //TODO: use
+        accept-request            -> <no handler> //TODO: use
+        establish-inbound         -> <no handler> //TODO: use
+        delete                    -> ack
+        update                    -> connection
+        create-static-connection  -> static-connection-info
+     */
     async fetchAgentConnections(){
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-get-list",
@@ -653,68 +693,6 @@ export default {
       }
       this.connection.send_message(query_msg);
     },
-    async run_protocol_discovery(){
-      //send query
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/query",
-        "query": "*"
-      };
-      this.connection.send_message(query_msg);
-    },
-    async getAgentDids(){
-      this.connection.send_message( {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/get-list-dids",
-        "~transport": {
-          "return_route": "all"
-        }
-      })
-    },
-    async createDid(){
-      let msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/create-did",
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      msg = this.did_form.did ? {...msg,"did":this.did_form.did} : msg
-      msg = this.did_form.seed ? {...msg,"seed":this.did_form.seed} : msg
-      msg = this.did_form.label ? {...msg, "metadata": {"label":this.did_form.label}} : msg
-      this.connection.send_message(msg)
-    },
-    async getAgentActivePublicDid(did){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/get-public-did",
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      this.connection.send_message(query_msg);
-    },
-    async activateAgentDid(did){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/set-public-did",
-        "did": did.did,
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      this.connection.send_message(query_msg);
-    },
-    async updateAgentDid(editForm){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/set-did-metadata",
-        "did": editForm.did,
-        "metadata": { 
-          ...editForm.metadata,
-          'label':editForm.label,
-          'permission':editForm.permission,
-        },
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      this.connection.send_message(query_msg);
-    },      
     async updateAgentConnection(editForm){
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/update",
@@ -775,6 +753,62 @@ export default {
       }
       this.connection.send_message(query_msg);
     },
+    //================================ Did events ================================
+    async getAgentDids(){
+      this.connection.send_message( {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/get-list-dids",
+        "~transport": {
+          "return_route": "all"
+        }
+      })
+    },
+    async createDid(){
+      let msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/create-did",
+        "~transport": {
+          "return_route": "all"
+        }
+      }
+      msg = this.did_form.did ? {...msg,"did":this.did_form.did} : msg
+      msg = this.did_form.seed ? {...msg,"seed":this.did_form.seed} : msg
+      msg = this.did_form.label ? {...msg, "metadata": {"label":this.did_form.label}} : msg
+      this.connection.send_message(msg)
+    },
+    async getAgentActivePublicDid(did){
+      let query_msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/get-public-did",
+        "~transport": {
+          "return_route": "all"
+        }
+      }
+      this.connection.send_message(query_msg);
+    },
+    async activateAgentDid(did){
+      let query_msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/set-public-did",
+        "did": did.did,
+        "~transport": {
+          "return_route": "all"
+        }
+      }
+      this.connection.send_message(query_msg);
+    },
+    async updateAgentDid(editForm){
+      let query_msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/set-did-metadata",
+        "did": editForm.did,
+        "metadata": { 
+          ...editForm.metadata,
+          'label':editForm.label,
+          'permission':editForm.permission,
+        },
+        "~transport": {
+          "return_route": "all"
+        }
+      }
+      this.connection.send_message(query_msg);
+    },      
+
     async compose_send(){
       this.connection.send_message(this.compose_json, true);
     },
@@ -1028,8 +1062,9 @@ export default {
       this.connectionUpdateForm = connections
     },
     async updatedConnection(msg){
-      this.connections[msg.connection.connection_id] = msg.connection
-      this.connectionUpdateForm = this.connections;
+      return this.fetchAgentConnections();
+      /* this.connections[msg.connection.connection_id] = msg.connection
+      this.connectionUpdateForm = this.connections; */
     },
     // ---------------------- shcema handlers --------------------
     async getSchemaListResponse(msg){
@@ -1346,6 +1381,11 @@ export default {
         'name':'',
         'version':'',
       },
+      'issuer_credentials':[],
+      'issuer_presentaions':[],
+      'holder_credentials':[],
+      'holder_presentaions':[],
+      'presentation_exchanges':[],
       'trusted_issuers_form':{
         'did':'',
         'label':'',
@@ -1388,98 +1428,7 @@ export default {
           ]
         }
       },
-      'presentation_exchanges': {
-        '0012d86c-fc14-480a-bd12-e0be147lbew9':
-        {
-          'presentation_exchange_id':'0012d86c-fc14-480a-bd12-e0be147lbew9',// "string",
-          'connection_id':'fd507eb3-8acf-40c2-9bbd-78cbcc52a3e4',// "string",
-          'thread_id':'0170119952737',// "string",
-          'initiator':'self' , // "string",
-          'state':'request_sent',// "string",
-          'presentation_request':{},// {},
-          'presentation':{},// {},
-          'auto_present': false,
-          'verified':'',// 'verified', // "string"
-          'error_msg':'',// "string",
-          'updated_at':'2019-10-03 16:25:52.934302Z',// "string",
-          'created_at':'2019-10-03 16:25:05.875156Z',// "string",
-        },
-        '0022d86c-fc14-480a-bd12-e0be147lbew9':
-        {
-          'presentation_exchange_id':'0022d86c-fc14-480a-bd12-e0be147lbew9',// "string",
-          'connection_id':'00207eb3-8acf-40c2-9bbd-78cbcc52a3e4',// "string",
-          'thread_id':'0270119952737',// "string",
-          'initiator':'external' , // "string",
-          'state':'request_received',// "string",
-          'presentation_request':{},// {},
-          'presentation':{},// {},
-          'auto_present': false,
-          'verified':'',// 'verified', // "string"
-          'error_msg':'',// "string",
-          'updated_at':'2019-10-03 16:25:52.934302Z',// "string",
-          'created_at':'2019-10-03 16:25:05.875156Z',// "string",
-        },
-        '0032d86c-fc14-480a-bd12-e0be147lbew9':
-        {
-          'presentation_exchange_id':'0032d86c-fc14-480a-bd12-e0be147lbew9',// "string",
-          'connection_id':'00307eb3-8acf-40c2-9bbd-78cbcc52a3e4',// "string",
-          'thread_id':'0370119952737',// "string",
-          'initiator':'self' , // "string",
-          'state':'presentation_sent',// "string",
-          'presentation_request':{},// {},
-          'presentation':{},// {},
-          'auto_present': false,
-          'verified':'',// 'verified', // "string"
-          'error_msg':'',// "string",
-          'updated_at':'2019-10-03 16:25:52.934302Z',// "string",
-          'created_at':'2019-10-03 16:25:05.875156Z',// "string",
-        },
-        '0042d86c-fc14-480a-bd12-e0be147lbew9':
-        {
-          'presentation_exchange_id':'0042d86c-fc14-480a-bd12-e0be147lbew9',// "string",
-          'connection_id':'00407eb3-8acf-40c2-9bbd-78cbcc52a3e4',// "string",
-          'thread_id':'0470119952737',// "string",
-          'initiator':'external' , // "string",
-          'state':'presentation_received',// "string",
-          'presentation_request':{},// {},
-          'presentation':{},// {},
-          'auto_present': false,
-          'verified':'',// 'verified', // "string"
-          'error_msg':'',// "string",
-          'updated_at':'2019-10-03 16:25:52.934302Z',// "string",
-          'created_at':'2019-10-03 16:25:05.875156Z',// "string",
-        },
-        '0062d86c-fc14-480a-bd12-e0be147lbew9':
-        {
-          'presentation_exchange_id':'0062d86c-fc14-480a-bd12-e0be147lbew9',// "string",
-          'connection_id':'00607eb3-8acf-40c2-9bbd-78cbcc52a3e4',// "string",
-          'thread_id':'0670119952737',// "string",
-          'initiator':'self' , // "string",
-          'state':'verified',// "string",
-          'presentation_request':{},// {},
-          'presentation':{},// {},
-          'auto_present': false,
-          'verified':'verified', // "string"
-          'error_msg':'',// "string",
-          'updated_at':'2019-10-03 16:25:52.934302Z',// "string",
-          'created_at':'2019-10-03 16:25:05.875156Z',// "string",
-        },
-        '0052d86c-fc14-480a-bd12-e0be147lbew9':
-        {
-          'presentation_exchange_id':'0052d86c-fc14-480a-bd12-e0be147lbew9',// "string",
-          'connection_id':'00507eb3-8acf-40c2-9bbd-78cbcc52a3e4',// "string",
-          'thread_id':'0570119952737',// "string",
-          'initiator':'external' , // "string",
-          'state':'verified',// "string",
-          'presentation_request':{},// {},
-          'presentation':{},// {},
-          'auto_present': false,
-          'verified':'verified', // "string"
-          'error_msg':'',// "string",
-          'updated_at':'2019-10-03 16:25:52.934302Z',// "string",
-          'created_at':'2019-10-03 16:25:05.875156Z',// "string",
-        },
-      },
+      'presentation_exchanges': [],
       'supported_protocols': [],
       'compose_json': {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping",
@@ -1752,7 +1701,7 @@ export default {
         "role" in exchange &&
         "prover" === exchange.role )
     },
-    proverVerifiedPresentation(){
+    proverVerifiedPresentations(){
       return this.presentation_exchanges.filter(
         exchange => 
         "state" in exchange &&
@@ -1784,7 +1733,7 @@ export default {
     most_recent_sent_msgs(){
       return this.msgHistoryGroupedByThid[this.last_sent_msg_id]
     },
-    sentPresentationRequests(){
+    /* sentPresentationRequests(){
       return Object.keys(this.presentation_exchanges).reduce((acc, val) =>
         ("request_sent" === this.presentation_exchanges[val].state ?  {
           ...acc,
@@ -1799,7 +1748,7 @@ export default {
           [val]: this.presentation_exchanges[val]
         } : acc
         ), {})
-    },
+    }, */
     sentPresentations(){
       return Object.keys(this.presentation_exchanges).reduce((acc, val) =>
         ("presentation_sent" === this.presentation_exchanges[val].state ?  {
