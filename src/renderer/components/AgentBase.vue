@@ -952,10 +952,14 @@ export default {
       }
     },
     // ---------------------- cred def handlers --------------------
+    
     async credentialDefinitionCreatedDirective(msg){
-      if ('cred_def_id' in msg){
+      setTimeout(() => {
         return this.getCredentialDefinitionlist();
-      }
+      }, 4500);
+      /* if ('cred_def_id' in msg){
+        return this.getCredentialDefinitionlist();
+      } */
     },
     async credentialDefinitionReadDirective(msg){// does this work???? Do we need this?
      // attempt to update current records
