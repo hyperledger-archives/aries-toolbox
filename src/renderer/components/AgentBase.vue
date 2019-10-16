@@ -219,8 +219,9 @@
           <el-tab-pane label="Presentation">
             <el-row>
               <presentations
-                v-bind:presentations = "holder_credentials"
-                v-bind:connections = "holder_credentials"
+                title="Presentations"
+                v-bind:presentations="holder_presentations"
+                v-bind:connections = "activeConnections"
                 v-bind:cred_defs = "cred_defs"
                 @send-presentation-proposal= "sendPresentationProposal"></presentations>
             </el-row>
@@ -228,7 +229,7 @@
           <el-tab-pane label="Verifications">
             <agent-verification
               title="Verification"
-              v-bind:list="issuer_presentaions"
+              v-bind:list="issuer_presentations"
               v-bind:connections="activeConnections"
               v-bind:cred_defs="cred_defs"
               v-bind:trusted_issuers="trusted_issuers"
@@ -696,62 +697,35 @@ export default {
         "auto_present": form.auto_present , //optional, default to false
         "presentation_proposal": {
           "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/present-proof/1.0/presentation-preview",
-          //name: form.name,
-          //version: "1.0",
           /**
            * name 
            * cred_def_id //optional
            * mime_type //optional
            * value //optional
            * */
-          attributes: form.attributes, 
-                /* form.attributes.reduce((acc, attribute) => {
-
-            let transmuted_attr = {
+          attributes: form.attributes.map(attribute => {
+            return {
               name: attribute.name,
-              restrictions: []
+              cred_def_id: attribute.cred_def.cred_def_id,
+              value: attribute.value
             };
-            if (attribute.restrictions.cred_def || attribute.restrictions.trusted_issuer) {
-              transmuted_attr.restrictions.push({});
-            }
-            if (attribute.restrictions.cred_def) {
-              transmuted_attr.restrictions[0].credential_definition_id = attribute.restrictions.cred_def.cred_def_id;
-            }
-            if (attribute.restrictions.trusted_issuer) {
-              transmuted_attr.restrictions[0].issuer_did = attribute.restrictions.trusted_issuer;
-            }
-            acc[attribute.name] = transmuted_attr;
-            return acc;
-          }, {}), */
+          }),
           /**
            * name
            * cred_def_id
            * predicate
            * threshold
            */
-          predicates: form.presentation_predicates,
-          /* form.predicates.reduce((acc, predicate) => {
-            let transmuted_pred = {
+          predicates: form.predicates.map(predicate => {
+            return {
               name: predicate.name,
-              p_type: predicate.p_type,
-              p_value: predicate.threshold,
-              restrictions: []
+              cred_def_id: predicate.cred_def.cred_def_id,
+              predicate: predicate.predicate,
+              threshold: predicate.threshold
             };
-            if (predicate.restrictions.cred_def || predicate.restrictions.trusted_issuer) {
-              transmuted_pred.restrictions.push({});
-            }
-            if (predicate.restrictions.cred_def) {
-              transmuted_pred.restrictions[0].credential_definition_id = predicate.restrictions.cred_def.cred_def_id;
-            }
-            if (predicate.restrictions.trusted_issuer) {
-              transmuted_pred.restrictions[0].issuer_did = predicate.restrictions.trusted_issuer;
-            }
-            acc[predicate.name] = transmuted_pred;
-            return acc;
-          }, {}), */
+          })
         },
       };
-      presentation_proposal: {
          
       this.connection.send_message(query_msg);
     },
@@ -933,7 +907,7 @@ export default {
     },
     async verifierPresentationListDirective(msg){
       if('results'in msg ){// should be 'presentations~attach'
-        this.issuer_presentaions = msg.results;
+        this.issuer_presentations = msg.results;
       }
     },
     // ---------------------- holder handlers ------------------------
@@ -1187,9 +1161,9 @@ export default {
         'version':'',
       },
       'issuer_credentials': [],
-      'issuer_presentaions': [],
+      'issuer_presentations': [],
       'holder_credentials': [],
-      'holder_presentaions': [],
+      'holder_presentations': [],
       'presentation_exchanges': [],
       'trusted_issuers_form':{
         'did':'',
