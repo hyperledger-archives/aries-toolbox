@@ -36,17 +36,17 @@
           v-on:did-resolve="resolveTrustedIssuer"></agent-did-list>
         <p>Create a Did:</p>
         <el-form :model=did_form>
-          <el-form-group >
+          <div>
             <span slot="label">Did:</span>
             <el-input v-model="did_form.did" style="width:100px;"> </el-input>
             <span slot="label">Seed:</span>
             <el-input v-model="did_form.seed" style="width:100px;"> </el-input>
             <span slot="label">Alias:</span>
             <el-input v-model="did_form.label" style="width:100px;"> </el-input>
-          </el-form-group>
-          <el-form-item>
+          </div>
+          <div>
             <el-button type="primary" @click="createDid()">Create DID</el-button>
-          </el-form-item>
+          </div>
         </el-form>
       </el-tab-pane>
 
@@ -99,7 +99,7 @@
                 v-bind:list="pendingConnections"
                 v-on:connection-editted="updateAgentConnection"
                 v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
-              <agent-connection-list
+              <!---<agent-connection-list
                 title="Open Invitations:"
                 editable="true"
                 v-bind:list="openInvitations"
@@ -116,7 +116,7 @@
                 editable="false"
                 v-bind:list="Object.values(invitations)"
                 v-on:connection-editted="updateAgentConnection"
-                v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
+                v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>--->
               <agent-connection-list
                 title="Failed Connections:"
                 editable="false"
@@ -124,37 +124,24 @@
                 v-on:connection-editted="updateAgentConnection"
                 v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
 
-              <p>Create Invitations:</p>
-              <el-form>
-                <el-form-group >
-                  <span slot="label">Label:</span>
-                  <el-input v-model="invite_label_form" style="width:100px;"> </el-input>
-                  <span slot="label">Role:</span>
-                  <el-input v-model="invite_role_form" style="width:100px;"> </el-input>
-                  <span slot="label">Acceptance:</span>
-                  <el-input v-model="invite_accept_form" style="width:100px;"> </el-input>
-                  <span slot="label">Public:</span>
-                  <el-switch label="Public:" v-model="invite_public_form"></el-switch>
-                  <span slot="label">Multi Use:</span>
-                  <el-switch label="Multi Use:" v-model="invite_multi_use_form"></el-switch>
-                </el-form-group>
-                <el-form-item>
-                  <el-button type="primary" @click="fetchNewInvite()">create new invite</el-button>
-                </el-form-item>
-              </el-form>
               <p>Add connection from invitation:</p>
               <el-form :model=agent_invitation_form>
-                <el-form-group >
-                  <span slot="label">invitation:</span>
-                  <el-input v-model="agent_invitation_form.invitation" style="width:100px;"> </el-input>
-                </el-form-group>
-                <el-form-item>
-                  <el-button type="primary" @click="addAgent()">Add Agent</el-button>
+                <el-form-item
+                  label="Invitation URL:">
+                  <el-input
+                    style="width: 300px;"
+                    v-model="agent_invitation_form.invitation">
+                    <el-button
+                      slot="append"
+                      type="primary"
+                      icon="el-icon-plus"
+                      @click="addAgent()">Add</el-button>
+                  </el-input>
                 </el-form-item>
               </el-form>
               <p>Add Static Agent:</p>
               <el-form :model=static_agent_form>
-                <el-form-group >
+                <div>
                   <span slot="label">Label:</span>
                   <el-input v-model="static_agent_form.label" style="width:100px;"> </el-input>
                   <span slot="label">Role:</span>
@@ -165,12 +152,20 @@
                   <el-input v-model="static_agent_form.static_key" style="width:100px;"> </el-input>
                   <span slot="label">Static Endpoint:</span>
                   <el-input v-model="static_agent_form.static_endpoint" style="width:100px;"> </el-input>
-                </el-form-group>
+                </div>
                 <el-form-item>
                   <el-button type="primary" @click="addStaticAgent()">Add Static Agent</el-button>
                 </el-form-item>
               </el-form>
             </el-row>
+          </el-tab-pane>
+          <el-tab-pane label="Invitations">
+            <agent-invitations
+                    v-bind:invitations="invitations"
+                    v-on:send-connection-message="send_connection_message">
+
+            </agent-invitations>
+
           </el-tab-pane>
           <el-tab-pane label="Credential Issuance">
             <el-row>
@@ -231,6 +226,13 @@
             </el-row>
           </el-tab-pane>
           <el-tab-pane label="Verifications">
+            <agent-verification
+              title="Verification"
+              v-bind:list="issuer_presentaions"
+              v-bind:connections="activeConnections"
+              v-bind:cred_defs="cred_defs"
+              v-bind:trusted_issuers="trusted_issuers"
+              @presentation-request="verifierRequestPresentation"></agent-verification>
           </el-tab-pane>
           <el-tab-pane label="Compose">
             <input type="button" class="btn btn-secondary" v-on:click="compose_send()" value="Send"/>
@@ -325,9 +327,11 @@ import AgentDidList from './AgentDidList.vue';
 import AgentSchemaList from './AgentSchemaList.vue';
 import AgentCredDefList from './AgentCredDefList.vue';
 import AgentIssueCredList from './AgentIssueCredList.vue';
+import AgentInvitations from './Agent/Invitations.vue';
 import AgentMyCredentialsList from './AgentMyCredentialsList.vue';
 import AgentTrust from './AgentTrust.vue';
 import Presentations from './agent/Presentations.vue';
+import AgentVerification from './AgentVerification.vue';
 
 export default {
   name: 'agent-base',
@@ -339,9 +343,11 @@ export default {
     AgentSchemaList,
     AgentCredDefList,
     AgentIssueCredList,
+    AgentInvitations,
     AgentMyCredentialsList,
     AgentTrust,
     Presentations,
+    AgentVerification,
   },
   methods: {
     ...mapActions("Connections", ["get_connection"]),
@@ -359,6 +365,27 @@ export default {
       this.message_history = this.connection.message_history;
 
       this.connection_loaded = true;
+    },
+    async send_connection_message(msg){
+      this.connection.send_message(msg);
+    },
+    async fetchAgentConnections(){
+      let query_msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-get-list",
+        "~transport": {
+          "return_route": "all"
+        }
+      }
+      this.connection.send_message(query_msg);
+    },
+    async fetchAgentInvitations(){
+      let query_msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation-get-list",
+        "~transport": {
+          "return_route": "all"
+        }
+      }
+      this.connection.send_message(query_msg);
     },
     async run_protocol_discovery(){
       //send query
@@ -410,25 +437,6 @@ export default {
           "return_route": "all"
         }
       }
-      this.connection.send_message(query_msg);
-    },
-    async fetchNewInvite(){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/create-invitation",
-        "label": this.invite_label_form,
-        "role": this.invite_role_form,
-        "accept": this.invite_accept_form,
-        "public": this.invite_public_form,
-        "multi_use": this.invite_multi_use_form,
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      this.invite_label_form = "master"
-      this.invite_role_form = "normal"
-      this.invite_accept_form = "auto"
-      this.invite_public_form = false
-      this.invite_multi_use_form = true
       this.connection.send_message(query_msg);
     },
     async addAgent() {
@@ -601,13 +609,52 @@ export default {
       }
       this.connection.send_message(query_msg);
     },
-    async verifierRequestPresentation(requestPresentationForm){
+    async verifierRequestPresentation(form){
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/request-presentation",
-        "connection_id": requestPresentationForm.connection_id ,
-        "comment": requestPresentationForm.comment , //optional
-        "proof_request": requestPresentationForm.credential_proposal ,
-      }
+        connection_id: form.connection_id,
+        comment: form.comment,
+        proof_request: {
+          name: form.name,
+          version: "1.0",
+          requested_attributes: form.attributes.reduce((acc, attribute) => {
+            let transmuted_attr = {
+              name: attribute.name,
+              restrictions: []
+            };
+            if (attribute.restrictions.cred_def || attribute.restrictions.trusted_issuer) {
+              transmuted_attr.restrictions.push({});
+            }
+            if (attribute.restrictions.cred_def) {
+              transmuted_attr.restrictions[0].credential_definition_id = attribute.restrictions.cred_def.cred_def_id;
+            }
+            if (attribute.restrictions.trusted_issuer) {
+              transmuted_attr.restrictions[0].issuer_did = attribute.restrictions.trusted_issuer;
+            }
+            acc[attribute.name] = transmuted_attr;
+            return acc;
+          }, {}),
+          requested_predicates: form.predicates.reduce((acc, predicate) => {
+            let transmuted_pred = {
+              name: predicate.name,
+              p_type: predicate.p_type,
+              p_value: predicate.threshold,
+              restrictions: []
+            };
+            if (predicate.restrictions.cred_def || predicate.restrictions.trusted_issuer) {
+              transmuted_pred.restrictions.push({});
+            }
+            if (predicate.restrictions.cred_def) {
+              transmuted_pred.restrictions[0].credential_definition_id = predicate.restrictions.cred_def.cred_def_id;
+            }
+            if (predicate.restrictions.trusted_issuer) {
+              transmuted_pred.restrictions[0].issuer_did = predicate.restrictions.trusted_issuer;
+            }
+            acc[predicate.name] = transmuted_pred;
+            return acc;
+          }, {}),
+        },
+      };
       this.connection.send_message(query_msg);
     },
     async getIssuedCredentials(){
@@ -624,9 +671,6 @@ export default {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentations-get-list",
         //'connection_id': ,// optional filter
         //'verified': ,// optional filter
-        "~transport": {
-          "return_route": "all"
-        }
       }
       this.connection.send_message(query_msg);
     },
@@ -727,9 +771,6 @@ export default {
       let query_msg = {
         "@type": "",
         "issuer_did": did,
-        "~transport": {
-          "return_route": "all"
-        }
       }
       this.connection.send_message(query_msg);
     },
@@ -787,8 +828,16 @@ export default {
         acc[cur.connection_id] = cur;
         return acc;
       }, {});
-      this.connections = connections
-      this.connectionUpdateForm = connections
+      this.connections = connections;
+      this.connectionUpdateForm = connections;
+    },
+    async fetchedInvitationList(msg){
+      const invitations = msg.results.reduce(function(acc, cur, i) {
+        acc[cur.connection.connection_id] = cur;
+        return acc;
+      }, {});
+      this.invitations = invitations;
+      this.invitationUpdateForm = invitations;
     },
     async updatedConnection(msg){
       return this.fetchAgentConnections();
@@ -854,12 +903,12 @@ export default {
         this.issuer_credentials = msg.results;
       }
     },
-    async varifierRequestPresentationRecordDirective(msg){
+    async verifierRequestPresentationRecordDirective(msg){
       if('results'in msg ){
         return this.getIssuersPresentations();
       }
     },
-    async varifierPresentaionListDirective(msg){
+    async verifierPresentationListDirective(msg){
       if('results'in msg ){// should be 'presentations~attach'
         this.issuer_presentaions = msg.results;
       }
@@ -882,13 +931,16 @@ export default {
       }
     },
     async newInvitation(msg){
-      console.log(msg.invitation)
-      this.invitations[ msg.connection_id] = {
+      console.log(msg.invitation);
+      // refetch list
+      this.fetchAgentInvitations();
+
+      /*this.invitations[ msg.connection_id] = {
         //... msg.invitation, // invitations is not a json yet...
         "invitation": msg.invitation,
         "connection_id" : msg.connection_id,
-        "invitation_url": msg.invitation_url}
-
+        "invitation_url": msg.invitation_url
+      }*/
     },
     async ProtocolDisclose(msg){
       //console.log(msg.protocols);
@@ -901,6 +953,7 @@ export default {
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/disclose": this.ProtocolDisclose,
         //=============================== Connections ==========================================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-list": this.fetchedConnectionList,
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation-list": this.fetchedInvitationList,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection": this.updatedConnection,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/ack": this.fetchAgentConnections,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation": this.newInvitation,
@@ -919,8 +972,8 @@ export default {
         //=============================== Credential Issuance ==================================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/credential-exchange": this.issuerCredentialRecord,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/credentials-list": this.issuerCredentialListDirective,
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/request-presentation": this.varifierRequestPresentationRecordDirective,
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentations-list": this.varifierPresentaionListDirective,
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/request-presentation": this.verifierRequestPresentationRecordDirective,
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentations-list": this.verifierPresentationListDirective,
         //=============================== Credential Holder ====================================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credential-exchange": this.holderCredentialRecord,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/presentation-exchange": this.holderPresentationRecord,
@@ -1091,8 +1144,7 @@ export default {
         },
       },
       'dids':{},
-      'trusted_issuers':{
-      },
+      'trusted_issuers':{},
       'schemas':[],
       'schemas_form':{
         'schema_id':'',
@@ -1111,11 +1163,11 @@ export default {
         'name':'',
         'version':'',
       },
-      'issuer_credentials':[],
-      'issuer_presentaions':[],
-      'holder_credentials':[],
-      'holder_presentaions':[],
-      'presentation_exchanges':[],
+      'issuer_credentials': [],
+      'issuer_presentaions': [],
+      'holder_credentials': [],
+      'holder_presentaions': [],
+      'presentation_exchanges': [],
       'trusted_issuers_form':{
         'did':'',
         'label':'',
@@ -1190,11 +1242,6 @@ export default {
       'expanded_pres_rec_items':[],
       'expanded_pres_sent_items':[],
       'expanded_pres_ver_items':[],
-      'invite_label_form':"master",
-      'invite_role_form':"normal",
-      'invite_accept_form':"auto",
-      'invite_public_form':false,
-      'invite_multi_use_form':true,
       'agent_invitation_form':{
         'invitation':'',
       },
@@ -1268,7 +1315,9 @@ export default {
     },
     // ---------------------- Credential Definition Filters --------------------      
     issuerCredDefs() {
-      return Object.values(this.cred_defs).filter(cred_def => cred_def.author == "self");
+      return Object.values(this.cred_defs).filter(
+        cred_def => cred_def.author == "self" || cred_def.cred_def_id.split(':', 2)[0] === this.public_did
+      );
     },
     /* credentialDefinition(){
         return this.cred_defs.filter(cred => "state" in cred && cred.state === "offer_sent")
@@ -1543,6 +1592,7 @@ export default {
     this.getHoldersPresentations();
     this.run_protocol_discovery();
     this.fetchAgentConnections();
+    this.fetchAgentInvitations();
     // await this.fetchNewInvite(); // do not automatically create invite
   },
   watch:{}
