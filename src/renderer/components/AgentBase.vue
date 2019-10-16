@@ -152,7 +152,6 @@
                   <el-button type="primary" @click="addStaticAgent()">Add Static Agent</el-button>
                 </el-form-item>
               </el-form>
-
             </el-row>
           </el-tab-pane>
           <el-tab-pane label="Invitations">
@@ -173,14 +172,13 @@
                 @schema-get="getSchema"></agent-schema-list>
               <agent-cred-def-list
                 title="Credential Definitions"
-                editable="false"
+                v-bind:can_create="true"
                 v-bind:list="cred_defs"
                 v-bind:schemas="schemas"
                 @cred-def-send="publishCredDef"
                 @cred-def-get="getCredentialDefinition"></agent-cred-def-list>
               <agent-issue-cred-list
                 title="Issued Credentials"
-                editable="false"
                 v-bind:list="issuer_credentials"
                 v-bind:connections="activeConnections"
                 v-bind:cred_defs="issuerCredDefs"
@@ -188,55 +186,30 @@
             </el-row>
           </el-tab-pane>
           <el-tab-pane label="My Credentials">
-            <!--
-              /**
-              * Holder Credential
-              * states
-              * - proposals -<stretch goal>
-              *     request credential,
-              *         <Button> select connection , select cred_def and send request,
-              * - STATE_OFFER_RECEIVED -
-              *         <Button> send request
-              * - STATE_REQUEST_SENT -
-              * - STATE_CREDENTIAL_RECEIVED
-              *     issued with data from request. result of "issue" API call.
-              *       <Button> Accept , send ack or problem report
-              * - STATE_STORED
-              *
-              */
-            -->
+            <el-row>
+              <agent-cred-def-list
+                title="Retrieved Credential Definitions"
+                v-bind:can_create="false"
+                v-bind:list="cred_defs"
+                v-bind:schemas="schemas"
+                @cred-def-get="getCredentialDefinition"></agent-cred-def-list>
+              <agent-my-credentials-list
+                title="Credentials"
+                editable="false"
+                v-bind:credentials="holder_credentials"
+                v-bind:cred_defs="cred_defs"
+                v-bind:connections="activeConnections"
+                @propose="sendCredentialProposal"></agent-my-credentials-list>
+            </el-row>
           </el-tab-pane>
           <el-tab-pane label="Trusted Issuers">
-            <p>Issuers:</p>
-            <el-collapse v-model="expanded_issuers_items">
-              <!--             <div v-for="(did, key) in trusted_issuers" :key="key">
-                <el-collapse-item v-bind:title="did.label +', '+ did.id" :name="key">
-                <el-row>
-                <div>
-                <vue-json-pretty
-                :deep=1
-                :data="did">
-                </vue-json-pretty>
-                <el-button type="primary" @click="removeTrustedIssuer(key)">delete</el-button>
-                <el-button type="primary" @click="resolveTrustedIssuer(key)">resolve issuer did</el-button>
-                <el-button v-on:click="collapse_expanded_trusted_issuer(key)">^</el-button>
-                </div>
-                </el-row>
-                </el-collapse-item>
-                </div> -->
-            </el-collapse>
-            <p>Add Trusted Issuer:</p>
-            <el-form :model=trusted_issuers_form>
-              <!-- <el-form-group >
-                <span slot="label">Did:</span>
-                <el-input v-model="trusted_issuers_form.did" style="width:100px;"> </el-input>
-                <span slot="label">Label:</span>
-                <el-input v-model="trusted_issuers_form.label" style="width:100px;"> </el-input>
-                </el-form-group> -->
-                <el-form-item>
-                  <el-button type="primary" @click="storeTrustedIssuer()">add trusted issuer</el-button>
-                </el-form-item>
-            </el-form>
+            <el-row>
+              <agent-trust
+                title="Trusted Dids"
+                v-bind:trusted_issuers= "trusted_issuers"
+                @remove-did= "removeTrustedIssuer"
+                @store-did= "storeTrustedIssuer"></agent-trust>
+            </el-row>
           </el-tab-pane>
           <el-tab-pane label="Presentation">
             <p>Presentation Definitions:</p>
@@ -519,6 +492,8 @@ import AgentSchemaList from './AgentSchemaList.vue';
 import AgentCredDefList from './AgentCredDefList.vue';
 import AgentIssueCredList from './AgentIssueCredList.vue';
 import AgentInvitations from './Agent/Invitations.vue';
+import AgentMyCredentialsList from './AgentMyCredentialsList.vue';
+import AgentTrust from './AgentTrust.vue';
 
 export default {
   name: 'agent-base',
@@ -531,6 +506,8 @@ export default {
     AgentCredDefList,
     AgentIssueCredList,
     AgentInvitations,
+    AgentMyCredentialsList,
+    AgentTrust,
   },
   methods: {
     ...mapActions("Connections", ["get_connection"]),
@@ -578,6 +555,77 @@ export default {
       };
       this.connection.send_message(query_msg);
     },
+    //================================ connection events ================================
+    /**
+     * # Message Types
+     *  # event                | ->  | directive
+     * ==========================================
+     *  connection-get-list      -> connection-list
+     *  connection-get           -> connection //TODO: use
+     *  create-invitation        -> invitation
+     *  receive-invitation       -> connection
+     *  accept-invitation        -> <no handler> //TODO: use
+     *  accept-request           -> <no handler> //TODO: use
+     *  establish-inbound        -> <no handler> //TODO: use
+     *  delete                   -> ack
+     *  update                   -> connection
+     *  create-static-connection -> static-connection-info
+     */
+    async fetchAgentConnections(){
+      let query_msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-get-list",
+        "~transport": {
+          "return_route": "all"
+        }
+      }
+      this.connection.send_message(query_msg);
+    },
+    async updateAgentConnection(editForm){
+      let query_msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/update",
+        "connection_id": editForm.connection_id,
+        "label": editForm.label,
+        "role": editForm.role,
+      }
+      this.connection.send_message(query_msg);
+    },
+    async deleteAgentConnection(connection){
+      let query_msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/delete",
+        "connection_id": connection.connection_id,
+        "~transport": {
+          "return_route": "all"
+        }
+      }
+      this.connection.send_message(query_msg);
+    },
+    async addAgent() {
+      let receive_invite_msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/receive-invitation",
+        "invitation": this.agent_invitation_form.invitation,
+        "accept": "auto"
+      };
+      this.connection.send_message(receive_invite_msg);
+      this.agent_invitation_form.invitation = "";
+      setTimeout(() => {
+        return this.fetchAgentConnections();
+      }, 4000);
+    },
+    async addStaticAgent(){
+      let query_msg ={
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/create-static-connection",
+        "label": this.static_agent_form.label,
+        "role": this.static_agent_form.role,
+        "static_did": this.static_agent_form.static_did,
+        "static_key": this.static_agent_form.static_key,
+        "static_endpoint": this.static_agent_form.static_endpoint,
+        "~transport": {
+          "return_route": "all"
+        }
+      }
+      this.connection.send_message(query_msg);
+    },
+    //================================ Did events ================================
     async getAgentDids(){
       this.connection.send_message( {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/get-list-dids",
@@ -632,47 +680,7 @@ export default {
       }
       this.connection.send_message(query_msg);
     },      
-    async updateAgentConnection(editForm){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/update",
-        "connection_id": editForm.connection_id,
-        "label": editForm.label,
-        "role": editForm.role,
-      }
-      this.connection.send_message(query_msg);
-    },
-    async deleteAgentConnection(connection){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/delete",
-        "connection_id": connection.connection_id,
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      this.connection.send_message(query_msg);
-    },
-    async addAgent() {
-      let receive_invite_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/receive-invitation",
-        "invitation": this.agent_invitation_form.invitation,
-        "accept": "auto"
-      };
-      this.connection.send_message(receive_invite_msg);
-    },
-    async addStaticAgent(){
-      let query_msg ={
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/create-static-connection",
-        "label": this.static_agent_form.label,
-        "role": this.static_agent_form.role,
-        "static_did": this.static_agent_form.static_did,
-        "static_key": this.static_agent_form.static_key,
-        "static_endpoint": this.static_agent_form.static_endpoint,
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      this.connection.send_message(query_msg);
-    },
+
     async compose_send(){
       this.connection.send_message(this.compose_json, true);
     },
@@ -711,6 +719,14 @@ export default {
       this.connection.send_message(query_msg);
     },
     //================================ Credential Definition events ================================
+    /**
+     * # Message Types
+     *  # event                      | ->  |  directive
+     * ==========================================
+     *  send-credential-definition     -> credential-definition-id
+     *  credential-definition-get      -> credential-definition
+     *  credential-definition-get-list -> credential-definition-list
+     */
     async publishCredDef(form){
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/send-credential-definition",
@@ -778,13 +794,16 @@ export default {
       this.connection.send_message(query_msg);
     },
     //================================ Holder events ================================
-    async sendCredentialProposal(holderCredentialProposalForm){
+    async sendCredentialProposal(form){
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/send-credential-proposal",
-        "connection_id": holderCredentialProposalForm.connection_id ,
-        "credential_definition_id": holderCredentialProposalForm.credential_definition_id ,
-        "comment": holderCredentialProposalForm.comment , //optional
-        "credential_proposal": holderCredentialProposalForm.credential_proposal ,
+        "connection_id": form.connection_id,
+        "credential_definition_id": form.credential_definition_id,
+        "comment": form.comment, //optional
+        "credential_proposal": {
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/credential-preview",
+          "attributes": form.attributes
+        }
       }
       this.connection.send_message(query_msg);
     },
@@ -825,16 +844,16 @@ export default {
       this.connection.send_message(query_msg);
     },
     //================================ trusted issuer events ================================
-    async removeTrustedIssuer(id){
-      let query_msg = {
+    async removeTrustedIssuer(did){
+      /*let query_msg = {
         "@type": "",
         "issuer_did": id,
         "~transport": {
           "return_route": "all"
         }
-      }
-      this.connection.send_message(query_msg);
-      delete this.trusted_issuers[id]// TODO:remove this after aca-py support is added.
+      } */
+      //this.connection.send_message(query_msg);
+      this.$delete(this.trusted_issuers,did.id)// TODO:remove this after aca-py support is added.
     },
     async resolveTrustedIssuer(did){
       let query_msg = {
@@ -845,24 +864,21 @@ export default {
         }
       }
       this.connection.send_message(query_msg);
-      delete this.trusted_issuers[did]// TODO:remove this after aca-py support is added.
     },
-    async storeTrustedIssuer(){
-      let query_msg = {
+    async storeTrustedIssuer(trusted_did){
+      /* let query_msg = {
         "@type": "",
-        "did": this.trusted_issuers_form.did,
-        "label": this.trusted_issuers_form.label,
+        "did": trusted_did.id,
+        "label": trusted_did.label,
         "~transport": {
           "return_route": "all"
         }
-      }
+      } */
       //this.connection.send_message(query_msg);
-      this.trusted_issuers[this.trusted_issuers_form.did] = { // TODO:remove this after aca-py support is added.
-        "id":this.trusted_issuers_form.did,
-        "label": this.trusted_issuers_form.label,
+      this.trusted_issuers[trusted_did.id] = { // TODO:remove this after aca-py support is added.
+        "id":trusted_did.id,
+        "label": trusted_did.label,
       }
-      this.trusted_issuers_form.did = ""
-      this.trusted_issuers_form.label = ""
     },
 
     //=========================================================================================================================
@@ -915,8 +931,9 @@ export default {
       this.invitationUpdateForm = invitations;
     },
     async updatedConnection(msg){
-      this.connections[msg.connection.connection_id] = msg.connection
-      this.connectionUpdateForm = this.connections;
+      return this.fetchAgentConnections();
+      /* this.connections[msg.connection.connection_id] = msg.connection
+      this.connectionUpdateForm = this.connections; */
     },
     // ---------------------- shcema handlers --------------------
     async getSchemaListResponse(msg){
@@ -937,13 +954,18 @@ export default {
       }
     },
     // ---------------------- cred def handlers --------------------
+    
     async credentialDefinitionCreatedDirective(msg){
-      if ('cred_def_id' in msg){
+      setTimeout(() => {
         return this.getCredentialDefinitionlist();
-      }
+      }, 4500);
+      /* if ('cred_def_id' in msg){
+        return this.getCredentialDefinitionlist();
+      } */
     },
     async credentialDefinitionReadDirective(msg){// does this work???? Do we need this?
-      if ('credential_definition' in msg){
+     // attempt to update current records
+     if ('credential_definition' in msg){
         var index = this.cred_defs.indexOf(msg.credential_definition);
         if (index !== -1) {
           this.cred_defs[index] = msg.credential_definition;
@@ -952,6 +974,10 @@ export default {
           this.cred_defs.push(msg.credential_definition);
         }
       }
+      // check for update in a little.
+      setTimeout(() => {
+        return this.getCredentialDefinitionlist();
+      }, 4500);
     },
     async credentialDefinitionListDirective(msg){
       if('results' in msg){
@@ -1210,18 +1236,6 @@ export default {
       },
       'dids':{},
       'trusted_issuers':{
-        'mgtqGEF8EBQHBLREdRoJ4':{
-          'did':'mgtqGEF8EBQHBLREdRoJ4',
-          'label':'Sovrin Foundation',
-          'ledgers':{
-            'sov':{
-              'name':'sov',
-              'role':'2',
-              'doc':'{"endpoint":"https://sovrin.org/"}',
-              'verkey':'~7neGXtV1n3S5j1xzzZBz62',
-            },
-          },
-        },
       },
       'schemas':[],
       'schemas_form':{
@@ -1241,7 +1255,11 @@ export default {
         'name':'',
         'version':'',
       },
-      'issuer_credentials': [],
+      'issuer_credentials':[],
+      'issuer_presentaions':[],
+      'holder_credentials':[],
+      'holder_presentaions':[],
+      'presentation_exchanges':[],
       'trusted_issuers_form':{
         'did':'',
         'label':'',
@@ -1284,98 +1302,7 @@ export default {
           ]
         }
       },
-      'presentation_exchanges': {
-        '0012d86c-fc14-480a-bd12-e0be147lbew9':
-        {
-          'presentation_exchange_id':'0012d86c-fc14-480a-bd12-e0be147lbew9',// "string",
-          'connection_id':'fd507eb3-8acf-40c2-9bbd-78cbcc52a3e4',// "string",
-          'thread_id':'0170119952737',// "string",
-          'initiator':'self' , // "string",
-          'state':'request_sent',// "string",
-          'presentation_request':{},// {},
-          'presentation':{},// {},
-          'auto_present': false,
-          'verified':'',// 'verified', // "string"
-          'error_msg':'',// "string",
-          'updated_at':'2019-10-03 16:25:52.934302Z',// "string",
-          'created_at':'2019-10-03 16:25:05.875156Z',// "string",
-        },
-        '0022d86c-fc14-480a-bd12-e0be147lbew9':
-        {
-          'presentation_exchange_id':'0022d86c-fc14-480a-bd12-e0be147lbew9',// "string",
-          'connection_id':'00207eb3-8acf-40c2-9bbd-78cbcc52a3e4',// "string",
-          'thread_id':'0270119952737',// "string",
-          'initiator':'external' , // "string",
-          'state':'request_received',// "string",
-          'presentation_request':{},// {},
-          'presentation':{},// {},
-          'auto_present': false,
-          'verified':'',// 'verified', // "string"
-          'error_msg':'',// "string",
-          'updated_at':'2019-10-03 16:25:52.934302Z',// "string",
-          'created_at':'2019-10-03 16:25:05.875156Z',// "string",
-        },
-        '0032d86c-fc14-480a-bd12-e0be147lbew9':
-        {
-          'presentation_exchange_id':'0032d86c-fc14-480a-bd12-e0be147lbew9',// "string",
-          'connection_id':'00307eb3-8acf-40c2-9bbd-78cbcc52a3e4',// "string",
-          'thread_id':'0370119952737',// "string",
-          'initiator':'self' , // "string",
-          'state':'presentation_sent',// "string",
-          'presentation_request':{},// {},
-          'presentation':{},// {},
-          'auto_present': false,
-          'verified':'',// 'verified', // "string"
-          'error_msg':'',// "string",
-          'updated_at':'2019-10-03 16:25:52.934302Z',// "string",
-          'created_at':'2019-10-03 16:25:05.875156Z',// "string",
-        },
-        '0042d86c-fc14-480a-bd12-e0be147lbew9':
-        {
-          'presentation_exchange_id':'0042d86c-fc14-480a-bd12-e0be147lbew9',// "string",
-          'connection_id':'00407eb3-8acf-40c2-9bbd-78cbcc52a3e4',// "string",
-          'thread_id':'0470119952737',// "string",
-          'initiator':'external' , // "string",
-          'state':'presentation_received',// "string",
-          'presentation_request':{},// {},
-          'presentation':{},// {},
-          'auto_present': false,
-          'verified':'',// 'verified', // "string"
-          'error_msg':'',// "string",
-          'updated_at':'2019-10-03 16:25:52.934302Z',// "string",
-          'created_at':'2019-10-03 16:25:05.875156Z',// "string",
-        },
-        '0062d86c-fc14-480a-bd12-e0be147lbew9':
-        {
-          'presentation_exchange_id':'0062d86c-fc14-480a-bd12-e0be147lbew9',// "string",
-          'connection_id':'00607eb3-8acf-40c2-9bbd-78cbcc52a3e4',// "string",
-          'thread_id':'0670119952737',// "string",
-          'initiator':'self' , // "string",
-          'state':'verified',// "string",
-          'presentation_request':{},// {},
-          'presentation':{},// {},
-          'auto_present': false,
-          'verified':'verified', // "string"
-          'error_msg':'',// "string",
-          'updated_at':'2019-10-03 16:25:52.934302Z',// "string",
-          'created_at':'2019-10-03 16:25:05.875156Z',// "string",
-        },
-        '0052d86c-fc14-480a-bd12-e0be147lbew9':
-        {
-          'presentation_exchange_id':'0052d86c-fc14-480a-bd12-e0be147lbew9',// "string",
-          'connection_id':'00507eb3-8acf-40c2-9bbd-78cbcc52a3e4',// "string",
-          'thread_id':'0570119952737',// "string",
-          'initiator':'external' , // "string",
-          'state':'verified',// "string",
-          'presentation_request':{},// {},
-          'presentation':{},// {},
-          'auto_present': false,
-          'verified':'verified', // "string"
-          'error_msg':'',// "string",
-          'updated_at':'2019-10-03 16:25:52.934302Z',// "string",
-          'created_at':'2019-10-03 16:25:05.875156Z',// "string",
-        },
-      },
+      'presentation_exchanges': [],
       'supported_protocols': [],
       'compose_json': {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping",
@@ -1483,33 +1410,33 @@ export default {
       return Object.values(this.cred_defs).filter(cred_def => cred_def.author == "self");
     },
     /* credentialDefinition(){
-        return this.cred_defs.filter(cred => "state" in cred && cred.state === "STATE_OFFER_SENT")
+        return this.cred_defs.filter(cred => "state" in cred && cred.state === "offer_sent")
       }, */
     // ---------------------- Issuer Credential Filters --------------------      
     issuerOfferSentStateCredentials(){
-      return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "STATE_OFFER_SENT")
+      return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "offer_sent")
     },
     issuerReceivedRequestStateCredentials(){
-      return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "STATE_REQUEST_RECEIVED")
+      return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "request_received")
     },
     issuerIssuedStateCredentials(){
-      return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "STATE_ISSUED")
+      return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "issued")
     },
     issuerStoredStateCredentials(){
-      return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "STATE_STORED")
+      return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "stored")
     },
     // ---------------------- Holder Credential Filters --------------------      
     holderOfferReceivedStateCredentials(){
-      return this.holder_credentials.filter(cred => "state" in cred && cred.state === "STATE_OFFER_RECEIVED")
+      return this.holder_credentials.filter(cred => "state" in cred && cred.state === "offer_received")
     },
     holderSentRequestStateCredentials(){
-      return this.holder_credentials.filter(cred => "state" in cred && cred.state === "STATE_REQUEST_SENT")
+      return this.holder_credentials.filter(cred => "state" in cred && cred.state === "request_sent")
     },
     holderReceivedStateCredentials(){
-      return this.holder_credentials.filter(cred => "state" in cred && cred.state === "STATE_CREDENTIAL_RECEIVED")
+      return this.holder_credentials.filter(cred => "state" in cred && cred.state === "credential_received")
     },
     holderStoredStateCredentials(){
-      return this.holder_credentials.filter(cred => "state" in cred && cred.state === "STATE_STORED")
+      return this.holder_credentials.filter(cred => "state" in cred && cred.state === "stored")
     },
     // ---------------------- Presentation Definitions Filters --------------------     
     /**
@@ -1646,7 +1573,7 @@ export default {
         "role" in exchange &&
         "prover" === exchange.role )
     },
-    proverVerifiedPresentation(){
+    proverVerifiedPresentations(){
       return this.presentation_exchanges.filter(
         exchange => 
         "state" in exchange &&
@@ -1678,7 +1605,7 @@ export default {
     most_recent_sent_msgs(){
       return this.msgHistoryGroupedByThid[this.last_sent_msg_id]
     },
-    sentPresentationRequests(){
+    /* sentPresentationRequests(){
       return Object.keys(this.presentation_exchanges).reduce((acc, val) =>
         ("request_sent" === this.presentation_exchanges[val].state ?  {
           ...acc,
@@ -1693,7 +1620,7 @@ export default {
           [val]: this.presentation_exchanges[val]
         } : acc
         ), {})
-    },
+    }, */
     sentPresentations(){
       return Object.keys(this.presentation_exchanges).reduce((acc, val) =>
         ("presentation_sent" === this.presentation_exchanges[val].state ?  {
