@@ -397,6 +397,13 @@
             </el-form>
           </el-tab-pane>
           <el-tab-pane label="Verifications">
+            <agent-verification
+              title="Verification"
+              v-bind:list="issuer_presentaions"
+              v-bind:connections="activeConnections"
+              v-bind:cred_defs="cred_defs"
+              v-bind:trusted_issuers="trusted_issuers"
+              @presentation-request="verifierRequestPresentation"></agent-verification>
           </el-tab-pane>
           <el-tab-pane label="Compose">
             <input type="button" class="btn btn-secondary" v-on:click="compose_send()" value="Send"/>
@@ -494,6 +501,7 @@ import AgentIssueCredList from './AgentIssueCredList.vue';
 import AgentInvitations from './Agent/Invitations.vue';
 import AgentMyCredentialsList from './AgentMyCredentialsList.vue';
 import AgentTrust from './AgentTrust.vue';
+import AgentVerification from './AgentVerification.vue';
 
 export default {
   name: 'agent-base',
@@ -508,6 +516,7 @@ export default {
     AgentInvitations,
     AgentMyCredentialsList,
     AgentTrust,
+    AgentVerification,
   },
   methods: {
     ...mapActions("Connections", ["get_connection"]),
@@ -764,13 +773,52 @@ export default {
       }
       this.connection.send_message(query_msg);
     },
-    async verifierRequestPresentation(requestPresentationForm){
+    async verifierRequestPresentation(form){
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/request-presentation",
-        "connection_id": requestPresentationForm.connection_id ,
-        "comment": requestPresentationForm.comment , //optional
-        "proof_request": requestPresentationForm.credential_proposal ,
-      }
+        connection_id: form.connection_id,
+        comment: form.comment,
+        proof_request: {
+          name: form.name,
+          version: "1.0",
+          requested_attributes: form.attributes.reduce((acc, attribute) => {
+            let transmuted_attr = {
+              name: attribute.name,
+              restrictions: []
+            };
+            if (attribute.restrictions.cred_def || attribute.restrictions.trusted_issuer) {
+              transmuted_attr.restrictions.push({});
+            }
+            if (attribute.restrictions.cred_def) {
+              transmuted_attr.restrictions[0].credential_definition_id = attribute.restrictions.cred_def.cred_def_id;
+            }
+            if (attribute.restrictions.trusted_issuer) {
+              transmuted_attr.restrictions[0].issuer_did = attribute.restrictions.trusted_issuer;
+            }
+            acc[attribute.name] = transmuted_attr;
+            return acc;
+          }, {}),
+          requested_predicates: form.predicates.reduce((acc, predicate) => {
+            let transmuted_pred = {
+              name: predicate.name,
+              p_type: predicate.p_type,
+              p_value: predicate.threshold,
+              restrictions: []
+            };
+            if (predicate.restrictions.cred_def || predicate.restrictions.trusted_issuer) {
+              transmuted_pred.restrictions.push({});
+            }
+            if (predicate.restrictions.cred_def) {
+              transmuted_pred.restrictions[0].credential_definition_id = predicate.restrictions.cred_def.cred_def_id;
+            }
+            if (predicate.restrictions.trusted_issuer) {
+              transmuted_pred.restrictions[0].issuer_did = predicate.restrictions.trusted_issuer;
+            }
+            acc[predicate.name] = transmuted_pred;
+            return acc;
+          }, {}),
+        },
+      };
       this.connection.send_message(query_msg);
     },
     async getIssuedCredentials(){
@@ -787,9 +835,6 @@ export default {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentations-get-list",
         //'connection_id': ,// optional filter
         //'verified': ,// optional filter
-        "~transport": {
-          "return_route": "all"
-        }
       }
       this.connection.send_message(query_msg);
     },
@@ -859,9 +904,6 @@ export default {
       let query_msg = {
         "@type": "",
         "issuer_did": did,
-        "~transport": {
-          "return_route": "all"
-        }
       }
       this.connection.send_message(query_msg);
     },
@@ -994,12 +1036,12 @@ export default {
         this.issuer_credentials = msg.results;
       }
     },
-    async varifierRequestPresentationRecordDirective(msg){
+    async verifierRequestPresentationRecordDirective(msg){
       if('results'in msg ){
         return this.getIssuersPresentations();
       }
     },
-    async varifierPresentaionListDirective(msg){
+    async verifierPresentationListDirective(msg){
       if('results'in msg ){// should be 'presentations~attach'
         this.issuer_presentaions = msg.results;
       }
@@ -1063,8 +1105,8 @@ export default {
         //=============================== Credential Issuance ==================================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/credential-exchange": this.issuerCredentialRecord,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/credentials-list": this.issuerCredentialListDirective,
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/request-presentation": this.varifierRequestPresentationRecordDirective,
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentations-list": this.varifierPresentaionListDirective,
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/request-presentation": this.verifierRequestPresentationRecordDirective,
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentations-list": this.verifierPresentationListDirective,
         //=============================== Credential Holder ====================================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credential-exchange": this.holderCredentialRecord,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/presentation-exchange": this.holderPresentationRecord,
@@ -1235,8 +1277,7 @@ export default {
         },
       },
       'dids':{},
-      'trusted_issuers':{
-      },
+      'trusted_issuers':{},
       'schemas':[],
       'schemas_form':{
         'schema_id':'',
@@ -1255,11 +1296,11 @@ export default {
         'name':'',
         'version':'',
       },
-      'issuer_credentials':[],
-      'issuer_presentaions':[],
-      'holder_credentials':[],
-      'holder_presentaions':[],
-      'presentation_exchanges':[],
+      'issuer_credentials': [],
+      'issuer_presentaions': [],
+      'holder_credentials': [],
+      'holder_presentaions': [],
+      'presentation_exchanges': [],
       'trusted_issuers_form':{
         'did':'',
         'label':'',
@@ -1407,7 +1448,9 @@ export default {
     },
     // ---------------------- Credential Definition Filters --------------------      
     issuerCredDefs() {
-      return Object.values(this.cred_defs).filter(cred_def => cred_def.author == "self");
+      return Object.values(this.cred_defs).filter(
+        cred_def => cred_def.author == "self" || cred_def.cred_def_id.split(':', 2)[0] === this.public_did
+      );
     },
     /* credentialDefinition(){
         return this.cred_defs.filter(cred => "state" in cred && cred.state === "offer_sent")
