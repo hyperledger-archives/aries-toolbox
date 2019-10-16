@@ -644,17 +644,48 @@ export default {
       }
       this.connection.send_message(query_msg);
     },
-    async sendPresentationProposal(holderCredentialProposalForm){
+    async sendPresentationProposal(form){
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/send-presentation-proposal",
-        "connection_id": holderCredentialProposalForm.connection_id ,
-        "auto_present": holderCredentialProposalForm.auto_present , //optional, default to false
-        "comment": holderCredentialProposalForm.comment , //optional
-        "presentation_proposal": holderCredentialProposalForm.presentation_proposal ,
-        "~transport": {
-          "return_route": "all"
-        }
-      }
+        "auto_present": form.auto_present , //optional, default to false
+        "connection_id": form.connection_id,
+        "comment": form.comment,
+        "presentation_proposal": {
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/present-proof/1.0/presentation-preview",
+          name: form.name,
+          version: "1.0",
+          requested_attributes: form.attributes.reduce((acc, attribute) => {
+              let transmuted_attr = {
+                name: attribute.name,
+                restrictions: [
+                  {
+                    credential_definition_id: 
+                      attribute.restrictions.cred_def ? attribute.restrictions.cred_def.cred_def_id : undefined,
+                    issuer_did: attribute.restrictions.trusted_issuer
+                  }
+                ]
+              };
+              acc[attribute.name] = transmuted_attr;
+              return acc;
+            }, {}),
+          requested_predicates: form.predicates.reduce((acc, predicate) => {
+            let transmuted_pred = {
+              name: predicate.name,
+              p_type: predicate.p_type,
+              p_value: predicate.threshold,
+              restrictions: [
+                {
+                  credential_definition_id: 
+                    predicate.restrictions.cred_def ? predicate.restrictions.cred_def.cred_def_id : undefined,
+                  issuer_did: predicate.restrictions.trusted_issuer
+                }
+              ]
+            };
+            acc[predicate.name] = transmuted_pred;
+            return acc;
+          }, {}),
+        },
+      };
       this.connection.send_message(query_msg);
     },
     async getHoldersCredentials(){
