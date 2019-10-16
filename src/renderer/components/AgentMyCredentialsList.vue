@@ -6,6 +6,10 @@
         type="primary"
         icon="el-icon-plus"
         @click="proposalFormActive = true">Send Credential Proposal</el-button>
+      <el-button
+        type="primary"
+        icon="el-icon-refresh"
+        @click="$emit('cred-refresh',)"></el-button>
     </nav>
     <el-collapse v-model="expanded_items">
       <ul class="list">

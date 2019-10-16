@@ -6,6 +6,10 @@
         type="primary"
         icon="el-icon-plus"
         @click="proposalFormActive = true">Presentation Proposal</el-button>
+      <el-button
+        type="primary"
+        icon="el-icon-refresh"
+        @click="$emit('presentation-refresh',)"></el-button>
     </nav>
     <el-collapse v-model="ver_pres_expanded_items">
       <ul class="list">
