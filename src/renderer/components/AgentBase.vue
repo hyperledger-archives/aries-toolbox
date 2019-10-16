@@ -36,17 +36,17 @@
           v-on:did-resolve="resolveTrustedIssuer"></agent-did-list>
         <p>Create a Did:</p>
         <el-form :model=did_form>
-          <el-form-group >
+          <div>
             <span slot="label">Did:</span>
             <el-input v-model="did_form.did" style="width:100px;"> </el-input>
             <span slot="label">Seed:</span>
             <el-input v-model="did_form.seed" style="width:100px;"> </el-input>
             <span slot="label">Alias:</span>
             <el-input v-model="did_form.label" style="width:100px;"> </el-input>
-          </el-form-group>
-          <el-form-item>
+          </div>
+          <div>
             <el-button type="primary" @click="createDid()">Create DID</el-button>
-          </el-form-item>
+          </div>
         </el-form>
       </el-tab-pane>
 
@@ -99,7 +99,7 @@
                 v-bind:list="pendingConnections"
                 v-on:connection-editted="updateAgentConnection"
                 v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
-              <agent-connection-list
+              <!---<agent-connection-list
                 title="Open Invitations:"
                 editable="true"
                 v-bind:list="openInvitations"
@@ -116,7 +116,7 @@
                 editable="false"
                 v-bind:list="Object.values(invitations)"
                 v-on:connection-editted="updateAgentConnection"
-                v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
+                v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>--->
               <agent-connection-list
                 title="Failed Connections:"
                 editable="false"
@@ -124,37 +124,19 @@
                 v-on:connection-editted="updateAgentConnection"
                 v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
 
-              <p>Create Invitations:</p>
-              <el-form>
-                <el-form-group >
-                  <span slot="label">Label:</span>
-                  <el-input v-model="invite_label_form" style="width:100px;"> </el-input>
-                  <span slot="label">Role:</span>
-                  <el-input v-model="invite_role_form" style="width:100px;"> </el-input>
-                  <span slot="label">Acceptance:</span>
-                  <el-input v-model="invite_accept_form" style="width:100px;"> </el-input>
-                  <span slot="label">Public:</span>
-                  <el-switch label="Public:" v-model="invite_public_form"></el-switch>
-                  <span slot="label">Multi Use:</span>
-                  <el-switch label="Multi Use:" v-model="invite_multi_use_form"></el-switch>
-                </el-form-group>
-                <el-form-item>
-                  <el-button type="primary" @click="fetchNewInvite()">create new invite</el-button>
-                </el-form-item>
-              </el-form>
               <p>Add connection from invitation:</p>
               <el-form :model=agent_invitation_form>
-                <el-form-group >
+                <el-form-item>
                   <span slot="label">invitation:</span>
                   <el-input v-model="agent_invitation_form.invitation" style="width:100px;"> </el-input>
-                </el-form-group>
+                </el-form-item>
                 <el-form-item>
                   <el-button type="primary" @click="addAgent()">Add Agent</el-button>
                 </el-form-item>
               </el-form>
               <p>Add Static Agent:</p>
               <el-form :model=static_agent_form>
-                <el-form-group >
+                <el-form-item>
                   <span slot="label">Label:</span>
                   <el-input v-model="static_agent_form.label" style="width:100px;"> </el-input>
                   <span slot="label">Role:</span>
@@ -165,12 +147,20 @@
                   <el-input v-model="static_agent_form.static_key" style="width:100px;"> </el-input>
                   <span slot="label">Static Endpoint:</span>
                   <el-input v-model="static_agent_form.static_endpoint" style="width:100px;"> </el-input>
-                </el-form-group>
+                </el-form-item>
                 <el-form-item>
                   <el-button type="primary" @click="addStaticAgent()">Add Static Agent</el-button>
                 </el-form-item>
               </el-form>
             </el-row>
+          </el-tab-pane>
+          <el-tab-pane label="Invitations">
+            <agent-invitations
+                    v-bind:invitations="invitations"
+                    v-on:send-connection-message="send_connection_message">
+
+            </agent-invitations>
+
           </el-tab-pane>
           <el-tab-pane label="Credential Issuance">
             <el-row>
@@ -501,6 +491,7 @@ import AgentDidList from './AgentDidList.vue';
 import AgentSchemaList from './AgentSchemaList.vue';
 import AgentCredDefList from './AgentCredDefList.vue';
 import AgentIssueCredList from './AgentIssueCredList.vue';
+import AgentInvitations from './Agent/Invitations.vue';
 import AgentMyCredentialsList from './AgentMyCredentialsList.vue';
 import AgentTrust from './AgentTrust.vue';
 
@@ -514,6 +505,7 @@ export default {
     AgentSchemaList,
     AgentCredDefList,
     AgentIssueCredList,
+    AgentInvitations,
     AgentMyCredentialsList,
     AgentTrust,
   },
@@ -533,6 +525,27 @@ export default {
       this.message_history = this.connection.message_history;
 
       this.connection_loaded = true;
+    },
+    async send_connection_message(msg){
+      this.connection.send_message(msg);
+    },
+    async fetchAgentConnections(){
+      let query_msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-get-list",
+        "~transport": {
+          "return_route": "all"
+        }
+      }
+      this.connection.send_message(query_msg);
+    },
+    async fetchAgentInvitations(){
+      let query_msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation-get-list",
+        "~transport": {
+          "return_route": "all"
+        }
+      }
+      this.connection.send_message(query_msg);
     },
     async run_protocol_discovery(){
       //send query
@@ -584,25 +597,6 @@ export default {
           "return_route": "all"
         }
       }
-      this.connection.send_message(query_msg);
-    },
-    async fetchNewInvite(){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/create-invitation",
-        "label": this.invite_label_form,
-        "role": this.invite_role_form,
-        "accept": this.invite_accept_form,
-        "public": this.invite_public_form,
-        "multi_use": this.invite_multi_use_form,
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      this.invite_label_form = "master"
-      this.invite_role_form = "normal"
-      this.invite_accept_form = "auto"
-      this.invite_public_form = false
-      this.invite_multi_use_form = true
       this.connection.send_message(query_msg);
     },
     async addAgent() {
@@ -925,8 +919,16 @@ export default {
         acc[cur.connection_id] = cur;
         return acc;
       }, {});
-      this.connections = connections
-      this.connectionUpdateForm = connections
+      this.connections = connections;
+      this.connectionUpdateForm = connections;
+    },
+    async fetchedInvitationList(msg){
+      const invitations = msg.results.reduce(function(acc, cur, i) {
+        acc[cur.connection.connection_id] = cur;
+        return acc;
+      }, {});
+      this.invitations = invitations;
+      this.invitationUpdateForm = invitations;
     },
     async updatedConnection(msg){
       return this.fetchAgentConnections();
@@ -1020,13 +1022,16 @@ export default {
       }
     },
     async newInvitation(msg){
-      console.log(msg.invitation)
-      this.invitations[ msg.connection_id] = {
+      console.log(msg.invitation);
+      // refetch list
+      this.fetchAgentInvitations();
+
+      /*this.invitations[ msg.connection_id] = {
         //... msg.invitation, // invitations is not a json yet...
         "invitation": msg.invitation,
         "connection_id" : msg.connection_id,
-        "invitation_url": msg.invitation_url}
-
+        "invitation_url": msg.invitation_url
+      }*/
     },
     async ProtocolDisclose(msg){
       //console.log(msg.protocols);
@@ -1039,6 +1044,7 @@ export default {
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/disclose": this.ProtocolDisclose,
         //=============================== Connections ==========================================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-list": this.fetchedConnectionList,
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation-list": this.fetchedInvitationList,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection": this.updatedConnection,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/ack": this.fetchAgentConnections,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation": this.newInvitation,
@@ -1328,11 +1334,6 @@ export default {
       'expanded_pres_rec_items':[],
       'expanded_pres_sent_items':[],
       'expanded_pres_ver_items':[],
-      'invite_label_form':"master",
-      'invite_role_form':"normal",
-      'invite_accept_form':"auto",
-      'invite_public_form':false,
-      'invite_multi_use_form':true,
       'agent_invitation_form':{
         'invitation':'',
       },
@@ -1681,6 +1682,7 @@ export default {
     this.getHoldersPresentations();
     this.run_protocol_discovery();
     this.fetchAgentConnections();
+    this.fetchAgentInvitations();
     // await this.fetchNewInvite(); // do not automatically create invite
   },
   watch:{}
