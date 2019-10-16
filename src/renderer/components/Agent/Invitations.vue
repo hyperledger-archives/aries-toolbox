@@ -42,21 +42,25 @@
 
 
   <p>Create Invitations:</p>
-  <el-form>
-    <div>
-      <span slot="label">Label:</span>
-      <el-input v-model="invite_label_form" style="width:100px;"> </el-input>
-      <span slot="label">Role:</span>
-      <el-input v-model="invite_role_form" style="width:100px;"> </el-input>
-      <span slot="label">Acceptance:</span>
-      <el-input v-model="invite_accept_form" style="width:100px;"> </el-input>
-      <span slot="label">Public:</span>
-      <el-switch label="Public:" v-model="invite_public_form"></el-switch>
-      <span slot="label">Multi Use:</span>
-      <el-switch label="Multi Use:" v-model="invite_multi_use_form"></el-switch>
+  <el-form :inline="true">
+    <el-form-item label="Label:">
+      <el-input v-model="invite_label_form" style="width:200px;"> </el-input>
+    </el-form-item>
+    <el-form-item label="Role:">
+      <el-input v-model="invite_role_form" style="width:200px;"> </el-input>
+    </el-form-item>
+    <el-form-item label="Acceptance:">
+      <el-input v-model="invite_accept_form" style="width:200px;"> </el-input>
+    </el-form-item>
+    <el-form-item label="Public:">
+      <el-switch v-model="invite_public_form"></el-switch>
+    </el-form-item>
+    <el-form-item label="Multi Use:">
+      <el-switch v-model="invite_multi_use_form"></el-switch>
+    </el-form-item>
     </div>
     <el-form-item>
-      <el-button type="primary" @click="fetchNewInvite()">create new invite</el-button>
+      <el-button type="primary" @click="fetchNewInvite()">Create New Invite</el-button>
     </el-form-item>
   </el-form>
 
@@ -80,11 +84,11 @@ export default {
         expanded_items: [],
         QRDialogVisible: false,
         QRDialogURL: '',
-        invite_label_form:"master",
-        invite_role_form:"normal",
+        invite_label_form:"",
+        invite_role_form:"",
         invite_accept_form:"auto",
         invite_public_form:false,
-        invite_multi_use_form:true,
+        invite_multi_use_form:false,
     }
   },
   methods: {
@@ -96,15 +100,12 @@ export default {
         "accept": this.invite_accept_form,
         "public": this.invite_public_form,
         "multi_use": this.invite_multi_use_form,
-        "~transport": {
-          "return_route": "all"
-        }
       };
-      this.invite_label_form = "master";
-      this.invite_role_form = "normal";
+      this.invite_label_form = "";
+      this.invite_role_form = "";
       this.invite_accept_form = "auto";
       this.invite_public_form = false;
-      this.invite_multi_use_form = true;
+      this.invite_multi_use_form = false;
       //this.$parent.connection.send_message(query_msg);
       this.$emit('send-connection-message', query_msg);
     },

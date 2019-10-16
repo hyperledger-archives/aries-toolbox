@@ -126,17 +126,22 @@
 
               <p>Add connection from invitation:</p>
               <el-form :model=agent_invitation_form>
-                <el-form-item>
-                  <span slot="label">invitation:</span>
-                  <el-input v-model="agent_invitation_form.invitation" style="width:100px;"> </el-input>
-                </el-form-item>
-                <el-form-item>
-                  <el-button type="primary" @click="addAgent()">Add Agent</el-button>
+                <el-form-item
+                  label="Invitation URL:">
+                  <el-input
+                    style="width: 300px;"
+                    v-model="agent_invitation_form.invitation">
+                    <el-button
+                      slot="append"
+                      type="primary"
+                      icon="el-icon-plus"
+                      @click="addAgent()">Add</el-button>
+                  </el-input>
                 </el-form-item>
               </el-form>
               <p>Add Static Agent:</p>
               <el-form :model=static_agent_form>
-                <el-form-item>
+                <div>
                   <span slot="label">Label:</span>
                   <el-input v-model="static_agent_form.label" style="width:100px;"> </el-input>
                   <span slot="label">Role:</span>
@@ -147,7 +152,7 @@
                   <el-input v-model="static_agent_form.static_key" style="width:100px;"> </el-input>
                   <span slot="label">Static Endpoint:</span>
                   <el-input v-model="static_agent_form.static_endpoint" style="width:100px;"> </el-input>
-                </el-form-item>
+                </div>
                 <el-form-item>
                   <el-button type="primary" @click="addStaticAgent()">Add Static Agent</el-button>
                 </el-form-item>
