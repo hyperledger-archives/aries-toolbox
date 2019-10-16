@@ -6,6 +6,10 @@
         type="primary"
         icon="el-icon-plus"
         @click="issueFormActive = true">Issue</el-button>
+      <el-button
+        type="primary"
+        icon="el-icon-refresh"
+        @click="$emit('issue-cred-refresh',)"></el-button>
     </nav>
     <el-collapse v-model="expanded_items">
       <ul class="list">

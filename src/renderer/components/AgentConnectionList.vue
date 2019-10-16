@@ -1,6 +1,12 @@
 <template >
   <div v-if="list.length">
-    <p>{{ title }}</p>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <a class="navbar-brand" href="#">{{ title }}</a>
+      <el-button
+        type="primary"
+        icon="el-icon-refresh"
+        @click="$emit('refresh',)"></el-button>
+    </nav>
     <el-collapse v-model="expanded_items">
       <ul class="list">
         <el-collapse-item

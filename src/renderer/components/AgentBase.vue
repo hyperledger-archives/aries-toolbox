@@ -92,7 +92,8 @@
                 editable="true"
                 v-bind:list="activeConnections"
                 v-on:connection-editted="updateAgentConnection"
-                v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
+                v-on:connection-deleted="deleteAgentConnection"
+                @refresh="fetchAgentConnections"></agent-connection-list>
               <agent-connection-list
                 title="Pending Connections:"
                 editable="true"
@@ -187,7 +188,9 @@
                 v-bind:list="issuer_credentials"
                 v-bind:connections="activeConnections"
                 v-bind:cred_defs="issuerCredDefs"
-                @issue="issueCredential"></agent-issue-cred-list>
+                @issue="issueCredential"
+                @issue-cred-refresh="getIssuedCredentials">            
+              </agent-issue-cred-list>
             </el-row>
           </el-tab-pane>
           <el-tab-pane label="My Credentials">
@@ -204,6 +207,7 @@
                 v-bind:credentials="holder_credentials"
                 v-bind:cred_defs="cred_defs"
                 v-bind:connections="activeConnections"
+                @cred-refresh="getHoldersCredentials"
                 @propose="sendCredentialProposal"></agent-my-credentials-list>
             </el-row>
           </el-tab-pane>
@@ -223,6 +227,7 @@
                 v-bind:presentations="holder_presentations"
                 v-bind:connections = "activeConnections"
                 v-bind:cred_defs = "cred_defs"
+                @presentation-refresh = "getHoldersPresentations"
                 @send-presentation-proposal= "sendPresentationProposal"></presentations>
             </el-row>
           </el-tab-pane>
@@ -369,15 +374,6 @@ export default {
     },
     async send_connection_message(msg){
       this.connection.send_message(msg);
-    },
-    async fetchAgentConnections(){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-get-list",
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      this.connection.send_message(query_msg);
     },
     async fetchAgentInvitations(){
       let query_msg = {
