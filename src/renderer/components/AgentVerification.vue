@@ -230,6 +230,15 @@ export default {
           //     "credential_definition_id": "asdf", etc.
           //   }
           // }
+
+          /* 
+          {
+            "name": "attribute_name",
+            "cred_def_id":"",
+            "mime_type":"",
+            "value": ""
+          } 
+          */
         ],
         predicates: [
           // Key: (can be whatever) property name,
@@ -241,6 +250,16 @@ export default {
           //     "credential_definition_id": "asdf", etc.
           //   }
           // }
+        ],
+        presentation_predicates:[
+          /**
+           *{
+           *  "name": "",
+           *  "cred_def_id": "",
+           *  "predicate": "",
+           *  "threshold": "",
+           *}  
+           */
         ]
       },
       formLabelWidth: '100px',

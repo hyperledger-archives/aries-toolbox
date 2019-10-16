@@ -217,194 +217,19 @@
             </el-row>
           </el-tab-pane>
           <el-tab-pane label="Presentation">
-            <p>Presentation Definitions:</p>
-            <el-collapse v-model="exspanded_pres_def_items">
-              <!-- <div v-for="(pres_def, key) in presentation_definitions" :key="key">
-                <el-collapse-item v-bind:title="pres_def.name" :name="key">
-                <el-row>
-                <div>
-                <vue-json-pretty
-                :deep=3
-                :data="pres_def">
-                </vue-json-pretty>
-                <el-collapse v-model="exspanded_presentation_request_items">
-                <el-collapse-item title='Issue a credential presentation request' :name="key">
-                <el-row>
-                <el-form :model=pres_def_form>
-                <el-form-item label="select connection:" >
-                <el-select v-model="pres_def_form.connection" filterable placeholder="to issue to" >
-                <el-option
-                v-for="connection in activeConnections"
-                :key="connection.connection_id"
-                :label="connection.their_label +' ('+connection.connection_id+')'"
-                :value="connection.connection_id">
-                </el-option>
-                </el-select>
-                </el-form-item>
-                </el-form>
-                <el-button @click="verifierRequestPresentation(pres_def.pres_def_id,pres_def_form.connection)">issue a credential presentation request</el-button>
-                </el-row>
-                </el-collapse-item>
-                </el-collapse>
-                <el-button v-on:click="collapse_expanded_pres_def(key)">^</el-button>
-                </div>
-                </el-row>
-                </el-collapse-item>
-                </div> -->
-            </el-collapse>
-            <p>Create Presentation Definition:</p>
-            <el-form :model=pres_def_form>
-              <!-- <el-form-group >
-                <span slot="label">Name:</span>
-                <el-input v-model="pres_def_form.name" style="width:100px;"> </el-input>
-                <span slot="label">Version:</span>
-                <el-input v-model="pres_def_form.version" style="width:100px;"> </el-input>
-                <p>Request Attributes:</p>
-                <ul>
-                <li v-for='(attribute,index) in pres_def_form.requested_attributes' :key="index">
-                <vue-json-pretty
-                :deep=3
-                :data="attribute">
-                </vue-json-pretty>
-                <ul>
-                <li v-for='restriction in pres_def_form.requested_attributes[index].restrictions' :key="restriction+index">
-                {{restriction.issuer_did}}
-                </li>
-                </ul>
-                <el-row>
-                <el-form :model=pres_def_form>
-                <el-form-item label="Trusted Issuer:" >
-                <el-select v-model="pres_def_form.temp_attrs[index].restriction" filterable placeholder="Trusted Issuer" >
-                <el-option
-                v-for="issuer in trusted_issuers"
-                :key="issuer.did"
-                :label="issuer.label +' ('+issuer.did+')'"
-                :value="issuer.did">
-                </el-option>
-                </el-select>
-                <span slot="label">Restriction:</span>
-                <el-button type="primary" @click="add_pres_def_restriction(index)" >add restriction</el-button>
-                </el-form-item>
-                </el-form>
-                <span slot="label">Restriction:</span>
-                <el-button type="primary" @click="add_pres_def_restriction(index)" >add restriction</el-button>
-                </el-row>
-                </li>
-                </ul>
-                <span slot="label">Attribute:</span>
-                <el-input @keyup.enter.native="add_pres_def_attribute" v-model="pres_def_form.requested_attribute" style="width:100px;"> </el-input>
-                <el-button type="primary" @click="add_pres_def_attribute" >add request attribute</el-button>
-                </el-form-group> -->
-                <el-form-item>
-                  <el-button type="primary" @click="storePresentationDefinition()">create new presentation definition</el-button>
-                </el-form-item>
-                <p>Presentation Requests Sent:</p>
-                <!-- <el-collapse v-model="expanded_pres_req_sent_items">
-                  <div v-for="(pres_req, key, index) in sentPresentationRequests" :key="key" :index="index">
-                  <el-collapse-item v-bind:title="labelFromConnection(pres_req.connection_id)" :name="key">
-                  <el-row>
-                  <div>
-                  <vue-json-pretty
-                  :deep=1
-                  :data="pres_req">
-                  </vue-json-pretty>
-                  <el-button v-on:click="collapse_expanded_pres_req_sent(key)">^</el-button>
-                  </div>
-                  </el-row>
-                  </el-collapse-item>
-                  </div>
-                  </el-collapse> -->
-                  <p>Presentation Requests Received:</p>
-                  <el-collapse v-model="expanded_pres_req_rec_items">
-                    <!-- <div v-for="(pres_req, key) in receivedPresentationRequests" :key="key">
-                      <el-collapse-item v-bind:title="labelFromConnection(pres_req.connection_id)" :name="key">
-                      <el-row>
-                      <div>
-                      <vue-json-pretty
-                      :deep=1
-                      :data="pres_req">
-                      </vue-json-pretty>
-                      <el-button v-on:click="collapse_expanded_pres_req_rec(key)">^</el-button>
-                      </div>
-                      </el-row>
-                      </el-collapse-item>
-                      </div> -->
-                  </el-collapse>
-                  <p>Presentations Sent:</p>
-                  <el-collapse v-model="expanded_pres_sent_items">
-                    <!-- <div v-for="(pres_req, key) in sentPresentations" :key="key">
-                      <el-collapse-item v-bind:title="labelFromConnection(pres_req.connection_id)" :name="key">
-                      <el-row>
-                      <div>
-                      <vue-json-pretty
-                      :deep=1
-                      :data="pres_req">
-                      </vue-json-pretty>
-                      <el-button v-on:click="collapse_expanded_pres_sent(key)">^</el-button>
-                      </div>
-                      </el-row>
-                      </el-collapse-item>
-                      </div> -->
-                  </el-collapse>
-                  <p>Presentations Received:</p>
-                  <el-collapse v-model="expanded_pres_rec_items">
-                    <!-- <div v-for="(pres_req, key) in receivedPresentations" :key="key">
-                      <el-collapse-item v-bind:title="labelFromConnection(pres_req.connection_id)" :name="key">
-                      <el-row>
-                      <div>
-                      <vue-json-pretty
-                      :deep=1
-                      :data="pres_req">
-                      </vue-json-pretty>
-                      <el-button v-on:click="collapse_expanded_pres_rec(key)">^</el-button>
-                      </div>
-                      </el-row>
-                      </el-collapse-item>
-                      </div> -->
-                  </el-collapse>
-                  <p>Presentations :</p>
-                  <el-collapse v-model="expanded_pres_ver_items">
-                    <div v-for="pres_req in verifiedPresentations">
-                      <!-- <el-collapse-item v-bind:title="labelFromConnection(pres_req.connection_id)" :name="key">
-                        <el-row>
-                        <div>
-                        <vue-json-pretty
-                        :deep=1
-                        :data="pres_req">
-                        </vue-json-pretty>
-                        <el-button v-on:click="collapse_expanded_ver(key)">^</el-button>
-                        <el-collapse-item title='Send a Presentation' :name="key">
-                        <el-row>
-                        <div v-for="(attribute, key, index) in cred_def.primary.r" v-if="key!='master_secret'" prop="cred_def">
-                        <span slot="label">{{key}}:</span>
-                        <el-input v-model="cred_def_form[cred_def.cred_def_id].attributes[index]" style="width:100px;"> </el-input>
-                        </div>
-                        <el-form :model=cred_def_form>
-                        <el-form-item label="select connection:" >
-                        <el-select v-model="cred_def_form.connection" filterable placeholder="select connection to issue to:" >
-                        <el-option
-                        v-for="connection in activeConnections"
-                        :key="connection.connection_id"
-                        :label="connection.their_label +' ('+connection.connection_id+')'"
-                        :value="connection.connection_id">
-                        </el-option>
-                        </el-select>
-                        </el-form-item>
-                        </el-form>
-                        <el-button @click="issueCredentialOffer(key,'global_pool')">Issue a credential offer</el-button>
-                        </el-row>
-                        </el-collapse-item>
-                        </div>
-                        </el-row>
-                        </el-collapse-item> -->
-                    </div>
-                  </el-collapse>
-            </el-form>
+            <el-row>
+              <presentations
+                title="Presentations"
+                v-bind:presentations="holder_presentations"
+                v-bind:connections = "activeConnections"
+                v-bind:cred_defs = "cred_defs"
+                @send-presentation-proposal= "sendPresentationProposal"></presentations>
+            </el-row>
           </el-tab-pane>
           <el-tab-pane label="Verifications">
             <agent-verification
               title="Verification"
-              v-bind:list="issuer_presentaions"
+              v-bind:list="issuer_presentations"
               v-bind:connections="activeConnections"
               v-bind:cred_defs="cred_defs"
               v-bind:trusted_issuers="trusted_issuers"
@@ -506,6 +331,7 @@ import AgentIssueCredList from './AgentIssueCredList.vue';
 import AgentInvitations from './Agent/Invitations.vue';
 import AgentMyCredentialsList from './AgentMyCredentialsList.vue';
 import AgentTrust from './AgentTrust.vue';
+import Presentations from './Agent/Presentations.vue';
 import AgentVerification from './AgentVerification.vue';
 
 export default {
@@ -521,6 +347,7 @@ export default {
     AgentInvitations,
     AgentMyCredentialsList,
     AgentTrust,
+    Presentations,
     AgentVerification,
   },
   methods: {
@@ -740,6 +567,11 @@ export default {
      *  send-credential-definition     -> credential-definition-id
      *  credential-definition-get      -> credential-definition
      *  credential-definition-get-list -> credential-definition-list
+     *  
+     *  send-credential-proposal       -> credential-exchange
+     *  send-presentation-proposal     -> presentation-exchange
+     *  credentials-get-list           -> credentials-list 
+     *  presentations-get-list         -> presentations-list
      */
     async publishCredDef(form){
       let query_msg = {
@@ -857,17 +689,44 @@ export default {
       }
       this.connection.send_message(query_msg);
     },
-    async sendPresentationProposal(holderCredentialProposalForm){
+    async sendPresentationProposal(form){
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/send-presentation-proposal",
-        "connection_id": holderCredentialProposalForm.connection_id ,
-        "auto_present": holderCredentialProposalForm.auto_present , //optional, default to false
-        "comment": holderCredentialProposalForm.comment , //optional
-        "presentation_proposal": holderCredentialProposalForm.presentation_proposal ,
-        "~transport": {
-          "return_route": "all"
-        }
-      }
+        "connection_id": form.connection_id,
+        "comment": form.comment,
+        "auto_present": form.auto_present , //optional, default to false
+        "presentation_proposal": {
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/present-proof/1.0/presentation-preview",
+          /**
+           * name 
+           * cred_def_id //optional
+           * mime_type //optional
+           * value //optional
+           * */
+          attributes: form.attributes.map(attribute => {
+            return {
+              name: attribute.name,
+              cred_def_id: attribute.cred_def.cred_def_id,
+              value: attribute.value
+            };
+          }),
+          /**
+           * name
+           * cred_def_id
+           * predicate
+           * threshold
+           */
+          predicates: form.predicates.map(predicate => {
+            return {
+              name: predicate.name,
+              cred_def_id: predicate.cred_def.cred_def_id,
+              predicate: predicate.predicate,
+              threshold: predicate.threshold
+            };
+          })
+        },
+      };
+         
       this.connection.send_message(query_msg);
     },
     async getHoldersCredentials(){
@@ -1048,7 +907,7 @@ export default {
     },
     async verifierPresentationListDirective(msg){
       if('results'in msg ){// should be 'presentations~attach'
-        this.issuer_presentaions = msg.results;
+        this.issuer_presentations = msg.results;
       }
     },
     // ---------------------- holder handlers ------------------------
@@ -1302,9 +1161,9 @@ export default {
         'version':'',
       },
       'issuer_credentials': [],
-      'issuer_presentaions': [],
+      'issuer_presentations': [],
       'holder_credentials': [],
-      'holder_presentaions': [],
+      'holder_presentations': [],
       'presentation_exchanges': [],
       'trusted_issuers_form':{
         'did':'',
