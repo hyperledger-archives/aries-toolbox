@@ -138,9 +138,9 @@ export default {
     }
   },
   methods: {
-    collapse_expanded: function(schema){
+    collapse_expanded: function(credential){
       this.expanded_items = this.expanded_items.filter(
-        item => item != schema.schema_id
+        item => item != credential.credential_exchange_id
       );
     },
     propose: function() {

@@ -47,6 +47,7 @@
           <div>
             <el-button type="primary" @click="createDid()">Create DID</el-button>
           </div>
+          <link rel="shortcut icon" href="/static"/>
         </el-form>
       </el-tab-pane>
 
