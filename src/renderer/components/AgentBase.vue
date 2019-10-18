@@ -176,7 +176,8 @@
                 editable="false"
                 v-bind:list="schemas"
                 @schema-send="publishSchema"
-                @schema-get="getSchema"></agent-schema-list>
+                @schema-get="getSchema"
+                @schema-refresh="getSchemas"></agent-schema-list>
               <agent-cred-def-list
                 title="Credential Definitions"
                 v-bind:can_create="true"

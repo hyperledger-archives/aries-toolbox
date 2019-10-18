@@ -14,6 +14,10 @@
         type="primary"
         icon="el-icon-plus"
         @click="createFormActive = true">Create</el-button>
+      <el-button
+        type="primary"
+        icon="el-icon-refresh"
+        @click="$emit('schema-refresh',)"></el-button>
     </nav>
     <el-collapse v-model="expanded_items">
       <ul class="list">
