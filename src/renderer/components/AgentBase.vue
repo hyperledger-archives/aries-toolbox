@@ -911,7 +911,7 @@ export default {
       return this.getHoldersCredentials();
     },
     async holderPresentationRecord(msg){
-      return this.getHoldersPresentations();
+      return this.getIssuersPresentations();
     },
     async holderCredentialListRecord(msg){
       if('results'in msg ){
