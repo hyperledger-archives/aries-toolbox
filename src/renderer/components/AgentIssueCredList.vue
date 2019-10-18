@@ -14,11 +14,10 @@
     <el-collapse v-model="expanded_items">
       <ul class="list">
         <el-collapse-item
-          v-if="list.length"
-          v-for="issued_credential in list"
-          v-bind:title="connection_map[issued_credential.connection_id].their_label + ' ' + issued_credential.credential_definition_id"
-          :name="issued_credential.credential_definition_id"
-          :key="issued_credential.creential_definition_idd">
+          v-for="issued_credential in credentials"
+          v-bind:title="issued_credential.connection_their_label + ' ' + issued_credential.credential_definition_id"
+          :name="issued_credential.credential_exchange_id"
+          :key="issued_credential.credential_exchange_id">
           <el-row>
             <div>
               <vue-json-pretty
@@ -108,19 +107,24 @@ export default {
     }
   },
   computed: {
-    connection_map: function() {
-      let map =  this.connections.reduce((acc, item) => {
-        acc[item.connection_id] = item;
-        return acc;
-      }, {});
-      console.log(map);
-      return map;
-    }
+    credentials: function() {
+        let joinedCredentialsConnections = this.list.map((item) => {
+          var index = this.connections.map(function(x) {return x.connection_id; }).indexOf(item.connection_id);
+          var objectFound = this.connections[index];
+          if (index >= 0) {
+            item.connection_their_label = this.connections[index].their_label
+          }else{
+            item.connection_their_label = "deleted connetion"
+          }
+        return item;
+        },{})
+        return joinedCredentialsConnections;
+    },
   },
   methods: {
     collapse_expanded: function(creddef) {
       this.expanded_items = this.expanded_items.filter(
-        item => item != creddef.cred_def_id
+        item => item != creddef.credential_exchange_id
       );
     },
     issue: function() {
