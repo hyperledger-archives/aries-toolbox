@@ -4,7 +4,7 @@
     <main>
       <div class="left-side">
         <span class="title">
-          Agent Toolkit
+          Agent Toolbox
         </span>
         <system-information></system-information>
       </div>
