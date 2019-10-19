@@ -47,6 +47,7 @@
           <div>
             <el-button type="primary" @click="createDid()">Create DID</el-button>
           </div>
+          <link rel="shortcut icon" href="/static"/>
         </el-form>
       </el-tab-pane>
 
@@ -175,7 +176,8 @@
                 editable="false"
                 v-bind:list="schemas"
                 @schema-send="publishSchema"
-                @schema-get="getSchema"></agent-schema-list>
+                @schema-get="getSchema"
+                @schema-refresh="getSchemas"></agent-schema-list>
               <agent-cred-def-list
                 title="Credential Definitions"
                 v-bind:can_create="true"
@@ -929,7 +931,7 @@ export default {
       return this.getHoldersCredentials();
     },
     async holderPresentationRecord(msg){
-      return this.getHoldersPresentations();
+      return this.getIssuersPresentations();
     },
     async holderCredentialListRecord(msg){
       if('results'in msg ){

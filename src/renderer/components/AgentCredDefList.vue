@@ -8,7 +8,7 @@
         <el-button
           slot="append"
           icon="el-icon-search"
-          @click="retrieve">Retreive</el-button>
+          @click="retrieve">Retrieve</el-button>
       </el-input>
       <el-button
         v-if="can_create"
