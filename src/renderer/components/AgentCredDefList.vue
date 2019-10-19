@@ -40,13 +40,14 @@
         </el-collapse-item>
       </ul>
     </el-collapse>
-    <el-dialog title="Create New Credential Definition" :visible.sync="createFormActive">
+    <el-dialog title="Create New Credential Definition" :visible.sync="createFormActive" @close="deActivateForm()">
       <el-form :model="createForm">
         <el-form-item label="Schema:" :label-width="formLabelWidth">
           <el-select
             v-model="createForm.schema_id"
             filterable
-            placeholder="Schema">
+            value-key="createForm.schema_id"
+            placeholder="Select">
             <el-option
               v-for="schema in schemas"
               :key="schema.schema_id"
@@ -57,7 +58,7 @@
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="createFormActive = false">Cancel</el-button>
+        <el-button @click="deActivateForm()">Cancel</el-button>
         <el-button type="primary" @click="create">Confirm</el-button>
       </span>
     </el-dialog>
@@ -89,6 +90,10 @@ export default {
       this.expanded_items = this.expanded_items.filter(
         item => item != creddef.cred_def_id
       );
+    },
+    deActivateForm: function() {
+      this.createFormActive = false;
+      this.createForm.schema_id = '';
     },
     create: function() {
       let values = {
