@@ -30,13 +30,14 @@
         </el-collapse-item>
       </ul>
     </el-collapse>
-    <el-dialog title="Issue Credential" :visible.sync="issueFormActive">
+    <el-dialog title="Issue Credential" :visible.sync="issueFormActive" @close="deActivateForm()">
       <el-form :model="issueForm">
         <el-form-item label="Connection:" :label-width="formLabelWidth">
           <el-select
             v-model="issueForm.connection_id"
             filterable
-            placeholder="Connection">
+            value-key="issueForm.connection_id"
+            placeholder="Select">
             <el-option
               v-for="connection in connections"
               :key="connection.connection_id"
@@ -49,7 +50,9 @@
           <el-select
             v-model="issueForm.selected_cred_def"
             remote
-            placeholder="Credential Definition"
+            value-key="issueForm.selected_cred_def"
+            placeholder="Select"
+            :disabled="!issueForm.connection_id"
             @change="update_attributes">
             <el-option
               v-for="cred_def in cred_defs"
@@ -76,8 +79,8 @@
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="issueFormActive = false">Cancel</el-button>
-        <el-button type="primary" @click="issue">Confirm</el-button>
+        <el-button @click="deActivateForm()">Cancel</el-button>
+        <el-button :disabled="!issueForm.selected_cred_def" type="primary" @click="issue">Confirm</el-button>
       </span>
     </el-dialog>
   </div>
@@ -127,6 +130,15 @@ export default {
         item => item != creddef.credential_exchange_id
       );
     },
+    deActivateForm: function() {
+      this.issueFormActive = false;
+      this.issueForm = {
+        connection_id: '',
+        selected_cred_def: null,
+        comment: '',
+        attributes: []
+      };
+    },
     issue: function() {
       let values = {
         connection_id: this.issueForm.connection_id,
@@ -144,6 +156,7 @@ export default {
     },
     update_attributes: function(cred_def) {
       var comp = this;
+      comp.issueForm.attributes = [];
       cred_def.attributes.forEach(name => {
         comp.issueForm.attributes.push({
           name: name,
