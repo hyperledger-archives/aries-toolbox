@@ -178,7 +178,6 @@
                 @schema-send="publishSchema"
                 @schema-get="getSchema"
                 @schema-refresh="getSchemas"></agent-schema-list>
-
               <agent-cred-def-list
                 title="Credential Definitions"
                 v-bind:can_create="true"
