@@ -14,7 +14,11 @@
         v-if="can_create"
         type="primary"
         icon="el-icon-plus"
-        @click="createFormActive = true">Create</el-button>
+      @click="createFormActive = true">Create</el-button>
+      <el-button
+        type="primary"
+        icon="el-icon-refresh"
+        @click="$emit('cred-def-refresh',)"></el-button>
     </nav>
     <el-collapse v-model="expanded_items">
       <ul class="list">

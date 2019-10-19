@@ -184,7 +184,8 @@
                 v-bind:list="cred_defs"
                 v-bind:schemas="schemas"
                 @cred-def-send="publishCredDef"
-                @cred-def-get="getCredentialDefinition"></agent-cred-def-list>
+                @cred-def-get="getCredentialDefinition"
+                @cred-def-refresh="getCredentialDefinitionlist"></agent-cred-def-list>
               <agent-issue-cred-list
                 title="Issued Credentials"
                 v-bind:list="issuer_credentials"
