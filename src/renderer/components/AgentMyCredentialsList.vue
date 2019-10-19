@@ -76,6 +76,7 @@
             v-model="proposalForm.selected_cred_def"
             filterable
             placeholder="Credential Definition"
+            value-key="cred_def_id"
             @change="update_attributes">
             <el-option
               v-for="cred_def in cred_defs"
