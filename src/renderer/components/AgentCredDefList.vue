@@ -3,15 +3,16 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <a class="navbar-brand" href="#">{{ title }}</a>
       <el-input
+        v-if="retrievable"
         v-model="retrieve_cred_def_id"
         style="width: 300px;">
-        <el-button
+        <el-button 
           slot="append"
           icon="el-icon-search"
           @click="retrieve">Retrieve</el-button>
       </el-input>
       <el-button
-        v-if="can_create"
+        v-if="can_create && list"
         type="primary"
         icon="el-icon-plus"
       @click="createFormActive = true">Create</el-button>
@@ -68,7 +69,7 @@ import VueJsonPretty from 'vue-json-pretty';
 
 export default {
   name: 'agent-cred-def-list',
-  props: ['title', 'list', 'can_create', 'schemas'],
+  props: ['retrievable','title', 'list', 'can_create', 'schemas'],
   components: {
     VueJsonPretty,
   },

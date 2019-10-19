@@ -180,8 +180,9 @@
                 @schema-refresh="getSchemas"></agent-schema-list>
               <agent-cred-def-list
                 title="Credential Definitions"
+                v-bind:retrievable="false"
                 v-bind:can_create="true"
-                v-bind:list="cred_defs"
+                v-bind:list="issuerCredDefs"
                 v-bind:schemas="schemas"
                 @cred-def-send="publishCredDef"
                 @cred-def-get="getCredentialDefinition"
@@ -200,15 +201,16 @@
             <el-row>
               <agent-cred-def-list
                 title="Retrieved Credential Definitions"
+                v-bind:retrievable="true"
                 v-bind:can_create="false"
-                v-bind:list="cred_defs"
+                v-bind:list="proposalCredDefs"
                 v-bind:schemas="schemas"
                 @cred-def-get="getCredentialDefinition"></agent-cred-def-list>
               <agent-my-credentials-list
                 title="Credentials"
                 editable="false"
                 v-bind:credentials="holder_credentials"
-                v-bind:cred_defs="cred_defs"
+                v-bind:cred_defs="proposalCredDefs"
                 v-bind:connections="activeConnections"
                 @cred-refresh="getHoldersCredentials"
                 @propose="sendCredentialProposal"></agent-my-credentials-list>
@@ -1310,15 +1312,15 @@ export default {
       return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "error")
     },
     // ---------------------- Credential Definition Filters --------------------      
-    issuerCredDefs() {
-      return Object.values(this.cred_defs).filter(
-        cred_def => cred_def.author == "self" || cred_def.cred_def_id.split(':', 2)[0] === this.public_did
-      );
-    },
     /* credentialDefinition(){
         return this.cred_defs.filter(cred => "state" in cred && cred.state === "offer_sent")
       }, */
     // ---------------------- Issuer Credential Filters --------------------      
+    issuerCredDefs() {
+      return Object.values(this.cred_defs).filter(
+        cred_def => cred_def.author === "self" || cred_def.cred_def_id.split(':', 2)[0] === this.public_did
+      );
+    },
     issuerOfferSentStateCredentials(){
       return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "offer_sent")
     },
@@ -1332,6 +1334,11 @@ export default {
       return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "stored")
     },
     // ---------------------- Holder Credential Filters --------------------      
+    proposalCredDefs() {
+      return Object.values(this.cred_defs).filter(
+        cred_def => cred_def.author !== "self" || cred_def.cred_def_id.split(':', 2)[0] !== this.public_did
+      );
+    },
     holderOfferReceivedStateCredentials(){
       return this.holder_credentials.filter(cred => "state" in cred && cred.state === "offer_received")
     },
