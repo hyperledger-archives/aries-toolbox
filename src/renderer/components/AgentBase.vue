@@ -530,6 +530,14 @@ export default {
       this.basicmessage_compose = "";
     },
     //================================ schema events ================================
+     /**
+     * # Message Types
+     *  # event                      | ->  |  directive
+     * ==========================================
+     * send-schema      -> schema-id
+     * schema-get       -> schema
+     * schema-get-list  -> schema-list
+     */
     async getSchemas(){
       let msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-get-list",
@@ -844,16 +852,26 @@ export default {
       }
     },
     async sendSchemaResponse(msg){
-      if ('schema_id' in msg) {
-        return this.getSchemas();
-      }
+      return this.getSchemas();
     },
     async getSchemaResponse(msg){
-      if ('schema' in msg) {
-        this.schemas = this.schemas.filter(
-          item => item.schema_id != msg.schema.schema_id
-        );
-      }
+      // attempt to update schema list
+      /* if ('schema_id' in msg) {
+        this.schemas = this.schemas.map( function(item) {
+          if (item.schema_id == msg.schema_id){
+            return {
+              'schema_id': msg.schema_id ,
+              'schema_name': msg.schema_name ,
+              'schema_version': msg.schema_version ,
+              'author': msg.author,
+              'attributes':msg.attributes ,
+            }
+          return item;
+          }
+        });
+      } */
+      // get the updated list
+      this.getSchemas();
     },
     // ---------------------- cred def handlers --------------------
     
