@@ -30,14 +30,17 @@
         </el-collapse-item>
       </ul>
     </el-collapse>
-    <!-- <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav 
+      v-if="offerReceivedStateCredentials.length"
+      class="navbar navbar-expand-lg navbar-light bg-light">
       <a class="navbar-brand" href="#">Offers</a>
-      <el-button
+      <!-- <el-button
         type="primary"
         icon="el-icon-plus"
-        @click="offerFormActive = true">Accept Offer</el-button>
+        @click="offerFormActive = true">Accept Offer</el-button> -->
     </nav>
-    <el-collapse v-model="expanded_items">
+    <el-collapse 
+      v-model="expanded_items">
       <ul class="list">
         <el-collapse-item
           v-for="credential in offerReceivedStateCredentials"
@@ -55,14 +58,15 @@
           </el-row>
         </el-collapse-item>
       </ul>
-    </el-collapse> -->
-    <el-dialog title="Propose Credential" :visible.sync="proposalFormActive">
+    </el-collapse>
+    <el-dialog title="Propose Credential" :visible.sync="proposalFormActive" @close="deActivateForm()">
       <el-form :model="proposalForm">
         <el-form-item label="Connection:" :label-width="formLabelWidth">
           <el-select
             v-model="proposalForm.connection_id"
             filterable
-            placeholder="Connection">
+            value-key="proposalForm.connection_id"
+            placeholder="Select">
             <el-option
               v-for="connection in connections"
               :key="connection.connection_id"
@@ -75,8 +79,9 @@
           <el-select
             v-model="proposalForm.selected_cred_def"
             filterable
-            placeholder="Credential Definition"
-            value-key="cred_def_id"
+            value-key="proposalForm.selected_cred_def"
+            placeholder="Select"
+            :disabled="!proposalForm.connection_id"
             @change="update_attributes">
             <el-option
               v-for="cred_def in cred_defs"
@@ -103,8 +108,8 @@
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="proposalFormActive = false">Cancel</el-button>
-        <el-button type="primary" @click="propose">Confirm</el-button>
+        <el-button @click="deActivateForm()">Cancel</el-button>
+        <el-button :disabled="!proposalForm.selected_cred_def" type="primary" @click="propose">Confirm</el-button>
       </span>
     </el-dialog>
   </div>
@@ -131,7 +136,7 @@ export default {
       proposalFormActive: false,
       proposalForm: {
         connection_id: '',
-        selected_cred_def: {},
+        selected_cred_def: null,
         comment: '',
         attributes: []
       },
@@ -143,6 +148,15 @@ export default {
       this.expanded_items = this.expanded_items.filter(
         item => item != credential.credential_exchange_id
       );
+    },
+    deActivateForm: function() {
+      this.proposalFormActive = false;
+      this.proposalForm = {
+        connection_id: '',
+        selected_cred_def: null,
+        comment: '',
+        attributes: []
+      };
     },
     propose: function() {
       let values = {
@@ -161,6 +175,7 @@ export default {
     },
     update_attributes: function(cred_def) {
       var comp = this;
+      comp.proposalForm.attributes = [];
       cred_def.attributes.forEach(name => {
         comp.proposalForm.attributes.push({
           name: name,

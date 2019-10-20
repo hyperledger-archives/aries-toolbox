@@ -931,7 +931,9 @@ export default {
     },
     // ---------------------- holder handlers ------------------------
     async holderCredentialRecord(msg){
-      return this.getHoldersCredentials();
+      setTimeout(() => {
+        return this.getHoldersCredentials();
+      }, 4500);
     },
     async holderPresentationRecord(msg){
       return this.getIssuersPresentations();
