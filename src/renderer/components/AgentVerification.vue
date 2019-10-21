@@ -6,6 +6,10 @@
         type="primary"
         icon="el-icon-plus"
         @click="requestFormActive = true">Request Presentation</el-button>
+      <el-button
+        type="primary"
+        icon="el-icon-refresh"
+        @click="$emit('verification-refresh',)"></el-button>
     </nav>
     <el-collapse v-model="expanded_items">
       <ul class="list">
@@ -76,8 +80,9 @@
               icon="el-icon-close"
               @click="remove_attribute(index)"></el-button>
           </el-input>
-          <el-form-item label="Restrictions:" class="restrictions">
+          <el-form-item  label="Restrictions:" class="restrictions">
             <el-select
+              :disabled="true"
               v-model="requestForm.attributes[index].restrictions.cred_def"
               filterable
               no-data-text="No credential definitions"
@@ -90,6 +95,7 @@
               </el-option>
             </el-select>
             <el-select
+              :disabled="true"
               v-model="requestForm.attributes[index].restrictions.trusted_issuer"
               filterable
               no-data-text="No registered trusted issuers"
