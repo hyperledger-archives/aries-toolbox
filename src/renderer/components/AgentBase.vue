@@ -1290,7 +1290,8 @@ export default {
         conn => "state" in conn &&
         conn.state != "active" &&
         conn.state != "invitation" &&
-        conn.state != "error"
+        conn.state != "error" &&
+        conn.state != "static"
       )
     },
     openInvitations(){
