@@ -620,6 +620,7 @@ export default {
       this.connection.send_message(query_msg);
     },
     async verifierRequestPresentation(form){
+      // response comes back in admin-issuer/1.0/presentation-exchange
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/request-presentation",
         connection_id: form.connection_id,
@@ -925,13 +926,20 @@ export default {
       }
     },
     async verifierPresentationListDirective(msg){
-      if('results'in msg ){// should be 'presentations~attach'
+      if('results'in msg ){
         this.issuer_presentations = msg.results;
       }
     },
+    async verifierPresentationExchange(msg){
+      setTimeout(() => {
+        return this.getIssuersPresentations();
+      }, 4500);
+    },
     // ---------------------- holder handlers ------------------------
     async holderCredentialRecord(msg){
-      return this.getHoldersCredentials();
+      setTimeout(() => {
+        return this.getHoldersCredentials();
+      }, 4500);
     },
     async holderPresentationRecord(msg){
       return this.getIssuersPresentations();
@@ -990,6 +998,7 @@ export default {
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/credentials-list": this.issuerCredentialListDirective,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/request-presentation": this.verifierRequestPresentationRecordDirective,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentations-list": this.verifierPresentationListDirective,
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentation-exchange": this.verifierPresentationExchange,
         //=============================== Credential Holder ====================================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credential-exchange": this.holderCredentialRecord,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/presentation-exchange": this.holderPresentationRecord,
