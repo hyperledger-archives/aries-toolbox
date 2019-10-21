@@ -6,6 +6,10 @@
         type="primary"
         icon="el-icon-plus"
         @click="requestFormActive = true">Request Presentation</el-button>
+      <el-button
+        type="primary"
+        icon="el-icon-refresh"
+        @click="$emit('verification-refresh',)"></el-button>
     </nav>
     <el-collapse v-model="expanded_items">
       <ul class="list">

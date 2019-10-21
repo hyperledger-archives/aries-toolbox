@@ -243,6 +243,7 @@
               v-bind:connections="activeConnections"
               v-bind:cred_defs="cred_defs"
               v-bind:trusted_issuers="trusted_issuers"
+              @verification-refresh="getIssuersPresentations"
               @presentation-request="verifierRequestPresentation"></agent-verification>
           </el-tab-pane>
           <el-tab-pane label="Compose">
