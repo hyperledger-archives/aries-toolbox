@@ -414,7 +414,7 @@ export default {
     },
     async fetchAgentStaticConnections(){
       let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-get-list",
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-get-list",
         "~transport": {
           "return_route": "all"
         }
@@ -823,6 +823,13 @@ export default {
       this.connections = connections;
       this.connectionUpdateForm = connections;
     },
+    async fetchedStaticConnectionList(msg){
+      const staticconnections = msg.results.reduce(function(acc, cur, i) {
+        acc[cur.connection_id] = cur;
+        return acc;
+      }, {});
+      this.staticconnections = staticconnections;
+    },
     async fetchedInvitationList(msg){
       const invitations = msg.results.reduce(function(acc, cur, i) {
         acc[cur.connection.connection_id] = cur;
@@ -962,11 +969,12 @@ export default {
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/disclose": this.ProtocolDisclose,
         //=============================== Connections ==========================================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-list": this.fetchedConnectionList,
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-list": this.fetchedStaticConnectionList,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation-list": this.fetchedInvitationList,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection": this.updatedConnection,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/ack": this.fetchAgentConnections,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation": this.newInvitation,
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-info":this.updatedConnection,// handle added statuc agent
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-info":this.fetchAgentStaticConnections,// handle added statuc agent
         //=============================== Dids =================================================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/list-dids":this.receivedAgentDids,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/did":this.updatedDid,

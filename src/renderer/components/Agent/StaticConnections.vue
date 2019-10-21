@@ -8,13 +8,13 @@
           v-for="c in staticconnections"
           v-bind:title="get_name(c)"
           :name="get_name(c)"
-          :key="c.connection.connection_id">
-          <el-row :key="c.connection.connection_id">
-            <p>Their DID: {{c.connection.their_role}}</p>
-            <p>Their VK: {{c.connection.invitation_mode}}</p>
-            <p>My DID: {{c.connection.their_role}}</p>
-            <p>My VK: {{c.connection.invitation_mode}}</p>
-            <p>Created: {{c.connection.created_at}}</p>
+          :key="c.connection_id">
+          <el-row :key="c.connection_id">
+            <p><b>My DID:</b> {{c.my_info.did}} <el-button type="info" icon="el-icon-copy-document" circle @click="copyItem(c.my_info.did, 'DID')"></el-button></p>
+            <p><b>My VK:</b> {{c.my_info.vk}} <el-button type="info" icon="el-icon-copy-document" circle @click="copyItem(c.my_info.vk, 'VK')"></el-button></p>
+            <p><b>My Endpoint:</b> {{c.my_info.endpoint}} <el-button type="info" icon="el-icon-copy-document" circle @click="copyItem(c.my_info.endpoint, 'Endpoint')"></el-button></p>
+            <p><b>Remote DID:</b> {{c.their_info.did}}</p>
+            <p><b>Remote VK:</b> {{c.their_info.vk}}</p>
             <div>
               <vue-json-pretty
                 :deep=1
@@ -90,8 +90,17 @@ export default {
       this.$emit('send-connection-message', query_msg);
     },
 
-    get_name: function(i) {
-      return i.connection.invitation_mode +" / "+ i.connection.their_role +" / "+ i.connection.created_at ;
+    get_name: function(c) {
+      return c.their_info.label; //i.connection.invitation_mode +" / "+ i.connection.their_role +" / "+ i.connection.created_at ;
+    },
+    copyItem: function(item,title){
+      clipboard.writeText(item);
+      this.$notify({
+          type: 'success',
+          title: 'Copied',
+          message: 'This '+title+' has been copied to the clipboard.',
+          duration: 2000
+        });
     },
   }
 }
