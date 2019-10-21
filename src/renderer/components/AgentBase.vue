@@ -134,7 +134,7 @@
                 v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
 
               <p>Add connection from invitation:</p>
-              <el-form :model=agent_invitation_form>
+              <el-form @submit.native.prevent :model=agent_invitation_form>
                 <el-form-item
                   label="Invitation URL:">
                   <el-input
