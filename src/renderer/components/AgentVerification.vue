@@ -144,6 +144,7 @@
           </el-input>
           <el-form-item label="Restrictions:" class="restrictions">
             <el-select
+              :disabled="true"
               v-model="requestForm.predicates[index].restrictions.cred_def"
               filterable
               no-data-text="No credential definitions"
@@ -156,6 +157,7 @@
               </el-option>
             </el-select>
             <el-select
+              :disabled="true"
               v-model="requestForm.predicates[index].restrictions.trusted_issuer"
               filterable
               no-data-text="No registered trusted issuers"
