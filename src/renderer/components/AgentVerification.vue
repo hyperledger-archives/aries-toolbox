@@ -76,8 +76,9 @@
               icon="el-icon-close"
               @click="remove_attribute(index)"></el-button>
           </el-input>
-          <el-form-item label="Restrictions:" class="restrictions">
+          <el-form-item  label="Restrictions:" class="restrictions">
             <el-select
+              :disabled="true"
               v-model="requestForm.attributes[index].restrictions.cred_def"
               filterable
               no-data-text="No credential definitions"
@@ -90,6 +91,7 @@
               </el-option>
             </el-select>
             <el-select
+              :disabled="true"
               v-model="requestForm.attributes[index].restrictions.trusted_issuer"
               filterable
               no-data-text="No registered trusted issuers"
