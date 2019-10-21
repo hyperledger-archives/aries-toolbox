@@ -10,11 +10,11 @@
     <el-collapse v-model="expanded_items">
       <ul class="list">
         <el-collapse-item
-          v-if="list.length"
-          v-for="presentation in list"
-          v-bind:title="connection_map[presentation.connection_id].their_label + ' ' + presentation.credential_definition_id"
-          :name="presentation.credential_definition_id"
-          :key="presentation.creential_definition_id">
+          v-if="presentations.length"
+          v-for="presentation in presentations"
+          v-bind:title="presentation.connection_their_label + ' ' + presentation.presentation_exchange_id"
+          :name="presentation.presentation_exchange_id"
+          :key="presentation.presentation_exchange_id">
           <el-row>
             <div>
               <vue-json-pretty
@@ -275,6 +275,19 @@ export default {
       console.log(map);
       return map;
     },
+    presentations: function() {
+        let joinedPresentationsConnections = this.list.map((item) => {
+          var index = this.connections.map(function(x) {return x.connection_id; }).indexOf(item.connection_id);
+          var objectFound = this.connections[index];
+          if (index >= 0) {
+            item.connection_their_label = this.connections[index].their_label
+          }else{
+            item.connection_their_label = "deleted connetion"
+          }
+        return item;
+        },{})
+        return joinedPresentationsConnections;
+      },
     completed_verifications: function() {
       return this.list.filter(pres_exch => pres_exch.state === 'verified');
     }
@@ -282,7 +295,7 @@ export default {
   methods: {
     collapse_expanded: function(creddef) {
       this.expanded_items = this.expanded_items.filter(
-        item => item != creddef.cred_def_id
+        item => item != creddef.presentation_exchange_id
       );
     },
     send: function() {
