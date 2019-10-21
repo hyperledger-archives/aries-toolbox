@@ -13,7 +13,13 @@
       </span>
     </el-dialog>
 
-
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <a class="navbar-brand" href="#">Invitations</a>
+      <el-button
+        type="primary"
+        icon="el-icon-refresh"
+        @click="$emit('refresh',)"></el-button>
+  </nav>
   <el-collapse v-model="expanded_items">
       <ul class="list">
         <el-collapse-item

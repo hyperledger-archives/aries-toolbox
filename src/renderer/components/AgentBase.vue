@@ -86,6 +86,13 @@
           </el-form-item>
           </el-form>
           </el-tab-pane> -->
+          <el-tab-pane label="Invitations">
+            <agent-invitations
+                    v-bind:invitations="invitations"
+                    v-on:refresh="fetchAgentInvitations"
+                    v-on:send-connection-message="send_connection_message">
+            </agent-invitations>
+          </el-tab-pane>
           <el-tab-pane label="Connections">
             <el-row>
               <agent-connection-list
@@ -147,14 +154,9 @@
           <el-tab-pane label="Static Connections">
             <agent-static-connections
                     v-bind:staticconnections="staticconnections"
+                    v-on:refresh="fetchAgentStaticConnections"
                     v-on:send-connection-message="send_connection_message">
             </agent-static-connections>
-          </el-tab-pane>
-          <el-tab-pane label="Invitations">
-            <agent-invitations
-                    v-bind:invitations="invitations"
-                    v-on:send-connection-message="send_connection_message">
-            </agent-invitations>
           </el-tab-pane>
           <el-tab-pane label="Credential Issuance">
             <el-row>
@@ -1290,8 +1292,7 @@ export default {
         conn => "state" in conn &&
         conn.state != "active" &&
         conn.state != "invitation" &&
-        conn.state != "error" &&
-        conn.state != "static"
+        conn.state != "error"
       )
     },
     openInvitations(){

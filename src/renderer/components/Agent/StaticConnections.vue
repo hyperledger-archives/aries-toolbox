@@ -1,7 +1,13 @@
 <template >
 
 <el-row>
-
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <a class="navbar-brand" href="#">Static Connection</a>
+      <el-button
+        type="primary"
+        icon="el-icon-refresh"
+        @click="$emit('refresh',)"></el-button>
+    </nav>
   <el-collapse v-model="expanded_items">
       <ul class="list">
         <el-collapse-item
@@ -10,9 +16,9 @@
           :name="get_name(c)"
           :key="c.connection_id">
           <el-row :key="c.connection_id">
-            <p><b>My DID:</b> {{c.my_info.did}} <el-button type="info" icon="el-icon-copy-document" circle @click="copyItem(c.my_info.did, 'DID')"></el-button></p>
-            <p><b>My VK:</b> {{c.my_info.vk}} <el-button type="info" icon="el-icon-copy-document" circle @click="copyItem(c.my_info.vk, 'VK')"></el-button></p>
-            <p><b>My Endpoint:</b> {{c.my_info.endpoint}} <el-button type="info" icon="el-icon-copy-document" circle @click="copyItem(c.my_info.endpoint, 'Endpoint')"></el-button></p>
+            <p><b>My DID:</b> {{c.my_info.did}} <el-button type="info" icon="el-icon-copy-document" size="mini" circle @click="copyItem(c.my_info.did, 'DID')"></el-button></p>
+            <p><b>My VK:</b> {{c.my_info.vk}} <el-button type="info" icon="el-icon-copy-document" size="mini" circle @click="copyItem(c.my_info.vk, 'VK')"></el-button></p>
+            <p><b>My Endpoint:</b> {{c.my_info.endpoint}} <el-button type="info" icon="el-icon-copy-document" size="mini" circle @click="copyItem(c.my_info.endpoint, 'Endpoint')"></el-button></p>
             <p><b>Remote DID:</b> {{c.their_info.did}}</p>
             <p><b>Remote VK:</b> {{c.their_info.vk}}</p>
             <div>
