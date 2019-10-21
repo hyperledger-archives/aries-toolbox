@@ -141,33 +141,20 @@
                   </el-input>
                 </el-form-item>
               </el-form>
-              <p>Add Static Agent:</p>
-              <el-form :model=static_agent_form>
-                <div>
-                  <span slot="label">Label:</span>
-                  <el-input v-model="static_agent_form.label" style="width:100px;"> </el-input>
-                  <span slot="label">Role:</span>
-                  <el-input v-model="static_agent_form.role" style="width:100px;"> </el-input>
-                  <span slot="label">Static Did:</span>
-                  <el-input v-model="static_agent_form.static_did" style="width:100px;"> </el-input>
-                  <span slot="label">Static Key:</span>
-                  <el-input v-model="static_agent_form.static_key" style="width:100px;"> </el-input>
-                  <span slot="label">Static Endpoint:</span>
-                  <el-input v-model="static_agent_form.static_endpoint" style="width:100px;"> </el-input>
-                </div>
-                <el-form-item>
-                  <el-button type="primary" @click="addStaticAgent()">Add Static Agent</el-button>
-                </el-form-item>
-              </el-form>
+
             </el-row>
+          </el-tab-pane>
+          <el-tab-pane label="Static Connections">
+            <agent-static-connections
+                    v-bind:staticconnections="staticconnections"
+                    v-on:send-connection-message="send_connection_message">
+            </agent-static-connections>
           </el-tab-pane>
           <el-tab-pane label="Invitations">
             <agent-invitations
                     v-bind:invitations="invitations"
                     v-on:send-connection-message="send_connection_message">
-
             </agent-invitations>
-
           </el-tab-pane>
           <el-tab-pane label="Credential Issuance">
             <el-row>
@@ -340,6 +327,7 @@ import AgentSchemaList from './AgentSchemaList.vue';
 import AgentCredDefList from './AgentCredDefList.vue';
 import AgentIssueCredList from './AgentIssueCredList.vue';
 import AgentInvitations from './Agent/Invitations.vue';
+import AgentStaticConnections from './Agent/StaticConnections.vue';
 import AgentMyCredentialsList from './AgentMyCredentialsList.vue';
 import AgentTrust from './AgentTrust.vue';
 import Presentations from './Agent/Presentations.vue';
@@ -356,6 +344,7 @@ export default {
     AgentCredDefList,
     AgentIssueCredList,
     AgentInvitations,
+    AgentStaticConnections,
     AgentMyCredentialsList,
     AgentTrust,
     Presentations,
@@ -423,6 +412,15 @@ export default {
       }
       this.connection.send_message(query_msg);
     },
+    async fetchAgentStaticConnections(){
+      let query_msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-get-list",
+        "~transport": {
+          "return_route": "all"
+        }
+      }
+      this.connection.send_message(query_msg);
+    },
     async updateAgentConnection(editForm){
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/update",
@@ -453,20 +451,6 @@ export default {
       setTimeout(() => {
         return this.fetchAgentConnections();
       }, 4000);
-    },
-    async addStaticAgent(){
-      let query_msg ={
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/create-static-connection",
-        "label": this.static_agent_form.label,
-        "role": this.static_agent_form.role,
-        "static_did": this.static_agent_form.static_did,
-        "static_key": this.static_agent_form.static_key,
-        "static_endpoint": this.static_agent_form.static_endpoint,
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      this.connection.send_message(query_msg);
     },
     //================================ Did events ================================
     async getAgentDids(){
@@ -1247,6 +1231,7 @@ export default {
         'leger':'',
       },
       'connections':{},
+      'staticconnections': {},
       'connectionUpdateForm':{},
       'exspanded_connection_items':[],
       'exspanded_active_connection_items':[],
@@ -1270,13 +1255,6 @@ export default {
       'expanded_pres_ver_items':[],
       'agent_invitation_form':{
         'invitation':'',
-      },
-      'static_agent_form':{
-        'label':"",
-        'role':"",
-        'static_did':"",
-        'static_key':"",
-        'static_endpoint':"",
       },
     }
   },
@@ -1623,6 +1601,7 @@ export default {
     this.getHoldersPresentations();
     this.run_protocol_discovery();
     this.fetchAgentConnections();
+    this.fetchAgentStaticConnections();
     this.fetchAgentInvitations();
     // await this.fetchNewInvite(); // do not automatically create invite
   },
