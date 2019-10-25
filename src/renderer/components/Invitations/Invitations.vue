@@ -80,7 +80,6 @@ import VueQrcode from '@chenfengyuan/vue-qrcode';
 
 export default {
   name: 'agent-invitations',
-  props: ['bus',],
   components: {
     VueJsonPretty,
     'qrcode': VueQrcode
@@ -88,6 +87,7 @@ export default {
   data () {
     return {
       invitations: [],
+      bus: this.$message_bus[this.$route.params.agentid],
       expanded_items: [],
       QRDialogVisible: false,
       QRDialogURL: '',
@@ -107,11 +107,11 @@ export default {
       'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation-list',
       this.fetchedInvitationList
     )
-    this.bus.$on('agent-created', this.onAgentCreated);
+    this.bus.$on('invitations', this.onOpen);
   },
   methods: {
-    onAgentCreated() {
-      this.fetchAgentInvitations()
+    onOpen: function() {
+      this.fetchAgentInvitations();
     },
     async fetchNewInvite(){
       let query_msg = {
@@ -140,8 +140,8 @@ export default {
     },
     async newInvitation(msg){
       console.log(msg.invitation);
-      this.invitations.push(msg.invitation);
-      //this.fetchAgentInvitations();
+      //this.invitations.push(msg.invitation);
+      this.fetchAgentInvitations();
     },
     async fetchedInvitationList(msg){
       this.invitations = msg.results;

@@ -25,7 +25,10 @@
       </el-form>
     </nav>
 
-    <el-tabs type="border-card">
+    <el-tabs
+      type="border-card"
+      v-model="open_tab"
+      @tab-click="clickedTab">
       <el-tab-pane label="Dids">
         <agent-did-list
           title="Dids:"
@@ -86,12 +89,8 @@
           </el-form-item>
           </el-form>
           </el-tab-pane> -->
-          <el-tab-pane label="Invitations">
-            <agent-invitations
-              :bus="message_bus"
-              v-bind:invitations="invitations"
-              v-on:send-connection-message="send_connection_message">
-            </agent-invitations>
+          <el-tab-pane label="Invitations" name="invitations">
+            <agent-invitations></agent-invitations>
           </el-tab-pane>
           <el-tab-pane label="Connections">
             <el-row>
@@ -372,6 +371,11 @@ export default {
     },
     async send_connection_message(msg){
       this.connection.send_message(msg);
+    },
+    clickedTab: function(tab) {
+      if (tab.name){
+        this.bus.$emit(tab.name);
+      }
     },
     async run_protocol_discovery(){
       //send query
@@ -977,7 +981,7 @@ export default {
         console.log("Message without handler", msg);
       }
 
-      this.message_bus.$emit(msg['@type'], msg);
+      this.bus.$emit(msg['@type'], msg);
     },
     connectionsInvitationModeFilterForMulti(connections){
       return Object.keys(connections).reduce((acc, val) =>
@@ -1112,7 +1116,8 @@ export default {
   data() {
     return {
       'id': this.$route.params.agentid,
-      'message_bus': new Vue(),
+      'bus': this.$message_bus[this.$route.params.agentid],
+      'open_tab': 0,
       'connection': {'label':'loading...'},
       'connection_loaded': false,
       'message_history':[],
@@ -1570,6 +1575,9 @@ export default {
       },
     },
   },
+  beforeCreate: function() {
+    this.$message_bus[this.$route.params.agentid] = new Vue();
+  },
   async created () {
     // fetch the data when the view is created and the data is
     // already being observed
@@ -1587,8 +1595,8 @@ export default {
     this.fetchAgentStaticConnections();
     //this.fetchAgentInvitations();
     // await this.fetchNewInvite(); // do not automatically create invite
-    this.message_bus.$on('send-message', this.send_connection_message);
-    this.message_bus.$emit('agent-created');
+    this.bus.$on('send-message', this.send_connection_message);
+    this.bus.$emit('agent-created');
   },
   watch:{},
 }

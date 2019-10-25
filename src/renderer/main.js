@@ -12,6 +12,7 @@ Vue.use(require('vue-electron'));
 Vue.use(ElementUI)
 Vue.http = Vue.prototype.$http = axios;
 Vue.config.productionTip = false;
+Vue.message_bus = Vue.prototype.$message_bus = {}
 
 /* eslint-disable no-new */
 new Vue({
