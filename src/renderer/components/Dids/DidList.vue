@@ -73,6 +73,9 @@ export default {
       formLabelWidth: '100px'
     }
   },
+  /*           v-on:did-update="updateAgentDid"
+          v-on:did-activate="activateAgentDid"
+          v-on:did-resolve="resolveTrustedIssuer" */
   methods: {
     get_name: function(did) {
       if('metadata'in did && 'label' in did.metadata) {

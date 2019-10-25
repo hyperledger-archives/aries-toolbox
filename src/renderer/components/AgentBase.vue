@@ -25,30 +25,12 @@
       </el-form>
     </nav>
 
-    <el-tabs type="border-card">
-      <el-tab-pane label="Dids">
-        <agent-did-list
-          title="Dids:"
-          activeDid="activeDid()"
-          v-bind:list="Object.values(dids)"
-          v-on:did-update="updateAgentDid"
-          v-on:did-activate="activateAgentDid"
-          v-on:did-resolve="resolveTrustedIssuer"></agent-did-list>
-        <p>Create a Did:</p>
-        <el-form :model=did_form>
-          <div>
-            <span slot="label">Did:</span>
-            <el-input v-model="did_form.did" style="width:100px;"> </el-input>
-            <span slot="label">Seed:</span>
-            <el-input v-model="did_form.seed" style="width:100px;"> </el-input>
-            <span slot="label">Alias:</span>
-            <el-input v-model="did_form.label" style="width:100px;"> </el-input>
-          </div>
-          <div>
-            <el-button type="primary" @click="createDid()">Create DID</el-button>
-          </div>
-          <link rel="shortcut icon" href="/static"/>
-        </el-form>
+    <el-tabs 
+      type="border-card"
+      v-model="open_tab"
+      @tab-click="clickedTab">
+      <el-tab-pane label="Dids" name="dids">
+        <dids-tab></dids-tab>
       </el-tab-pane>
 
       <!-- <el-tab-pane label="Ledger">
@@ -324,7 +306,7 @@ import { from_store } from '../connection_detail.js';
 import VueJsonPretty from 'vue-json-pretty';
 import VJsoneditor from 'v-jsoneditor';
 import AgentConnectionList from './AgentConnectionList.vue';
-import AgentDidList from './AgentDidList.vue';
+import DidsTab from './Dids/DidsTab.vue';
 import AgentSchemaList from './AgentSchemaList.vue';
 import AgentCredDefList from './AgentCredDefList.vue';
 import AgentIssueCredList from './AgentIssueCredList.vue';
@@ -341,7 +323,7 @@ export default {
     VueJsonPretty,
     VJsoneditor,
     AgentConnectionList,
-    AgentDidList,
+    DidsTab,
     AgentSchemaList,
     AgentCredDefList,
     AgentIssueCredList,
@@ -453,61 +435,6 @@ export default {
       setTimeout(() => {
         return this.fetchAgentConnections();
       }, 4000);
-    },
-    //================================ Did events ================================
-    async getAgentDids(){
-      this.connection.send_message( {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/get-list-dids",
-        "~transport": {
-          "return_route": "all"
-        }
-      })
-    },
-    async createDid(){
-      let msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/create-did",
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      msg = this.did_form.did ? {...msg,"did":this.did_form.did} : msg
-      msg = this.did_form.seed ? {...msg,"seed":this.did_form.seed} : msg
-      msg = this.did_form.label ? {...msg, "metadata": {"label":this.did_form.label}} : msg
-      this.connection.send_message(msg)
-    },
-    async getAgentActivePublicDid(did){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/get-public-did",
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      this.connection.send_message(query_msg);
-    },
-    async activateAgentDid(did){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/set-public-did",
-        "did": did.did,
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      this.connection.send_message(query_msg);
-    },
-    async updateAgentDid(editForm){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/set-did-metadata",
-        "did": editForm.did,
-        "metadata": { 
-          ...editForm.metadata,
-          'label':editForm.label,
-          'permission':editForm.permission,
-        },
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      this.connection.send_message(query_msg);
     },      
 
     async compose_send(){
@@ -791,32 +718,7 @@ export default {
      *  Received Agent admin messages with directives containing state of wallet and did connections to be displayed.
      */
     //=========================================================================================================================
-    async receivedAgentDids(msg){
-      const dids = msg.result.reduce(function(acc, cur, i) {
-        acc[cur.did] = cur;
-        return acc;
-      }, {});
-      this.dids = dids
-      this.didsUpdateForm = dids
-    },
-    async updatedDid(msg){
-      if ('result' in msg &&
-        'did' in msg.result) {
-        this.dids[msg.result.did] = msg.result
-        this.did_form.did = ""
-        this.did_form.seed = ""
-        this.did_form.label = ""
-        this.didsUpdateForm = this.dids
-        //if "public" in info.metadata and info.metadata["public"] is True:
-        if('metadata' in msg.result && 
-          'public' in msg.result.metadata && 
-          msg.result.metadata.public === true){
-          this.public_did = msg.result.did
-          this.active_ledger_selector.did = this.public_did
-        }
-        this.getAgentDids()
-      }
-    },
+
     async fetchedConnectionList(msg){
       const connections = msg.results.reduce(function(acc, cur, i) {
         acc[cur.connection_id] = cur;
@@ -977,9 +879,6 @@ export default {
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/ack": this.fetchAgentConnections,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation": this.newInvitation,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-info":this.fetchAgentStaticConnections,// handle added statuc agent
-        //=============================== Dids =================================================
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/list-dids":this.receivedAgentDids,
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/did":this.updatedDid,
         //=============================== Schemas ==============================================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-list": this.getSchemaListResponse,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-id": this.sendSchemaResponse,
@@ -1006,6 +905,7 @@ export default {
       } else {
         console.log("Message without handler", msg);
       }
+      this.bus.$emit(msg['@type'], msg);
     },
     connectionsInvitationModeFilterForMulti(connections){
       return Object.keys(connections).reduce((acc, val) =>
@@ -1140,6 +1040,8 @@ export default {
   data() {
     return {
       'id': this.$route.params.agentid,
+      'bus': this.$message_bus[this.$route.params.agentid],
+      'open_tab': 0,
       'connection': {'label':'loading...'},
       'connection_loaded': false,
       'message_history':[],
@@ -1163,7 +1065,6 @@ export default {
           'name':'adams',
         },
       },
-      'dids':{},
       'trusted_issuers':{},
       'schemas':[],
       'schemas_form':{
@@ -1192,12 +1093,7 @@ export default {
         'did':'',
         'label':'',
       },
-      'did_form':{
-        'did':'',
-        'seed':'',
-        'label':'',
-        'metadata':'',
-      },
+      
       'ledger_form':{
         'name':'',
         'gen_url':'',
@@ -1597,6 +1493,9 @@ export default {
       },
     },
   },
+  beforeCreate: function() {
+    this.$message_bus[this.$route.params.agentid] = new Vue();
+  },
   async created () {
     // fetch the data when the view is created and the data is
     // already being observed
@@ -1614,7 +1513,9 @@ export default {
     this.fetchAgentStaticConnections();
     this.fetchAgentInvitations();
     // await this.fetchNewInvite(); // do not automatically create invite
+    this.bus.$on('send-message', this.send_connection_message);
+    this.bus.$emit('agent-created');
   },
-  watch:{}
+  watch:{},
 }
 </script>
