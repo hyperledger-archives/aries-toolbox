@@ -68,12 +68,8 @@
           </el-form-item>
           </el-form>
           </el-tab-pane> -->
-          <el-tab-pane label="Invitations">
-            <agent-invitations
-                    v-bind:invitations="invitations"
-                    v-on:refresh="fetchAgentInvitations"
-                    v-on:send-connection-message="send_connection_message">
-            </agent-invitations>
+          <el-tab-pane label="Invitations" name="invitations">
+            <agent-invitations></agent-invitations>
           </el-tab-pane>
           <el-tab-pane label="Connections">
             <el-row>
@@ -310,12 +306,13 @@ import DidsTab from './Dids/DidsTab.vue';
 import AgentSchemaList from './AgentSchemaList.vue';
 import AgentCredDefList from './AgentCredDefList.vue';
 import AgentIssueCredList from './AgentIssueCredList.vue';
-import AgentInvitations from './Agent/Invitations.vue';
+import AgentInvitations from './Invitations/Invitations.vue';
 import AgentStaticConnections from './Agent/StaticConnections.vue';
 import AgentMyCredentialsList from './AgentMyCredentialsList.vue';
 import AgentTrust from './AgentTrust.vue';
 import Presentations from './Agent/Presentations.vue';
 import AgentVerification from './AgentVerification.vue';
+import Vue from 'vue';
 
 export default {
   name: 'agent-base',
@@ -354,14 +351,10 @@ export default {
     async send_connection_message(msg){
       this.connection.send_message(msg);
     },
-    async fetchAgentInvitations(){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation-get-list",
-        "~transport": {
-          "return_route": "all"
-        }
+    clickedTab: function(tab) {
+      if (tab.name){
+        this.bus.$emit(tab.name);
       }
-      this.connection.send_message(query_msg);
     },
     async run_protocol_discovery(){
       //send query
@@ -734,14 +727,6 @@ export default {
       }, {});
       this.staticconnections = staticconnections;
     },
-    async fetchedInvitationList(msg){
-      const invitations = msg.results.reduce(function(acc, cur, i) {
-        acc[cur.connection.connection_id] = cur;
-        return acc;
-      }, {});
-      this.invitations = invitations;
-      this.invitationUpdateForm = invitations;
-    },
     async updatedConnection(msg){
       return this.fetchAgentConnections();
       /* this.connections[msg.connection.connection_id] = msg.connection
@@ -850,18 +835,6 @@ export default {
         this.holder_presentations = msg.results;
       }
     },
-    async newInvitation(msg){
-      console.log(msg.invitation);
-      // refetch list
-      this.fetchAgentInvitations();
-
-      /*this.invitations[ msg.connection_id] = {
-        //... msg.invitation, // invitations is not a json yet...
-        "invitation": msg.invitation,
-        "connection_id" : msg.connection_id,
-        "invitation_url": msg.invitation_url
-      }*/
-    },
     async ProtocolDisclose(msg){
       //console.log(msg.protocols);
       this.supported_protocols = msg.protocols;
@@ -874,10 +847,8 @@ export default {
         //=============================== Connections ==========================================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-list": this.fetchedConnectionList,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-list": this.fetchedStaticConnectionList,
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation-list": this.fetchedInvitationList,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection": this.updatedConnection,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/ack": this.fetchAgentConnections,
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation": this.newInvitation,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-info":this.fetchAgentStaticConnections,// handle added statuc agent
         //=============================== Schemas ==============================================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-list": this.getSchemaListResponse,
@@ -905,6 +876,10 @@ export default {
       } else {
         console.log("Message without handler", msg);
       }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 3e045d146fe10850398d89909c8de0a0b467b2fa
       this.bus.$emit(msg['@type'], msg);
     },
     connectionsInvitationModeFilterForMulti(connections){
@@ -1511,7 +1486,7 @@ export default {
     this.run_protocol_discovery();
     this.fetchAgentConnections();
     this.fetchAgentStaticConnections();
-    this.fetchAgentInvitations();
+    //this.fetchAgentInvitations();
     // await this.fetchNewInvite(); // do not automatically create invite
     this.bus.$on('send-message', this.send_connection_message);
     this.bus.$emit('agent-created');
