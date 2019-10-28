@@ -42,10 +42,14 @@ export default function() {
                         console.error('Could not derive message bus from parent tree');
                         message_bus = {
                             $on: function () {
-                                console.error('A message_bus could not be derived on this component. Make sure message bus "source" has been specified in this components parent tree.')
+                                console.error(
+                                    'A message_bus could not be derived on this component. Make sure message bus "source" has been specified in this components parent tree.'
+                                );
                             },
                             $emit: function() {
-                                console.error('A message_bus could not be derived on this component. Make sure message bus "source" has been specified in this components parent tree.')
+                                console.error(
+                                    'A message_bus could not be derived on this component. Make sure message bus "source" has been specified in this components parent tree.'
+                                );
                             }
                         }
                     }
@@ -53,16 +57,6 @@ export default function() {
                 } else {
                     console.error('Unrecognized message bus option:', options.message_bus);
                 }
-            } else {
-                // Gaurdrails to assist agent component developers.
-                this.$message_bus = {
-                    $on: function () {
-                        console.error('The `message_bus` option on this component was not specified. Add `message_bus: "[source|derive],"` to your options.')
-                    },
-                    $emit: function() {
-                        console.error('The `message_bus` option on this component was not specified. Add `message_bus: "[source|derive],"` to your options.')
-                    }
-                };
             }
         }
     });
