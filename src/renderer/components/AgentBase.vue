@@ -2,13 +2,15 @@
   <div id="wrapper" class="container-fluid">
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <a class="navbar-brand" href="#">{{connection.label}}</a>
-      <!-- active privileged did -->
-      <el-form :model=active_ledger_selector>
-        <!-- <el-select v-model="active_ledger_selector.did" filterable placeholder="activate did" > -->
-        <el-select  v-model="selectedActiveDid" 
-                    filterable placeholder="activate did">
-          <el-option
-            v-for="did in Object.values(dids)"
+      <el-form 
+        v-if="$refs.didsTab" 
+        :disabled="Object.keys($refs.didsTab.dids).length === 0"
+        :model="$refs.didsTab.active_ledger_selector">
+        <el-select  
+          v-model="selectedActiveDid" 
+          filterable placeholder="activate did">
+          <el-option 
+            v-for="did in Object.values($refs.didsTab.dids)"
             :key="did.did"
             :label="did.did"
             :value="did">
@@ -25,33 +27,12 @@
       </el-form>
     </nav>
 
-    <el-tabs
+    <el-tabs 
       type="border-card"
       v-model="open_tab"
       @tab-click="clickedTab">
-      <el-tab-pane label="Dids">
-        <agent-did-list
-          title="Dids:"
-          activeDid="activeDid()"
-          v-bind:list="Object.values(dids)"
-          v-on:did-update="updateAgentDid"
-          v-on:did-activate="activateAgentDid"
-          v-on:did-resolve="resolveTrustedIssuer"></agent-did-list>
-        <p>Create a Did:</p>
-        <el-form :model=did_form>
-          <div>
-            <span slot="label">Did:</span>
-            <el-input v-model="did_form.did" style="width:100px;"> </el-input>
-            <span slot="label">Seed:</span>
-            <el-input v-model="did_form.seed" style="width:100px;"> </el-input>
-            <span slot="label">Alias:</span>
-            <el-input v-model="did_form.label" style="width:100px;"> </el-input>
-          </div>
-          <div>
-            <el-button type="primary" @click="createDid()">Create DID</el-button>
-          </div>
-          <link rel="shortcut icon" href="/static"/>
-        </el-form>
+      <el-tab-pane label="Dids" name="dids">
+        <dids-tab ref="didsTab"></dids-tab>
       </el-tab-pane>
 
       <!-- <el-tab-pane label="Ledger">
@@ -323,7 +304,7 @@ import { from_store } from '../connection_detail.js';
 import VueJsonPretty from 'vue-json-pretty';
 import VJsoneditor from 'v-jsoneditor';
 import AgentConnectionList from './AgentConnectionList.vue';
-import AgentDidList from './AgentDidList.vue';
+import DidsTab from './Dids/DidsTab.vue';
 import AgentSchemaList from './AgentSchemaList.vue';
 import AgentCredDefList from './AgentCredDefList.vue';
 import AgentIssueCredList from './AgentIssueCredList.vue';
@@ -342,7 +323,7 @@ export default {
     VueJsonPretty,
     VJsoneditor,
     AgentConnectionList,
-    AgentDidList,
+    DidsTab,
     AgentSchemaList,
     AgentCredDefList,
     AgentIssueCredList,
@@ -374,9 +355,11 @@ export default {
       this.connection.send_message(msg);
     },
     clickedTab: function(tab) {
+      console.log("clickedTab",tab.name);
       if (tab.name){
         this.$message_bus.$emit(tab.name);
       }
+      this.$forceUpdate();
     },
     async run_protocol_discovery(){
       //send query
@@ -450,61 +433,6 @@ export default {
       setTimeout(() => {
         return this.fetchAgentConnections();
       }, 4000);
-    },
-    //================================ Did events ================================
-    async getAgentDids(){
-      this.connection.send_message( {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/get-list-dids",
-        "~transport": {
-          "return_route": "all"
-        }
-      })
-    },
-    async createDid(){
-      let msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/create-did",
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      msg = this.did_form.did ? {...msg,"did":this.did_form.did} : msg
-      msg = this.did_form.seed ? {...msg,"seed":this.did_form.seed} : msg
-      msg = this.did_form.label ? {...msg, "metadata": {"label":this.did_form.label}} : msg
-      this.connection.send_message(msg)
-    },
-    async getAgentActivePublicDid(did){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/get-public-did",
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      this.connection.send_message(query_msg);
-    },
-    async activateAgentDid(did){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/set-public-did",
-        "did": did.did,
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      this.connection.send_message(query_msg);
-    },
-    async updateAgentDid(editForm){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/set-did-metadata",
-        "did": editForm.did,
-        "metadata": { 
-          ...editForm.metadata,
-          'label':editForm.label,
-          'permission':editForm.permission,
-        },
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      this.connection.send_message(query_msg);
     },      
 
     async compose_send(){
@@ -758,13 +686,6 @@ export default {
       //this.connection.send_message(query_msg);
       this.$delete(this.trusted_issuers,did.id)// TODO:remove this after aca-py support is added.
     },
-    async resolveTrustedIssuer(did){
-      let query_msg = {
-        "@type": "",
-        "issuer_did": did,
-      }
-      this.connection.send_message(query_msg);
-    },
     async storeTrustedIssuer(trusted_did){
       /* let query_msg = {
         "@type": "",
@@ -788,32 +709,7 @@ export default {
      *  Received Agent admin messages with directives containing state of wallet and did connections to be displayed.
      */
     //=========================================================================================================================
-    async receivedAgentDids(msg){
-      const dids = msg.result.reduce(function(acc, cur, i) {
-        acc[cur.did] = cur;
-        return acc;
-      }, {});
-      this.dids = dids
-      this.didsUpdateForm = dids
-    },
-    async updatedDid(msg){
-      if ('result' in msg &&
-        'did' in msg.result) {
-        this.dids[msg.result.did] = msg.result
-        this.did_form.did = ""
-        this.did_form.seed = ""
-        this.did_form.label = ""
-        this.didsUpdateForm = this.dids
-        //if "public" in info.metadata and info.metadata["public"] is True:
-        if('metadata' in msg.result && 
-          'public' in msg.result.metadata && 
-          msg.result.metadata.public === true){
-          this.public_did = msg.result.did
-          this.active_ledger_selector.did = this.public_did
-        }
-        this.getAgentDids()
-      }
-    },
+
     async fetchedConnectionList(msg){
       const connections = msg.results.reduce(function(acc, cur, i) {
         acc[cur.connection_id] = cur;
@@ -952,9 +848,6 @@ export default {
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection": this.updatedConnection,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/ack": this.fetchAgentConnections,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-info":this.fetchAgentStaticConnections,// handle added statuc agent
-        //=============================== Dids =================================================
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/list-dids":this.receivedAgentDids,
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/did":this.updatedDid,
         //=============================== Schemas ==============================================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-list": this.getSchemaListResponse,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-id": this.sendSchemaResponse,
@@ -1122,7 +1015,6 @@ export default {
       'connection_loaded': false,
       'message_history':[],
       'last_sent_msg_id':'',
-      'public_did':'',
       'ledgers':{
         '12345234':{
           'id':'12345234',
@@ -1141,7 +1033,6 @@ export default {
           'name':'adams',
         },
       },
-      'dids':{},
       'trusted_issuers':{},
       'schemas':[],
       'schemas_form':{
@@ -1170,12 +1061,7 @@ export default {
         'did':'',
         'label':'',
       },
-      'did_form':{
-        'did':'',
-        'seed':'',
-        'label':'',
-        'metadata':'',
-      },
+      
       'ledger_form':{
         'name':'',
         'gen_url':'',
@@ -1215,9 +1101,6 @@ export default {
         "response_requested": true
       },
       'basicmessage_compose': "",
-      'active_ledger_selector':{
-        'leger':'',
-      },
       'connections':{},
       'staticconnections': {},
       'connectionUpdateForm':{},
@@ -1312,7 +1195,7 @@ export default {
     // ---------------------- Issuer Credential Filters --------------------      
     issuerCredDefs() {
       return Object.values(this.cred_defs).filter(
-        cred_def => cred_def.author === "self" || cred_def.cred_def_id.split(':', 2)[0] === this.public_did
+        cred_def => cred_def.author === "self" || cred_def.cred_def_id.split(':', 2)[0] === this.$refs.didsTab.public_did
       );
     },
     issuerOfferSentStateCredentials(){
@@ -1330,7 +1213,7 @@ export default {
     // ---------------------- Holder Credential Filters --------------------      
     proposalCredDefs() {
       return Object.values(this.cred_defs).filter(
-        cred_def => cred_def.author !== "self" || cred_def.cred_def_id.split(':', 2)[0] !== this.public_did
+        cred_def => cred_def.author !== "self" || cred_def.cred_def_id.split(':', 2)[0] !== this.$refs.didsTab.public_did
       );
     },
     holderOfferReceivedStateCredentials(){
@@ -1563,15 +1446,22 @@ export default {
       console.log("schemas",schemas)
       return schemas
     },
-    getActiveDid(){
-      return this.public_did
-    },
     selectedActiveDid: {
       get () {
-        return this.public_did;
+        console.log("get select active did ", this.$refs.didsTab);
+        return this.$refs.didsTab.public_did || "";
       },
       set (optionValue) {
-        return this.activateAgentDid(optionValue);
+        return this.$message_bus.$emit('activate-agent-did',optionValue);
+      },
+    },
+    active_ledger_selector:{
+      get () {
+        console.log("get active ledger selector ", this.$refs.didsTab);
+        return $refs.didsTab.active_ledger_selector || "";
+      },
+      set(){
+
       },
     },
   },
@@ -1579,8 +1469,6 @@ export default {
     // fetch the data when the view is created and the data is
     // already being observed
     await this.fetchAgentData();
-    this.getAgentDids();
-    this.getAgentActivePublicDid();
     this.getSchemas();
     this.getCredentialDefinitionlist();
     this.getIssuedCredentials();

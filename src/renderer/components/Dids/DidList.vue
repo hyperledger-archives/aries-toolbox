@@ -54,7 +54,7 @@
 import VueJsonPretty from 'vue-json-pretty';
 
 export default {
-  name: 'agent-did-list',
+  name: 'did-list',
   props: ['title', 'list','editable'],
   components: {
     VueJsonPretty,
@@ -109,6 +109,14 @@ export default {
         item => item != did.did
       );
     },
-  }
+  },  
+  watch: {
+    list: {
+      handler: function(newValue) {
+          //console.log("dids modified")
+      },
+      deep: true
+    }
+  },
 }
 </script>
