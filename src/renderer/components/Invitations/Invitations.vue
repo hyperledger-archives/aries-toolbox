@@ -80,6 +80,7 @@ import VueQrcode from '@chenfengyuan/vue-qrcode';
 
 export default {
   name: 'agent-invitations',
+  message_bus: 'derive',
   components: {
     VueJsonPretty,
     'qrcode': VueQrcode
@@ -87,7 +88,6 @@ export default {
   data () {
     return {
       invitations: [],
-      bus: this.$message_bus[this.$route.params.agentid],
       expanded_items: [],
       QRDialogVisible: false,
       QRDialogURL: '',
@@ -99,15 +99,15 @@ export default {
     }
   },
   created: function() {
-    this.bus.$on(
+    this.$message_bus.$on(
       'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation',
       this.newInvitation
     );
-    this.bus.$on(
+    this.$message_bus.$on(
       'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation-list',
       this.fetchedInvitationList
     )
-    this.bus.$on('invitations', this.onOpen);
+    this.$message_bus.$on('invitations', this.onOpen);
   },
   methods: {
     onOpen: function() {
@@ -127,7 +127,7 @@ export default {
       this.invite_accept_form = "auto";
       this.invite_public_form = false;
       this.invite_multi_use_form = false;
-      this.bus.$emit('send-message', query_msg);
+      this.$message_bus.$emit('send-message', query_msg);
     },
     fetchAgentInvitations(){
       let query_msg = {
@@ -136,7 +136,7 @@ export default {
           "return_route": "all"
         }
       }
-      this.bus.$emit('send-message', query_msg);
+      this.$message_bus.$emit('send-message', query_msg);
     },
     async newInvitation(msg){
       console.log(msg.invitation);

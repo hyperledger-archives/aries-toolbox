@@ -6,13 +6,14 @@ import axios from 'axios'
 import App from './App'
 import router from './router'
 import store from './store'
+import message_bus from './message_bus.js'
 
 //if (!process.env.IS_WEB)
 Vue.use(require('vue-electron'));
 Vue.use(ElementUI)
+Vue.use(message_bus);
 Vue.http = Vue.prototype.$http = axios;
 Vue.config.productionTip = false;
-Vue.message_bus = Vue.prototype.$message_bus = {}
 
 /* eslint-disable no-new */
 new Vue({
