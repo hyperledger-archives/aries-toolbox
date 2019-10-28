@@ -1452,7 +1452,7 @@ export default {
         return this.$refs.didsTab.public_did || "";
       },
       set (optionValue) {
-        return this.bus.$emit('activate-agent-did',optionValue);
+        return this.$message_bus.$emit('activate-agent-did',optionValue);
       },
     },
     active_ledger_selector:{

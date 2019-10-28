@@ -33,7 +33,7 @@ import DidList from './DidList.vue';
 
 export default {
   name: 'dids-tab',
-  props: [],
+  message_bus: 'derive',
   components: {
     VueJsonPretty,
     DidList,
@@ -55,20 +55,20 @@ export default {
     }
   },
     created: function(){
-    this.bus.$on(
+    this.$message_bus.$on(
         'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/list-dids',
         this.receivedAgentDids
     );
-    this.bus.$on(
+    this.$message_bus.$on(
         'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/did',
         this.updatedDid
     );
-    this.bus.$on(
+    this.$message_bus.$on(
         'activate-agent-did',
         this.activateAgentDid
     );
-    this.bus.$on('dids', this.onOpen);
-    this.bus.$on('agent-created', this.getAgentActivePublicDid);
+    this.$message_bus.$on('dids', this.onOpen);
+    this.$message_bus.$on('agent-created', this.getAgentActivePublicDid);
     },
   methods: {
 
@@ -77,7 +77,7 @@ export default {
         this.getAgentDids();
     },
     async resolveDid(did){
-      this.bus.$emit('send-message', 
+      this.$message_bus.$emit('send-message', 
         {
             "@type": "",
             "did": did,
@@ -85,7 +85,7 @@ export default {
       );
     },
     async getAgentDids(){
-      this.bus.$emit('send-message', {
+      this.$message_bus.$emit('send-message', {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/get-list-dids",
         "~transport": {
           "return_route": "all"
@@ -102,10 +102,10 @@ export default {
       msg = this.did_form.did ? {...msg,"did":this.did_form.did} : msg
       msg = this.did_form.seed ? {...msg,"seed":this.did_form.seed} : msg
       msg = this.did_form.label ? {...msg, "metadata": {"label":this.did_form.label}} : msg
-      this.bus.$emit('send-message', msg);
+      this.$message_bus.$emit('send-message', msg);
     },
     async getAgentActivePublicDid(did){
-        this.bus.$emit('send-message', 
+        this.$message_bus.$emit('send-message', 
             {
                 "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/get-public-did",
                 "~transport": {
@@ -115,7 +115,7 @@ export default {
         );
     },
     async activateAgentDid(did){
-      this.bus.$emit('send-message', 
+      this.$message_bus.$emit('send-message', 
       {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/set-public-did",
         "did": did.did,
@@ -125,7 +125,7 @@ export default {
       });
     },
     async updateAgentDid(editForm){
-      this.bus.$emit('send-message', {
+      this.$message_bus.$emit('send-message', {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/set-did-metadata",
         "did": editForm.did,
         "metadata": { 
