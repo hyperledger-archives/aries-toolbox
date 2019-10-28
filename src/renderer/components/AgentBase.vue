@@ -318,6 +318,7 @@ import Vue from 'vue';
 
 export default {
   name: 'agent-base',
+  message_bus: 'source',
   components: {
     VueJsonPretty,
     VJsoneditor,
@@ -356,7 +357,7 @@ export default {
     clickedTab: function(tab) {
       console.log("clickedTab",tab.name);
       if (tab.name){
-        this.bus.$emit(tab.name);
+        this.$message_bus.$emit(tab.name);
       }
       this.$forceUpdate();
     },
@@ -873,7 +874,8 @@ export default {
       } else {
         console.log("Message without handler", msg);
       }
-      this.bus.$emit(msg['@type'], msg);
+
+      this.$message_bus.$emit(msg['@type'], msg);
     },
     connectionsInvitationModeFilterForMulti(connections){
       return Object.keys(connections).reduce((acc, val) =>
@@ -1008,7 +1010,6 @@ export default {
   data() {
     return {
       'id': this.$route.params.agentid,
-      'bus': this.$message_bus[this.$route.params.agentid],
       'open_tab': 0,
       'connection': {'label':'loading...'},
       'connection_loaded': false,
@@ -1464,9 +1465,6 @@ export default {
       },
     },
   },
-  beforeCreate: function() {
-    this.$message_bus[this.$route.params.agentid] = new Vue();
-  },
   async created () {
     // fetch the data when the view is created and the data is
     // already being observed
@@ -1482,8 +1480,8 @@ export default {
     this.fetchAgentStaticConnections();
     //this.fetchAgentInvitations();
     // await this.fetchNewInvite(); // do not automatically create invite
-    this.bus.$on('send-message', this.send_connection_message);
-    this.bus.$emit('agent-created');
+    this.$message_bus.$on('send-message', this.send_connection_message);
+    this.$message_bus.$emit('agent-created');
   },
   watch:{},
 }

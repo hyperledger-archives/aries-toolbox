@@ -80,6 +80,7 @@ import VueQrcode from '@chenfengyuan/vue-qrcode';
 
 export default {
   name: 'agent-invitations',
+  message_bus: 'derive',
   components: {
     VueJsonPretty,
     'qrcode': VueQrcode
@@ -87,7 +88,6 @@ export default {
   data () {
     return {
       invitations: [],
-      bus: this.$message_bus[this.$route.params.agentid],
       expanded_items: [],
       QRDialogVisible: false,
       QRDialogURL: '',
@@ -99,20 +99,18 @@ export default {
     }
   },
   created: function() {
-    this.bus.$on(
+    let component = this; // Safe rerefence to this
+    this.$message_bus.$on(
       'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation',
-      this.newInvitation
+      msg => component.fetchAgentInvitations()
     );
-    this.bus.$on(
+    this.$message_bus.$on(
       'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation-list',
-      this.fetchedInvitationList
+      msg => component.invitations = msg.results
     )
-    this.bus.$on('invitations', this.onOpen);
+    this.$message_bus.$on('invitations', () => component.fetchAgentInvitations());
   },
   methods: {
-    onOpen: function() {
-      this.fetchAgentInvitations();
-    },
     async fetchNewInvite(){
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/create-invitation",
@@ -127,7 +125,7 @@ export default {
       this.invite_accept_form = "auto";
       this.invite_public_form = false;
       this.invite_multi_use_form = false;
-      this.bus.$emit('send-message', query_msg);
+      this.$message_bus.$emit('send-message', query_msg);
     },
     fetchAgentInvitations(){
       let query_msg = {
@@ -136,15 +134,7 @@ export default {
           "return_route": "all"
         }
       }
-      this.bus.$emit('send-message', query_msg);
-    },
-    async newInvitation(msg){
-      console.log(msg.invitation);
-      //this.invitations.push(msg.invitation);
-      this.fetchAgentInvitations();
-    },
-    async fetchedInvitationList(msg){
-      this.invitations = msg.results;
+      this.$message_bus.$emit('send-message', query_msg);
     },
     get_name: function(i) {
       return i.connection.invitation_mode +" / "+ i.connection.their_role +" / "+ i.connection.created_at ;
