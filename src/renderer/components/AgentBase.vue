@@ -71,7 +71,7 @@
           </el-form>
           </el-tab-pane> -->
           <el-tab-pane label="Invitations" name="invitations">
-            <agent-invitations></agent-invitations>
+            <invitations></invitations>
           </el-tab-pane>
           <el-tab-pane label="Connections">
             <el-row>
@@ -308,7 +308,7 @@ import DidsTab from './Dids/DidsTab.vue';
 import AgentSchemaList from './AgentSchemaList.vue';
 import AgentCredDefList from './AgentCredDefList.vue';
 import AgentIssueCredList from './AgentIssueCredList.vue';
-import AgentInvitations from './Invitations/Invitations.vue';
+import Invitations from './Invitations/Invitations.vue';
 import AgentStaticConnections from './Agent/StaticConnections.vue';
 import AgentMyCredentialsList from './AgentMyCredentialsList.vue';
 import AgentTrust from './AgentTrust.vue';
@@ -327,7 +327,7 @@ export default {
     AgentSchemaList,
     AgentCredDefList,
     AgentIssueCredList,
-    AgentInvitations,
+    Invitations,
     AgentStaticConnections,
     AgentMyCredentialsList,
     AgentTrust,
