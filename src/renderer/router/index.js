@@ -7,8 +7,8 @@ export default new Router({
   routes: [
     {
       path: '/',
-      name: 'connection-list',
-      component: require('@/components/ConnectionList').default
+      name: 'agent-list',
+      component: require('@/components/AgentList').default
     },
     {
       path: '/agent/:agentid/',

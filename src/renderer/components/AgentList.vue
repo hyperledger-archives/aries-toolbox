@@ -49,13 +49,13 @@ import { new_connection } from '../connection_detail.js';
 const uuidv4 = require('uuid/v4');
 
 export default {
-  name: 'connection-list',
+  name: 'agent-list',
   components: {  },
   computed: {
-    ...mapState("Connections", ["agent_list"]),
+    ...mapState("Agents", ["agent_list"]),
   },
   methods: {
-    ...mapActions("Connections", ["add_connection", "delete_connection"]),
+    ...mapActions("Agents", ["add_agent", "delete_agent"]),
 
     openConnection: async function(a) {
       const modalPath = process.env.NODE_ENV === 'development'
@@ -67,7 +67,7 @@ export default {
 
     },
     deleteConnection: async function(a){
-      this.delete_connection(a);
+      this.delete_agent(a);
     },
     async new_agent_invitation_process(){
       //process invite, prepare request
@@ -267,7 +267,7 @@ export default {
           let connection_detail = new_connection(invite.label, response.connection.DIDDoc, toolbox_did);
           console.log("connection detail", connection_detail);
           ///this.$store.Connections.commit("ADD_CONNECTION", connection_detail);
-          vm.add_connection(connection_detail.to_store());
+          vm.add_agent(connection_detail.to_store());
           vm.new_agent_invitation = ""; //clear input for next round
         })
         .catch(function (err) {

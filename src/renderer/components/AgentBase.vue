@@ -354,7 +354,7 @@ export default {
     AgentVerification,
   },
   methods: {
-    ...mapActions("Connections", ["get_connection"]),
+    ...mapActions("Agents", ["get_agent"]),
     //=========================================================================================================================
     //-------------------------Outbound Messages-------------------------------------------------------------------
     //=========================================================================================================================
@@ -364,7 +364,7 @@ export default {
     //=========================================================================================================================
     async fetchAgentData(){
       //load from vue store
-      this.connection = from_store(await this.get_connection(this.id), this.processInbound);
+      this.connection = from_store(await this.get_agent(this.id), this.processInbound);
 
       this.message_history = this.connection.message_history;
 
