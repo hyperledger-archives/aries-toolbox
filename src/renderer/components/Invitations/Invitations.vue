@@ -18,7 +18,7 @@
       <el-button
         type="primary"
         icon="el-icon-refresh"
-        @click="$emit('refresh',)"></el-button>
+        @click="fetchAgentInvitations"></el-button>
   </nav>
   <el-collapse v-model="expanded_items">
       <ul class="list">
@@ -80,22 +80,35 @@ import VueQrcode from '@chenfengyuan/vue-qrcode';
 
 export default {
   name: 'agent-invitations',
-  props: ['invitations', 'title'],
+  message_bus: 'derive',
   components: {
     VueJsonPretty,
     'qrcode': VueQrcode
   },
   data () {
     return {
-        expanded_items: [],
-        QRDialogVisible: false,
-        QRDialogURL: '',
-        invite_label_form:"",
-        invite_role_form:"",
-        invite_accept_form:"auto",
-        invite_public_form:false,
-        invite_multi_use_form:false,
+      invitations: [],
+      expanded_items: [],
+      QRDialogVisible: false,
+      QRDialogURL: '',
+      invite_label_form:"",
+      invite_role_form:"",
+      invite_accept_form:"auto",
+      invite_public_form:false,
+      invite_multi_use_form:false,
     }
+  },
+  created: function() {
+    let component = this; // Safe rerefence to this
+    this.$message_bus.$on(
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation',
+      msg => component.fetchAgentInvitations()
+    );
+    this.$message_bus.$on(
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation-list',
+      msg => component.invitations = msg.results
+    )
+    this.$message_bus.$on('invitations', () => component.fetchAgentInvitations());
   },
   methods: {
     async fetchNewInvite(){
@@ -112,8 +125,16 @@ export default {
       this.invite_accept_form = "auto";
       this.invite_public_form = false;
       this.invite_multi_use_form = false;
-      //this.$parent.connection.send_message(query_msg);
-      this.$emit('send-connection-message', query_msg);
+      this.$message_bus.$emit('send-message', query_msg);
+    },
+    fetchAgentInvitations(){
+      let query_msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation-get-list",
+        "~transport": {
+          "return_route": "all"
+        }
+      }
+      this.$message_bus.$emit('send-message', query_msg);
     },
     get_name: function(i) {
       return i.connection.invitation_mode +" / "+ i.connection.their_role +" / "+ i.connection.created_at ;
