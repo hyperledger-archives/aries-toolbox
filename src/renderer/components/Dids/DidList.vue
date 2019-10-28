@@ -54,7 +54,7 @@
 import VueJsonPretty from 'vue-json-pretty';
 
 export default {
-  name: 'agent-did-list',
+  name: 'did-list',
   props: ['title', 'list','editable'],
   components: {
     VueJsonPretty,
@@ -73,9 +73,6 @@ export default {
       formLabelWidth: '100px'
     }
   },
-  /*           v-on:did-update="updateAgentDid"
-          v-on:did-activate="activateAgentDid"
-          v-on:did-resolve="resolveTrustedIssuer" */
   methods: {
     get_name: function(did) {
       if('metadata'in did && 'label' in did.metadata) {
@@ -112,6 +109,14 @@ export default {
         item => item != did.did
       );
     },
-  }
+  },  
+  watch: {
+    list: {
+      handler: function(newValue) {
+          //console.log("dids modified")
+      },
+      deep: true
+    }
+  },
 }
 </script>

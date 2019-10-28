@@ -2,13 +2,15 @@
   <div id="wrapper" class="container-fluid">
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <a class="navbar-brand" href="#">{{connection.label}}</a>
-      <!-- active privileged did -->
-      <el-form :model=active_ledger_selector>
-        <!-- <el-select v-model="active_ledger_selector.did" filterable placeholder="activate did" > -->
-        <el-select  v-model="selectedActiveDid" 
-                    filterable placeholder="activate did">
-          <el-option
-            v-for="did in Object.values(dids)"
+      <el-form 
+        v-if="$refs.didsTab" 
+        :disabled="Object.keys($refs.didsTab.dids).length === 0"
+        :model="$refs.didsTab.active_ledger_selector">
+        <el-select  
+          v-model="selectedActiveDid" 
+          filterable placeholder="activate did">
+          <el-option 
+            v-for="did in Object.values($refs.didsTab.dids)"
             :key="did.did"
             :label="did.did"
             :value="did">
@@ -30,7 +32,7 @@
       v-model="open_tab"
       @tab-click="clickedTab">
       <el-tab-pane label="Dids" name="dids">
-        <dids-tab></dids-tab>
+        <dids-tab ref="didsTab"></dids-tab>
       </el-tab-pane>
 
       <!-- <el-tab-pane label="Ledger">
@@ -352,9 +354,11 @@ export default {
       this.connection.send_message(msg);
     },
     clickedTab: function(tab) {
+      console.log("clickedTab",tab.name);
       if (tab.name){
         this.bus.$emit(tab.name);
       }
+      this.$forceUpdate();
     },
     async run_protocol_discovery(){
       //send query
@@ -681,13 +685,6 @@ export default {
       //this.connection.send_message(query_msg);
       this.$delete(this.trusted_issuers,did.id)// TODO:remove this after aca-py support is added.
     },
-    async resolveTrustedIssuer(did){
-      let query_msg = {
-        "@type": "",
-        "issuer_did": did,
-      }
-      this.connection.send_message(query_msg);
-    },
     async storeTrustedIssuer(trusted_did){
       /* let query_msg = {
         "@type": "",
@@ -876,10 +873,6 @@ export default {
       } else {
         console.log("Message without handler", msg);
       }
-<<<<<<< HEAD
-=======
-
->>>>>>> 3e045d146fe10850398d89909c8de0a0b467b2fa
       this.bus.$emit(msg['@type'], msg);
     },
     connectionsInvitationModeFilterForMulti(connections){
@@ -1021,7 +1014,6 @@ export default {
       'connection_loaded': false,
       'message_history':[],
       'last_sent_msg_id':'',
-      'public_did':'',
       'ledgers':{
         '12345234':{
           'id':'12345234',
@@ -1108,9 +1100,6 @@ export default {
         "response_requested": true
       },
       'basicmessage_compose': "",
-      'active_ledger_selector':{
-        'leger':'',
-      },
       'connections':{},
       'staticconnections': {},
       'connectionUpdateForm':{},
@@ -1205,7 +1194,7 @@ export default {
     // ---------------------- Issuer Credential Filters --------------------      
     issuerCredDefs() {
       return Object.values(this.cred_defs).filter(
-        cred_def => cred_def.author === "self" || cred_def.cred_def_id.split(':', 2)[0] === this.public_did
+        cred_def => cred_def.author === "self" || cred_def.cred_def_id.split(':', 2)[0] === this.$refs.didsTab.public_did
       );
     },
     issuerOfferSentStateCredentials(){
@@ -1223,7 +1212,7 @@ export default {
     // ---------------------- Holder Credential Filters --------------------      
     proposalCredDefs() {
       return Object.values(this.cred_defs).filter(
-        cred_def => cred_def.author !== "self" || cred_def.cred_def_id.split(':', 2)[0] !== this.public_did
+        cred_def => cred_def.author !== "self" || cred_def.cred_def_id.split(':', 2)[0] !== this.$refs.didsTab.public_did
       );
     },
     holderOfferReceivedStateCredentials(){
@@ -1456,15 +1445,22 @@ export default {
       console.log("schemas",schemas)
       return schemas
     },
-    getActiveDid(){
-      return this.public_did
-    },
     selectedActiveDid: {
       get () {
-        return this.public_did;
+        console.log("get select active did ", this.$refs.didsTab);
+        return this.$refs.didsTab.public_did || "";
       },
       set (optionValue) {
-        return this.activateAgentDid(optionValue);
+        return this.bus.$emit('activate-agent-did',optionValue);
+      },
+    },
+    active_ledger_selector:{
+      get () {
+        console.log("get active ledger selector ", this.$refs.didsTab);
+        return $refs.didsTab.active_ledger_selector || "";
+      },
+      set(){
+
       },
     },
   },
@@ -1475,8 +1471,6 @@ export default {
     // fetch the data when the view is created and the data is
     // already being observed
     await this.fetchAgentData();
-    this.getAgentDids();
-    this.getAgentActivePublicDid();
     this.getSchemas();
     this.getCredentialDefinitionlist();
     this.getIssuedCredentials();
