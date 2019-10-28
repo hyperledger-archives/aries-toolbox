@@ -99,20 +99,18 @@ export default {
     }
   },
   created: function() {
+    let component = this; // Safe rerefence to this
     this.$message_bus.$on(
       'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation',
-      this.newInvitation
+      msg => component.fetchAgentInvitations()
     );
     this.$message_bus.$on(
       'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation-list',
-      this.fetchedInvitationList
+      msg => component.invitations = msg.results
     )
-    this.$message_bus.$on('invitations', this.onOpen);
+    this.$message_bus.$on('invitations', () => component.fetchAgentInvitations());
   },
   methods: {
-    onOpen: function() {
-      this.fetchAgentInvitations();
-    },
     async fetchNewInvite(){
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/create-invitation",
@@ -137,14 +135,6 @@ export default {
         }
       }
       this.$message_bus.$emit('send-message', query_msg);
-    },
-    async newInvitation(msg){
-      console.log(msg.invitation);
-      //this.invitations.push(msg.invitation);
-      this.fetchAgentInvitations();
-    },
-    async fetchedInvitationList(msg){
-      this.invitations = msg.results;
     },
     get_name: function(i) {
       return i.connection.invitation_mode +" / "+ i.connection.their_role +" / "+ i.connection.created_at ;
