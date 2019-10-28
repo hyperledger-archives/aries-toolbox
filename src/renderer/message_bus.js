@@ -40,6 +40,14 @@ export default function() {
                     let message_bus = derive(options.parent);
                     if (!message_bus) {
                         console.error('Could not derive message bus from parent tree');
+                        message_bus = {
+                            $on: function () {
+                                console.error('A message_bus could not be derived on this component. Make sure message bus "source" has been specified in this components parent tree.')
+                            },
+                            $emit: function() {
+                                console.error('A message_bus could not be derived on this component. Make sure message bus "source" has been specified in this components parent tree.')
+                            }
+                        }
                     }
                     this.$message_bus = message_bus;
                 } else {
