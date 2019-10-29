@@ -6,8 +6,6 @@ import axios from 'axios'
 import App from './App'
 import router from './router'
 import store from './store'
-import message_bus from './message_bus.js'
-import { mixin as share } from './share.js'
 
 //if (!process.env.IS_WEB)
 Vue.use(require('vue-electron'));
