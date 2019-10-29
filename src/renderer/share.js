@@ -1,8 +1,18 @@
 import Vue from 'vue';
 
 const SHARED_PROPERTIES = {
-    connections: []
+    connections: [],
+    dids: {},
+    public_did: '',
 };
+
+const COMPUTED_PROPERTIES = {
+    active_connections: function() {
+      return Object.values(this.connections).filter(
+        conn => "state" in conn && conn.state === "active"
+      );
+    }
+}
 
 export default function(property_list) {
     return{
@@ -22,7 +32,8 @@ export default function(property_list) {
                         mutate(subject, data) {
                             this[subject] = data;
                         },
-                    }
+                    },
+                    computed: COMPUTED_PROPERTIES,
                 });
             }
             this.$share = derive(this);

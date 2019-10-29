@@ -51,7 +51,7 @@ export default {
   },
   mixins: [
     message_bus(),
-    share(['connections'])
+    share(['connections', 'active_connections'])
   ],
   data: function() {
     return {
@@ -75,11 +75,6 @@ export default {
     this.$message_bus.$on('connections', () => component.fetch());
   },
   computed: {
-    active_connections: function() {
-      return Object.values(this.connections).filter(
-        conn => "state" in conn && conn.state === "active"
-      );
-    },
     pending_connections: function() {
       return Object.values(this.connections).filter(
         conn => "state" in conn &&

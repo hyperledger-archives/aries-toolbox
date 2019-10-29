@@ -31,11 +31,13 @@
 import VueJsonPretty from 'vue-json-pretty';
 import DidList from './DidList.vue';
 import message_bus from '../../message_bus.js';
+import share from '../../share.js';
 
 export default {
   name: 'dids-tab',
   mixins: [
-    message_bus()
+    message_bus(),
+    share(['dids', 'public_did'])
   ],
   components: {
     VueJsonPretty,
@@ -43,8 +45,6 @@ export default {
   },
   data () {
     return {
-        dids:{},
-        public_did:'',
         did_form:{
             did:'',
             seed:'',
