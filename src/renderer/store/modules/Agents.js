@@ -16,13 +16,10 @@ const mutations = {
 const actions = {
   add_agent (context, detail) {
     // do something async
-    detail['schemas'] = [{'name':'BasicID','version':'1.9','attributes':['first_name','last_name','company','type'],'published':false}];
-    console.log("add_agent called", detail);
     context.commit('ADD_AGENT', detail);
   },
   delete_agent (context, detail) {
     // do something async
-    console.log("add_agent called", detail);
     context.commit('DELETE_AGENT', detail.id);
   },
   get_agent (context, id) {
