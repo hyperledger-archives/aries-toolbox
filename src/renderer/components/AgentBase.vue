@@ -73,63 +73,11 @@
           <el-tab-pane label="Invitations" name="invitations">
             <invitations></invitations>
           </el-tab-pane>
-          <el-tab-pane label="Connections">
-            <el-row>
-              <agent-connection-list
-                title="Active Connections:"
-                editable="true"
-                v-bind:list="activeConnections"
-                v-on:connection-editted="updateAgentConnection"
-                v-on:connection-deleted="deleteAgentConnection"
-                @refresh="fetchAgentConnections"></agent-connection-list>
-              <agent-connection-list
-                title="Pending Connections:"
-                editable="true"
-                v-bind:list="pendingConnections"
-                v-on:connection-editted="updateAgentConnection"
-                v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
-              <!---<agent-connection-list
-                title="Open Invitations:"
-                editable="true"
-                v-bind:list="openInvitations"
-                v-on:connection-editted="updateAgentConnection"
-                v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
-              <agent-connection-list
-                title="Multiuse Invitations:"
-                editable="true"
-                v-bind:list="multiUseInvitations"
-                v-on:connection-editted="updateAgentConnection"
-                v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
-              <agent-connection-list
-                title="New Invitations:"
-                editable="false"
-                v-bind:list="Object.values(invitations)"
-                v-on:connection-editted="updateAgentConnection"
-                v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>--->
-              <agent-connection-list
-                title="Failed Connections:"
-                editable="false"
-                v-bind:list="errorStateConnections"
-                v-on:connection-editted="updateAgentConnection"
-                v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
-
-              <p>Add connection from invitation:</p>
-              <el-form @submit.native.prevent :model=agent_invitation_form>
-                <el-form-item
-                  label="Invitation URL:">
-                  <el-input
-                    style="width: 300px;"
-                    v-model="agent_invitation_form.invitation">
-                    <el-button
-                      slot="append"
-                      type="primary"
-                      icon="el-icon-plus"
-                      @click="addAgent()">Add</el-button>
-                  </el-input>
-                </el-form-item>
-              </el-form>
-
-            </el-row>
+          <el-tab-pane label="Connections" name="connections">
+            <connections
+              :shared="{connections: connections}"
+              @mutate="mutate"
+              ref="connections"></connections>
           </el-tab-pane>
           <el-tab-pane label="Static Connections">
             <agent-static-connections
@@ -159,7 +107,7 @@
               <agent-issue-cred-list
                 title="Issued Credentials"
                 v-bind:list="issuer_credentials"
-                v-bind:connections="activeConnections"
+                v-bind:connections="active_connections"
                 v-bind:cred_defs="issuerCredDefs"
                 @issue="issueCredential"
                 @issue-cred-refresh="getIssuedCredentials">            
@@ -180,7 +128,7 @@
                 editable="false"
                 v-bind:credentials="holder_credentials"
                 v-bind:cred_defs="proposalCredDefs"
-                v-bind:connections="activeConnections"
+                v-bind:connections="active_connections"
                 @cred-refresh="getHoldersCredentials"
                 @propose="sendCredentialProposal"></agent-my-credentials-list>
             </el-row>
@@ -199,7 +147,7 @@
               <presentations
                 title="Presentations"
                 v-bind:presentations="holder_presentations"
-                v-bind:connections = "activeConnections"
+                v-bind:connections = "active_connections"
                 v-bind:cred_defs = "cred_defs"
                 @presentation-refresh = "getHoldersPresentations"
                 @send-presentation-proposal= "sendPresentationProposal"></presentations>
@@ -209,7 +157,7 @@
             <agent-verification
               title="Verification"
               v-bind:list="issuer_presentations"
-              v-bind:connections="activeConnections"
+              v-bind:connections="active_connections"
               v-bind:cred_defs="cred_defs"
               v-bind:trusted_issuers="trusted_issuers"
               @verification-refresh="getIssuersPresentations"
@@ -303,8 +251,8 @@ import { from_store } from '../connection_detail.js';
 
 import VueJsonPretty from 'vue-json-pretty';
 import VJsoneditor from 'v-jsoneditor';
-import AgentConnectionList from './AgentConnectionList.vue';
 import DidsTab from './Dids/DidsTab.vue';
+import Connections from './Connections/Connections.vue';
 import AgentSchemaList from './AgentSchemaList.vue';
 import AgentCredDefList from './AgentCredDefList.vue';
 import AgentIssueCredList from './AgentIssueCredList.vue';
@@ -314,7 +262,6 @@ import AgentMyCredentialsList from './AgentMyCredentialsList.vue';
 import AgentTrust from './AgentTrust.vue';
 import Presentations from './Agent/Presentations.vue';
 import AgentVerification from './AgentVerification.vue';
-import Vue from 'vue';
 
 export default {
   name: 'agent-base',
@@ -322,8 +269,8 @@ export default {
   components: {
     VueJsonPretty,
     VJsoneditor,
-    AgentConnectionList,
     DidsTab,
+    Connections,
     AgentSchemaList,
     AgentCredDefList,
     AgentIssueCredList,
@@ -350,6 +297,9 @@ export default {
       this.message_history = this.connection.message_history;
 
       this.connection_loaded = true;
+    },
+    mutate: function(subject, data) {
+      this[subject] = data;
     },
     async send_connection_message(msg){
       this.connection.send_message(msg);
@@ -385,15 +335,6 @@ export default {
      *  update                   -> connection
      *  create-static-connection -> static-connection-info
      */
-    async fetchAgentConnections(){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-get-list",
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      this.connection.send_message(query_msg);
-    },
     async fetchAgentStaticConnections(){
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-get-list",
@@ -403,38 +344,6 @@ export default {
       }
       this.connection.send_message(query_msg);
     },
-    async updateAgentConnection(editForm){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/update",
-        "connection_id": editForm.connection_id,
-        "label": editForm.label,
-        "role": editForm.role,
-      }
-      this.connection.send_message(query_msg);
-    },
-    async deleteAgentConnection(connection){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/delete",
-        "connection_id": connection.connection_id,
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      this.connection.send_message(query_msg);
-    },
-    async addAgent() {
-      let receive_invite_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/receive-invitation",
-        "invitation": this.agent_invitation_form.invitation,
-        "accept": "auto"
-      };
-      this.connection.send_message(receive_invite_msg);
-      this.agent_invitation_form.invitation = "";
-      setTimeout(() => {
-        return this.fetchAgentConnections();
-      }, 4000);
-    },      
-
     async compose_send(){
       this.connection.send_message(this.compose_json, true);
     },
@@ -710,25 +619,12 @@ export default {
      */
     //=========================================================================================================================
 
-    async fetchedConnectionList(msg){
-      const connections = msg.results.reduce(function(acc, cur, i) {
-        acc[cur.connection_id] = cur;
-        return acc;
-      }, {});
-      this.connections = connections;
-      this.connectionUpdateForm = connections;
-    },
     async fetchedStaticConnectionList(msg){
       const staticconnections = msg.results.reduce(function(acc, cur, i) {
         acc[cur.connection_id] = cur;
         return acc;
       }, {});
       this.staticconnections = staticconnections;
-    },
-    async updatedConnection(msg){
-      return this.fetchAgentConnections();
-      /* this.connections[msg.connection.connection_id] = msg.connection
-      this.connectionUpdateForm = this.connections; */
     },
     // ---------------------- shcema handlers --------------------
     async getSchemaListResponse(msg){
@@ -843,10 +739,7 @@ export default {
         //=============================== Credential Definitions ===============================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/disclose": this.ProtocolDisclose,
         //=============================== Connections ==========================================
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-list": this.fetchedConnectionList,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-list": this.fetchedStaticConnectionList,
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection": this.updatedConnection,
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/ack": this.fetchAgentConnections,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-info":this.fetchAgentStaticConnections,// handle added statuc agent
         //=============================== Schemas ==============================================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-list": this.getSchemaListResponse,
@@ -1013,6 +906,7 @@ export default {
       'open_tab': 0,
       'connection': {'label':'loading...'},
       'connection_loaded': false,
+      'connections': [],
       'message_history':[],
       'last_sent_msg_id':'',
       'ledgers':{
@@ -1101,7 +995,6 @@ export default {
         "response_requested": true
       },
       'basicmessage_compose': "",
-      'connections':{},
       'staticconnections': {},
       'connectionUpdateForm':{},
       'exspanded_connection_items':[],
@@ -1130,7 +1023,6 @@ export default {
     }
   },
   computed: {
-    ...mapState(['Connections']),
     //=========================================================================================================================
     //------------------------------------------------ Filter methods ---------------------------------------------------
     //=========================================================================================================================
@@ -1139,8 +1031,11 @@ export default {
      */
     //=========================================================================================================================
     // ---------------------- Connection Filters --------------------      
-    activeConnections(){
-      return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "active")
+    active_connections() {
+      if (this.$refs.connections) {
+        return this.$refs.connections.active_connections();
+      }
+      return [];
     },
     requestStateConnections(){
       return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "request")
@@ -1176,7 +1071,7 @@ export default {
         conn.state          === "invitation"
       )
     },
-    inactiveConnections(){
+    inactive_connections(){
       return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "inactive")
     },
     staticConnections(){
@@ -1476,7 +1371,6 @@ export default {
     this.getHoldersCredentials();
     this.getHoldersPresentations();
     this.run_protocol_discovery();
-    this.fetchAgentConnections();
     this.fetchAgentStaticConnections();
     //this.fetchAgentInvitations();
     // await this.fetchNewInvite(); // do not automatically create invite
