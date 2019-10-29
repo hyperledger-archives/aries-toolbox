@@ -2,14 +2,14 @@
   <div id="wrapper" class="container-fluid">
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <a class="navbar-brand" href="#">{{connection.label}}</a>
-      <el-form 
-        v-if="$refs.didsTab" 
+      <el-form
+        v-if="$refs.didsTab"
         :disabled="Object.keys($refs.didsTab.dids).length === 0"
         :model="$refs.didsTab.active_ledger_selector">
-        <el-select  
-          v-model="selectedActiveDid" 
+        <el-select
+          v-model="selectedActiveDid"
           filterable placeholder="activate did">
-          <el-option 
+          <el-option
             v-for="did in Object.values($refs.didsTab.dids)"
             :key="did.did"
             :label="did.did"
@@ -27,7 +27,7 @@
       </el-form>
     </nav>
 
-    <el-tabs 
+    <el-tabs
       type="border-card"
       v-model="open_tab"
       @tab-click="clickedTab">
@@ -110,7 +110,7 @@
                 v-bind:connections="active_connections"
                 v-bind:cred_defs="issuerCredDefs"
                 @issue="issueCredential"
-                @issue-cred-refresh="getIssuedCredentials">            
+                @issue-cred-refresh="getIssuedCredentials">
               </agent-issue-cred-list>
             </el-row>
           </el-tab-pane>
@@ -397,10 +397,10 @@ export default {
      *  send-credential-definition     -> credential-definition-id
      *  credential-definition-get      -> credential-definition
      *  credential-definition-get-list -> credential-definition-list
-     *  
+     *
      *  send-credential-proposal       -> credential-exchange
      *  send-presentation-proposal     -> presentation-exchange
-     *  credentials-get-list           -> credentials-list 
+     *  credentials-get-list           -> credentials-list
      *  presentations-get-list         -> presentations-list
      */
     async publishCredDef(form){
@@ -529,7 +529,7 @@ export default {
         "presentation_proposal": {
           "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/present-proof/1.0/presentation-preview",
           /**
-           * name 
+           * name
            * cred_def_id //optional
            * mime_type //optional
            * value //optional
@@ -557,7 +557,7 @@ export default {
           })
         },
       };
-         
+
       this.connection.send_message(query_msg);
     },
     async getHoldersCredentials(){
@@ -655,7 +655,7 @@ export default {
       this.getSchemas();
     },
     // ---------------------- cred def handlers --------------------
-    
+
     async credentialDefinitionCreatedDirective(msg){
       setTimeout(() => {
         return this.getCredentialDefinitionlist();
@@ -684,7 +684,7 @@ export default {
       if('results' in msg){
         this.cred_defs = msg.results
         this.cred_def_form = this.cred_defs
-      }      
+      }
     },
     // ---------------------- issuance handlers --------------------
     async issuerCredentialRecord(msg) {
@@ -955,7 +955,7 @@ export default {
         'did':'',
         'label':'',
       },
-      
+
       'ledger_form':{
         'name':'',
         'gen_url':'',
@@ -1030,7 +1030,7 @@ export default {
      *
      */
     //=========================================================================================================================
-    // ---------------------- Connection Filters --------------------      
+    // ---------------------- Connection Filters --------------------
     active_connections() {
       if (this.$refs.connections) {
         return this.$refs.connections.active_connections();
@@ -1083,11 +1083,11 @@ export default {
     errorStateConnections(){
       return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "error")
     },
-    // ---------------------- Credential Definition Filters --------------------      
+    // ---------------------- Credential Definition Filters --------------------
     /* credentialDefinition(){
         return this.cred_defs.filter(cred => "state" in cred && cred.state === "offer_sent")
       }, */
-    // ---------------------- Issuer Credential Filters --------------------      
+    // ---------------------- Issuer Credential Filters --------------------
     issuerCredDefs() {
       return Object.values(this.cred_defs).filter(
         cred_def => cred_def.author === "self" || cred_def.cred_def_id.split(':', 2)[0] === this.$refs.didsTab.public_did
@@ -1105,7 +1105,7 @@ export default {
     issuerStoredStateCredentials(){
       return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "stored")
     },
-    // ---------------------- Holder Credential Filters --------------------      
+    // ---------------------- Holder Credential Filters --------------------
     proposalCredDefs() {
       return Object.values(this.cred_defs).filter(
         cred_def => cred_def.author !== "self" || cred_def.cred_def_id.split(':', 2)[0] !== this.$refs.didsTab.public_did
@@ -1123,9 +1123,9 @@ export default {
     holderStoredStateCredentials(){
       return this.holder_credentials.filter(cred => "state" in cred && cred.state === "stored")
     },
-    // ---------------------- Presentation Definitions Filters --------------------     
+    // ---------------------- Presentation Definitions Filters --------------------
     /**
-     * Roles 
+     * Roles
      *  'prover'
      *  'verifier'
      * States
@@ -1136,13 +1136,13 @@ export default {
      *  "presentation_sent"
      *  "presentation_received"
      *  "verified"
-     *  */ 
-    // ---------------------- verifier Presentation Filters --------------------     
+     *  */
+    // ---------------------- verifier Presentation Filters --------------------
     verifierSentProposals(){
       return this.presentation_exchanges.filter(
-        exchange => 
-        "state" in exchange && 
-        exchange.state === "proposal_sent"  && 
+        exchange =>
+        "state" in exchange &&
+        exchange.state === "proposal_sent"  &&
         //==========================================
         "role" in exchange &&
         "verifier" === exchange.role
@@ -1150,34 +1150,34 @@ export default {
     },
     verifierReceivedProposals: function(exchange){
       return this.presentation_exchanges.filter(
-        exchange => 
-        "state" in exchange && 
-        exchange.state === "proposal_received" && 
+        exchange =>
+        "state" in exchange &&
+        exchange.state === "proposal_received" &&
         //==========================================
         "role" in exchange &&
         "verifier" === exchange.role)
     },
     verifierSentRequests(){
       return this.presentation_exchanges.filter(
-        exchange => 
+        exchange =>
         "state" in exchange &&
-        exchange.state === "request_sent" && 
+        exchange.state === "request_sent" &&
         //==========================================
         "role" in exchange &&
         "verifier" === exchange.role)
     },
     verifierReceivedRequests(){
       return this.presentation_exchanges.filter(
-        exchange => 
+        exchange =>
         "state" in exchange &&
-        exchange.state === "request_received" && 
+        exchange.state === "request_received" &&
         //==========================================
         "role" in exchange &&
         "verifier" === exchange.role)
     },
     verifierSentPresentations(){
       return this.presentation_exchanges.filter(
-        exchange => 
+        exchange =>
         "state" in exchange &&
         exchange.state === "presentation_sent" &&
         //==========================================
@@ -1186,7 +1186,7 @@ export default {
     },
     verifierReceivedPresentations(){
       return this.presentation_exchanges.filter(
-        exchange => 
+        exchange =>
         "state" in exchange &&
         exchange.state === "presentation_received" &&
         //==========================================
@@ -1195,7 +1195,7 @@ export default {
     },
     verifierVerifiedPresentation(){
       return this.presentation_exchanges.filter(
-        exchange => 
+        exchange =>
         "state" in exchange &&
         exchange.state === "verified" &&
         //==========================================
@@ -1205,9 +1205,9 @@ export default {
     // ---------------------- Prover Presentation Filters --------------------
     proverSentProposals(){
       return this.presentation_exchanges.filter(
-        exchange => 
-        "state" in exchange && 
-        exchange.state === "proposal_sent"  && 
+        exchange =>
+        "state" in exchange &&
+        exchange.state === "proposal_sent"  &&
         //==========================================
         "role" in exchange &&
         "prover" === exchange.role
@@ -1215,34 +1215,34 @@ export default {
     },
     proverReceivedProposals: function(exchange){
       return this.presentation_exchanges.filter(
-        exchange => 
-        "state" in exchange && 
-        exchange.state === "proposal_received" && 
+        exchange =>
+        "state" in exchange &&
+        exchange.state === "proposal_received" &&
         //==========================================
         "role" in exchange &&
         "prover" === exchange.role)
     },
     proverSentRequests(){
       return this.presentation_exchanges.filter(
-        exchange => 
+        exchange =>
         "state" in exchange &&
-        exchange.state === "request_sent" && 
+        exchange.state === "request_sent" &&
         //==========================================
         "role" in exchange &&
         "prover" === exchange.role)
     },
     proverReceivedRequests(){
       return this.presentation_exchanges.filter(
-        exchange => 
+        exchange =>
         "state" in exchange &&
-        exchange.state === "request_received" && 
+        exchange.state === "request_received" &&
         //==========================================
         "role" in exchange &&
         "prover" === exchange.role)
     },
     proverSentPresentations(){
       return this.presentation_exchanges.filter(
-        exchange => 
+        exchange =>
         "state" in exchange &&
         exchange.state === "presentation_sent" &&
         //==========================================
@@ -1251,7 +1251,7 @@ export default {
     },
     proverReceivedPresentations(){
       return this.presentation_exchanges.filter(
-        exchange => 
+        exchange =>
         "state" in exchange &&
         exchange.state === "presentation_received" &&
         //==========================================
@@ -1260,14 +1260,14 @@ export default {
     },
     proverVerifiedPresentations(){
       return this.presentation_exchanges.filter(
-        exchange => 
+        exchange =>
         "state" in exchange &&
         exchange.state === "verified" &&
         //==========================================
         "role" in exchange &&
         "prover" === exchange.role )
     },
-    // ---------------------- Basic Message History --------------------      
+    // ---------------------- Basic Message History --------------------
     basicmessage_history: function () {
       if (this.connection_loaded) {
         return this.connection.message_history.filter(function(h){
