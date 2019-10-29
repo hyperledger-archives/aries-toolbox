@@ -194,16 +194,12 @@
                 @store-did= "storeTrustedIssuer"></agent-trust>
             </el-row>
           </el-tab-pane>
-          <el-tab-pane label="Presentation">
-            <el-row>
-              <presentations
-                title="Presentations"
-                v-bind:presentations="holder_presentations"
-                v-bind:connections = "activeConnections"
-                v-bind:cred_defs = "cred_defs"
-                @presentation-refresh = "getHoldersPresentations"
-                @send-presentation-proposal= "sendPresentationProposal"></presentations>
-            </el-row>
+          <el-tab-pane label="Presentation" name="presentation">
+            <presentations-tab 
+              ref="presentationTab"
+              :activeConnections = "activeConnections"
+              :cred_defs = "cred_defs"
+              ></presentations-tab>
           </el-tab-pane>
           <el-tab-pane label="Verifications">
             <agent-verification
@@ -312,7 +308,7 @@ import AgentInvitations from './Invitations/Invitations.vue';
 import AgentStaticConnections from './Agent/StaticConnections.vue';
 import AgentMyCredentialsList from './AgentMyCredentialsList.vue';
 import AgentTrust from './AgentTrust.vue';
-import Presentations from './Agent/Presentations.vue';
+import PresentationsTab from './Presentations/PresentationsTab.vue';
 import AgentVerification from './AgentVerification.vue';
 import Vue from 'vue';
 
@@ -331,7 +327,7 @@ export default {
     AgentStaticConnections,
     AgentMyCredentialsList,
     AgentTrust,
-    Presentations,
+    PresentationsTab,
     AgentVerification,
   },
   methods: {
@@ -611,63 +607,12 @@ export default {
       }
       this.connection.send_message(query_msg);
     },
-    async sendPresentationProposal(form){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/send-presentation-proposal",
-        "connection_id": form.connection_id,
-        "comment": form.comment,
-        "auto_present": form.auto_present , //optional, default to false
-        "presentation_proposal": {
-          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/present-proof/1.0/presentation-preview",
-          /**
-           * name 
-           * cred_def_id //optional
-           * mime_type //optional
-           * value //optional
-           * */
-          attributes: form.attributes.map(attribute => {
-            return {
-              name: attribute.name,
-              cred_def_id: attribute.cred_def.cred_def_id,
-              value: attribute.value
-            };
-          }),
-          /**
-           * name
-           * cred_def_id
-           * predicate
-           * threshold
-           */
-          predicates: form.predicates.map(predicate => {
-            return {
-              name: predicate.name,
-              cred_def_id: predicate.cred_def.cred_def_id,
-              predicate: predicate.predicate,
-              threshold: predicate.threshold
-            };
-          })
-        },
-      };
-         
-      this.connection.send_message(query_msg);
-    },
     async getHoldersCredentials(){
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credentials-get-list",
         //'connection_id': ,// optional filter
         //'credential_definition_id': ,// optional filters
         //'schema_id': ,// optional filter
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      this.connection.send_message(query_msg);
-    },
-    async getHoldersPresentations(){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/presentations-get-list",
-        //'connection_id': ,// optional filter
-        //'verified': ,// optional filters
         "~transport": {
           "return_route": "all"
         }
@@ -828,11 +773,6 @@ export default {
         this.holder_credentials = msg.results;
       }
     },
-    async holderPresentationListRecord(msg){
-      if('results'in msg ){
-        this.holder_presentations = msg.results;
-      }
-    },
     async ProtocolDisclose(msg){
       //console.log(msg.protocols);
       this.supported_protocols = msg.protocols;
@@ -866,7 +806,6 @@ export default {
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credential-exchange": this.holderCredentialRecord,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/presentation-exchange": this.holderPresentationRecord,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credentials-list": this.holderCredentialListRecord,
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/presentations-list": this.holderPresentationListRecord,
       };
       var handler = handlers[msg['@type']];
       if(handler){
@@ -1055,7 +994,6 @@ export default {
       'issuer_credentials': [],
       'issuer_presentations': [],
       'holder_credentials': [],
-      'holder_presentations': [],
       'presentation_exchanges': [],
       'trusted_issuers_form':{
         'did':'',
@@ -1474,7 +1412,6 @@ export default {
     this.getIssuedCredentials();
     this.getIssuersPresentations();
     this.getHoldersCredentials();
-    this.getHoldersPresentations();
     this.run_protocol_discovery();
     this.fetchAgentConnections();
     this.fetchAgentStaticConnections();
