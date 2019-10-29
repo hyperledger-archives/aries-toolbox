@@ -7,11 +7,11 @@ import App from './App'
 import router from './router'
 import store from './store'
 import message_bus from './message_bus.js'
+import { mixin as share } from './share.js'
 
 //if (!process.env.IS_WEB)
 Vue.use(require('vue-electron'));
 Vue.use(ElementUI)
-Vue.use(message_bus);
 Vue.http = Vue.prototype.$http = axios;
 Vue.config.productionTip = false;
 

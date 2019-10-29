@@ -248,6 +248,8 @@ const rp = require('request-promise');
 
 import { mapState, mapActions } from "vuex";
 import { from_store } from '../connection_detail.js';
+import message_bus from '../message_bus.js';
+import share from '../share.js';
 
 import VueJsonPretty from 'vue-json-pretty';
 import VJsoneditor from 'v-jsoneditor';
@@ -265,7 +267,10 @@ import AgentVerification from './AgentVerification.vue';
 
 export default {
   name: 'agent-base',
-  message_bus: 'source',
+  mixins: [
+    message_bus(),
+    share(['connections'])
+  ],
   components: {
     VueJsonPretty,
     VJsoneditor,
@@ -906,7 +911,6 @@ export default {
       'open_tab': 0,
       'connection': {'label':'loading...'},
       'connection_loaded': false,
-      'connections': [],
       'message_history':[],
       'last_sent_msg_id':'',
       'ledgers':{
