@@ -16,9 +16,11 @@
             :value="did">
           </el-option>
         </el-select>
-        <!-- <el-select v-if="false" v-model="active_ledger_selector.ledger" filterable placeholder="activate ledger" >
+        <!-- <el-select  v-if="$refs.ledgerTab" 
+                    v-model="$refs.ledgerTab.active_ledger_selector.ledger" 
+                    filterable placeholder="activate ledger" >
           <el-option
-          v-for="ledger in ledgers"
+          v-for="ledger in $refs.ledgerTab.ledgers"
           :key="ledger.name"
           :label="ledger.name"
           :value="ledger.name">
@@ -34,42 +36,10 @@
       <el-tab-pane label="Dids" name="dids">
         <dids-tab ref="didsTab"></dids-tab>
       </el-tab-pane>
-
-      <!-- <el-tab-pane label="Ledger">
-        <p>Ledgers:</p>
-        <el-collapse v-model="expanded_ledger_items">
-        <div v-for="(ledger, key) in ledgers" :key="key">
-        <el-collapse-item v-bind:title="'Name: ' + ledger.name" :name="key">
-        <el-row>
-        <div>
-        <vue-json-pretty
-        :deep=1
-        :data="ledger">
-        </vue-json-pretty>
-        <el-form class="ledger-form">
-          <el-form-item >
-          <el-button type="primary" @click="removeLedger(ledger)">delete</el-button>
-          </el-form-item>
-          <el-button v-on:click="collapse_expanded_ledger_item(key)">^</el-button>
-          </el-form>
-          </div>
-          </el-row>
-          </el-collapse-item>
-          </div>
-          </el-collapse>
-          <p>Add new ledger:</p>
-          <el-form :model=ledger_form>
-          <el-form-group >
-          <span slot="label">Name:</span>
-          <el-input v-model="ledger_form.name" style="width:100px;"> </el-input>
-          <span slot="label">Url to genesis file:</span>
-          <el-input v-model="ledger_form.gen_url" style="width:100px;"> </el-input>
-          </el-form-group>
-          <el-form-item>
-          <el-button type="primary" @click="addLedger()">add new ledger</el-button>
-          </el-form-item>
-          </el-form>
-          </el-tab-pane> -->
+      <!-- <el-tab-pane label="Ledger" name="ledgerTab">
+        <ledger-tab ref="ledgerTab"></ledger-tab>
+      </el-tab-pane> -->
+      
           <el-tab-pane label="Invitations" name="invitations">
             <agent-invitations></agent-invitations>
           </el-tab-pane>
@@ -305,6 +275,7 @@ import VueJsonPretty from 'vue-json-pretty';
 import VJsoneditor from 'v-jsoneditor';
 import AgentConnectionList from './AgentConnectionList.vue';
 import DidsTab from './Dids/DidsTab.vue';
+import LedgerTab from './Ledger/LedgerTab.vue';
 import AgentSchemaList from './AgentSchemaList.vue';
 import AgentCredDefList from './AgentCredDefList.vue';
 import AgentIssueCredList from './AgentIssueCredList.vue';
@@ -324,6 +295,7 @@ export default {
     VJsoneditor,
     AgentConnectionList,
     DidsTab,
+    LedgerTab,
     AgentSchemaList,
     AgentCredDefList,
     AgentIssueCredList,
@@ -1002,10 +974,6 @@ export default {
       let index = this.expanded_dids_items.indexOf(id)
       this.expanded_dids_items.splice(index, 1);
     },
-    async collapse_expanded_ledger_item(id){
-      let index = this.expanded_ledger_items.indexOf(id)
-      this.expanded_ledger_items.splice(index, 1);
-    },
   },
   data() {
     return {
@@ -1015,24 +983,6 @@ export default {
       'connection_loaded': false,
       'message_history':[],
       'last_sent_msg_id':'',
-      'ledgers':{
-        '12345234':{
-          'id':'12345234',
-          'name':'sov',
-        },
-        '22345234':{
-          'id':'22345234',
-          'name':'von',
-        },
-        '32345234':{
-          'id':'32345234',
-          'name':'bank',
-        },
-        '42345234':{
-          'id':'42345234',
-          'name':'adams',
-        },
-      },
       'trusted_issuers':{},
       'schemas':[],
       'schemas_form':{
@@ -1060,11 +1010,6 @@ export default {
       'trusted_issuers_form':{
         'did':'',
         'label':'',
-      },
-      
-      'ledger_form':{
-        'name':'',
-        'gen_url':'',
       },
       'presentation_definitions':{
         '8472d86c-fc14-480a-bd12-e0be147aadb9':{
@@ -1111,7 +1056,6 @@ export default {
       'exspanded_multi_use_invitations_connection_items':[],
       'invitations':{},
       'expanded_dids_items':[],
-      'expanded_ledger_items':[],
       'exspanded_invites_items':[],
       'exspanded_schemas_items':[],
       'exspanded_cred_def_items':[],
@@ -1434,17 +1378,6 @@ export default {
           [val]: this.presentation_exchanges[val]
         } : acc
         ), {})
-    },
-    ledgerSchemas(ledger_name){
-      console.log("ledger name:",ledger_name)
-      let schemas = Object.keys(this.schemas).reduce((acc,key)=>
-        ("ledgers" in this.schemas[key] && ledger_name in this.schemas[key].ledgers ?{
-          ...acc,
-          [key]: this.schemas[key]
-        } : acc
-        ), {})
-      console.log("schemas",schemas)
-      return schemas
     },
     selectedActiveDid: {
       get () {
