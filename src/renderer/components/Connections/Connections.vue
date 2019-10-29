@@ -41,7 +41,6 @@
 
 <script>
 import ConnectionList from './ConnectionList.vue';
-import {collection} from '../../collections.js';
 
 export default {
   name: 'connections',
