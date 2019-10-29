@@ -3,7 +3,7 @@
     <verification
         title="Verification"
         v-bind:list="issuer_presentations"
-        v-bind:connections="activeConnections"
+        v-bind:connections="active_connections"
         v-bind:cred_defs="cred_defs"
         v-bind:trusted_issuers="trusted_issuers"
         @verification-refresh="getIssuersPresentations"
@@ -20,11 +20,8 @@ const { clipboard } = require('electron');
 import VueQrcode from '@chenfengyuan/vue-qrcode';
 
 export default {
-  name: '',
-  props: [  'activeConnections',
-            'cred_defs',
-            'trusted_issuers',
-        ],
+  name: 'verifications',
+  props: ['shared'],
   message_bus: 'derive',
   components: {
     VueJsonPretty,
@@ -32,7 +29,6 @@ export default {
   },
   data () {
     return {
-        blah:"",
     }
   },
   created: function() {
@@ -54,8 +50,8 @@ export default {
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/request-presentation",
         msg => component.verifierRequestPresentationRecordDirective()
     );
-    this.$message_bus.$on('verifications', () => component.fetchAgentInvitations());
-    this.$message_bus.$on('agent-created', this.getIssuersPresentations);
+    this.$message_bus.$on('verifications', () => component.getIssuersPresentations());
+    //this.$message_bus.$on('agent-created', this.getIssuersPresentations);
   },
   methods: {
     async holderPresentationListRecord(msg){
@@ -110,18 +106,17 @@ export default {
           }, {}),
         },
       };
-      this.connection.send_message(query_msg);
+      this.$message_bus.$emit('send-message',query_msg);
     },
     async holderPresentationRecord(msg){
       return this.getIssuersPresentations();
     },
     async getIssuersPresentations(){
-      let query_msg = {
+      this.$message_bus.$emit('send-message', {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentations-get-list",
         //'connection_id': ,// optional filter
         //'verified': ,// optional filter
-      }
-      this.connection.send_message(query_msg);
+      });
     },
     async verifierRequestPresentationRecordDirective(msg){
       if('results'in msg ){
@@ -132,6 +127,45 @@ export default {
       setTimeout(() => {
         return this.getIssuersPresentations();
       }, 4500);
+    },
+  },
+  computed: {
+    issuer_presentations:{
+      get: function() {
+        return this.shared.issuer_presentations;
+      },
+      set: function(value) {
+        this.$emit('mutate', 'issuer_presentations', value);
+      }
+    },
+    connections: {
+      get: function() {
+        return this.shared.connections || [];
+      },
+      set: function(value) {
+        this.$emit('mutate', 'connections', value);
+      }
+    },
+    active_connections: function() {
+      return Object.values(this.connections).filter(
+        conn => "state" in conn && conn.state === "active"
+      );
+    },
+    cred_defs:{
+      get: function() {
+        return this.shared.cred_defs;
+      },
+      set: function(value) {
+        this.$emit('mutate', 'cred_defs', value);
+      }
+    },
+    trusted_issuers:{
+      get: function() {
+        return this.shared.trusted_issuers;
+      },
+      set: function(value) {
+        this.$emit('mutate', 'trusted_issuers', value);
+      }
     },
   }
 }
