@@ -3,9 +3,9 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <a class="navbar-brand" href="#">{{connection.label}}</a>
       <el-form
-        v-if="$refs.didsTab"
+        v-if="$refs.dids"
         :disabled="Object.keys(dids).length === 0"
-        :model="$refs.didsTab.active_ledger_selector">
+        :model="$refs.dids.active_ledger_selector">
         <el-select
           v-model="selectedActiveDid"
           filterable placeholder="activate did">
@@ -34,7 +34,7 @@
       v-model="open_tab"
       @tab-click="clickedTab">
       <el-tab-pane label="Dids" name="dids">
-        <dids-tab ref="didsTab"></dids-tab>
+        <dids ref="dids"></dids>
       </el-tab-pane>
       <!-- <el-tab-pane label="Ledger" name="ledgerTab">
         <ledgers ref="ledgerTab"></ledgers>
@@ -223,7 +223,7 @@ import share from '../share.js';
 
 import VueJsonPretty from 'vue-json-pretty';
 import VJsoneditor from 'v-jsoneditor';
-import DidsTab from './Dids/DidsTab.vue';
+import Dids from './Dids/Dids.vue';
 import Ledger from './Ledger/Ledger.vue';
 import Connections from './Connections/Connections.vue';
 import AgentSchemaList from './AgentSchemaList.vue';
@@ -251,7 +251,7 @@ export default {
   components: {
     VueJsonPretty,
     VJsoneditor,
-    DidsTab,
+    Dids,
     Ledger,
     Connections,
     AgentSchemaList,
@@ -1209,8 +1209,8 @@ export default {
     },
     active_ledger_selector:{
       get () {
-        console.log("get active ledger selector ", this.$refs.didsTab);
-        return $refs.didsTab.active_ledger_selector || "";
+        console.log("get active ledger selector ", this.$refs.dids);
+        return $refs.dids.active_ledger_selector || "";
       },
       set(){
 
