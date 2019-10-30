@@ -30,19 +30,21 @@
 <script>
 import VueJsonPretty from 'vue-json-pretty';
 import DidList from './DidList.vue';
+import message_bus from '../../message_bus.js';
+import share from '../../share.js';
 
 export default {
   name: 'dids-tab',
-  message_bus: 'derive',
+  mixins: [
+    message_bus(),
+    share(['dids', 'public_did'])
+  ],
   components: {
     VueJsonPretty,
     DidList,
   },
   data () {
     return {
-        bus: this.$message_bus[this.$route.params.agentid],    
-        dids:{},
-        public_did:'',
         did_form:{
             did:'',
             seed:'',

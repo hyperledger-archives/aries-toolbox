@@ -4,13 +4,13 @@
       <a class="navbar-brand" href="#">{{connection.label}}</a>
       <el-form
         v-if="$refs.didsTab"
-        :disabled="Object.keys($refs.didsTab.dids).length === 0"
+        :disabled="Object.keys(dids).length === 0"
         :model="$refs.didsTab.active_ledger_selector">
         <el-select
           v-model="selectedActiveDid"
           filterable placeholder="activate did">
           <el-option
-            v-for="did in Object.values($refs.didsTab.dids)"
+            v-for="did in Object.values(dids)"
             :key="did.did"
             :label="did.did"
             :value="did">
@@ -75,8 +75,6 @@
           </el-tab-pane>
           <el-tab-pane label="Connections" name="connections">
             <connections
-              :shared="{connections: connections}"
-              @mutate="mutate"
               ref="connections"></connections>
           </el-tab-pane>
           <el-tab-pane label="Static Connections">
@@ -250,6 +248,8 @@ const rp = require('request-promise');
 
 import { mapState, mapActions } from "vuex";
 import { from_store } from '../connection_detail.js';
+import message_bus from '../message_bus.js';
+import share from '../share.js';
 
 import VueJsonPretty from 'vue-json-pretty';
 import VJsoneditor from 'v-jsoneditor';
@@ -268,7 +268,15 @@ import Vue from 'vue';
 
 export default {
   name: 'agent-base',
-  message_bus: 'source',
+  mixins: [
+    message_bus(),
+    share([
+      'connections',
+      'active_connections',
+      'dids',
+      'public_did'
+    ])
+  ],
   components: {
     VueJsonPretty,
     VJsoneditor,
@@ -830,7 +838,6 @@ export default {
       'open_tab': 0,
       'connection': {'label':'loading...'},
       'connection_loaded': false,
-      'connections': [],
       'message_history':[],
       'last_sent_msg_id':'',
       'ledgers':{
@@ -955,12 +962,6 @@ export default {
      */
     //=========================================================================================================================
     // ---------------------- Connection Filters --------------------
-    active_connections() {
-      if (this.$refs.connections) {
-        return this.$refs.connections.active_connections();
-      }
-      return [];
-    },
     requestStateConnections(){
       return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "request")
     },
@@ -1014,7 +1015,7 @@ export default {
     // ---------------------- Issuer Credential Filters --------------------
     issuerCredDefs() {
       return Object.values(this.cred_defs).filter(
-        cred_def => cred_def.author === "self" || cred_def.cred_def_id.split(':', 2)[0] === this.$refs.didsTab.public_did
+        cred_def => cred_def.author === "self" || cred_def.cred_def_id.split(':', 2)[0] === this.public_did
       );
     },
     issuerOfferSentStateCredentials(){
@@ -1032,7 +1033,7 @@ export default {
     // ---------------------- Holder Credential Filters --------------------
     proposalCredDefs() {
       return Object.values(this.cred_defs).filter(
-        cred_def => cred_def.author !== "self" || cred_def.cred_def_id.split(':', 2)[0] !== this.$refs.didsTab.public_did
+        cred_def => cred_def.author !== "self" || cred_def.cred_def_id.split(':', 2)[0] !== this.public_did
       );
     },
     holderOfferReceivedStateCredentials(){
@@ -1267,8 +1268,7 @@ export default {
     },
     selectedActiveDid: {
       get () {
-        console.log("get select active did ", this.$refs.didsTab);
-        return this.$refs.didsTab.public_did || "";
+        return this.public_did || "";
       },
       set (optionValue) {
         return this.$message_bus.$emit('activate-agent-did',optionValue);
