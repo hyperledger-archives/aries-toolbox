@@ -56,12 +56,8 @@
           ref="connections"></connections>
       </el-tab-pane>
 
-      <el-tab-pane label="Static Connections">
-        <agent-static-connections
-          v-bind:staticconnections="staticconnections"
-          v-on:refresh="fetchAgentStaticConnections"
-          v-on:send-connection-message="send_connection_message">
-        </agent-static-connections>
+      <el-tab-pane label="Static Connections" name="static-connections">
+        <static-connections></static-connections>
       </el-tab-pane>
 
       <el-tab-pane label="Credential Issuance">
@@ -235,7 +231,7 @@ import AgentSchemaList from './AgentSchemaList.vue';
 import AgentCredDefList from './AgentCredDefList.vue';
 import AgentIssueCredList from './AgentIssueCredList.vue';
 import Invitations from './Invitations/Invitations.vue';
-import AgentStaticConnections from './Agent/StaticConnections.vue';
+import StaticConnections from './StaticConnections/StaticConnections.vue';
 import AgentMyCredentialsList from './AgentMyCredentialsList.vue';
 import AgentTrust from './AgentTrust.vue';
 import Presentations from './Agent/Presentations.vue';
@@ -263,7 +259,7 @@ export default {
     AgentCredDefList,
     AgentIssueCredList,
     Invitations,
-    AgentStaticConnections,
+    StaticConnections,
     AgentMyCredentialsList,
     AgentTrust,
     Presentations,
@@ -323,15 +319,6 @@ export default {
      *  update                   -> connection
      *  create-static-connection -> static-connection-info
      */
-    async fetchAgentStaticConnections(){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-get-list",
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      this.connection.send_message(query_msg);
-    },
     async compose_send(){
       this.connection.send_message(this.compose_json, true);
     },
@@ -549,14 +536,6 @@ export default {
      *  Received Agent admin messages with directives containing state of wallet and did connections to be displayed.
      */
     //=========================================================================================================================
-
-    async fetchedStaticConnectionList(msg){
-      const staticconnections = msg.results.reduce(function(acc, cur, i) {
-        acc[cur.connection_id] = cur;
-        return acc;
-      }, {});
-      this.staticconnections = staticconnections;
-    },
     // ---------------------- shcema handlers --------------------
     async getSchemaListResponse(msg){
       if('results' in msg){
@@ -652,8 +631,6 @@ export default {
         //=============================== Credential Definitions ===============================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/disclose": this.ProtocolDisclose,
         //=============================== Connections ==========================================
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-list": this.fetchedStaticConnectionList,
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-info":this.fetchAgentStaticConnections,// handle added statuc agent
         //=============================== Schemas ==============================================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-list": this.getSchemaListResponse,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-id": this.sendSchemaResponse,
@@ -876,7 +853,6 @@ export default {
         "response_requested": true
       },
       'basicmessage_compose': "",
-      'staticconnections': {},
       'connectionUpdateForm':{},
       'exspanded_connection_items':[],
       'exspanded_active_connection_items':[],
@@ -1229,9 +1205,6 @@ export default {
     this.getHoldersCredentials();
     this.getHoldersPresentations();
     this.run_protocol_discovery();
-    this.fetchAgentStaticConnections();
-    //this.fetchAgentInvitations();
-    // await this.fetchNewInvite(); // do not automatically create invite
     this.$message_bus.$on('send-message', this.send_connection_message);
     this.$message_bus.$emit('agent-created');
   },

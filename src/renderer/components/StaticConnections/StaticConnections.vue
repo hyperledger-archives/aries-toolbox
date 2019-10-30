@@ -1,24 +1,42 @@
 <template >
 
-<el-row>
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#">Static Connection</a>
+  <el-row>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <a class="navbar-brand" href="#">Static Connections</a>
       <el-button
         type="primary"
         icon="el-icon-refresh"
-        @click="$emit('refresh',)"></el-button>
+        @click="fetch"></el-button>
     </nav>
-  <el-collapse v-model="expanded_items">
+    <el-collapse v-model="expanded_items">
       <ul class="list">
         <el-collapse-item
-          v-for="c in staticconnections"
+          v-for="c in static_connections"
           v-bind:title="get_name(c)"
           :name="get_name(c)"
           :key="c.connection_id">
           <el-row :key="c.connection_id">
-            <p><b>My DID:</b> {{c.my_info.did}} <el-button type="info" icon="el-icon-copy-document" size="mini" circle @click="copyItem(c.my_info.did, 'DID')"></el-button></p>
-            <p><b>My VK:</b> {{c.my_info.vk}} <el-button type="info" icon="el-icon-copy-document" size="mini" circle @click="copyItem(c.my_info.vk, 'VK')"></el-button></p>
-            <p><b>My Endpoint:</b> {{c.my_info.endpoint}} <el-button type="info" icon="el-icon-copy-document" size="mini" circle @click="copyItem(c.my_info.endpoint, 'Endpoint')"></el-button></p>
+            <p> <b>My DID:</b> {{c.my_info.did}}
+            <el-button
+              type="info"
+              size="mini" circle
+              icon="el-icon-copy-document"
+              @click="copyItem(c.my_info.did, 'DID')"></el-button>
+            </p>
+            <p><b>My VK:</b> {{c.my_info.vk}}
+            <el-button
+              type="info"
+              icon="el-icon-copy-document"
+              size="mini" circle
+              @click="copyItem(c.my_info.vk, 'VK')"></el-button>
+            </p>
+            <p><b>My Endpoint:</b> {{c.my_info.endpoint}}
+            <el-button
+              type="info"
+              icon="el-icon-copy-document"
+              size="mini" circle
+              @click="copyItem(c.my_info.endpoint, 'Endpoint')"></el-button>
+            </p>
             <p><b>Remote DID:</b> {{c.their_info.did}}</p>
             <p><b>Remote VK:</b> {{c.their_info.vk}}</p>
             <div>
@@ -32,43 +50,48 @@
       </ul>
     </el-collapse>
 
-
     <p>Add Static Connection:</p>
-    <el-form :model=static_agent_form>
-      <div>
-        <span slot="label">Label:</span>
+    <el-form :model="static_agent_form" inline>
+      <el-form-item label="Label:">
         <el-input v-model="static_agent_form.label" style="width:100px;"> </el-input>
-        <span slot="label">Role:</span>
+      </el-form-item>
+      <el-form-item label="Role:">
         <el-input v-model="static_agent_form.role" style="width:100px;"> </el-input>
-        <span slot="label">Static Did:</span>
+      </el-form-item>
+      <el-form-item label="Static DID:">
         <el-input v-model="static_agent_form.static_did" style="width:100px;"> </el-input>
-        <span slot="label">Static Key:</span>
+      </el-form-item>
+      <el-form-item label="Static Key:">
         <el-input v-model="static_agent_form.static_key" style="width:100px;"> </el-input>
-        <span slot="label">Static Endpoint:</span>
+      </el-form-item>
+      <el-form-item label="Static Endpoint:">
         <el-input v-model="static_agent_form.static_endpoint" style="width:100px;"> </el-input>
-      </div>
+      </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="addStaticAgent()">Add Static Agent</el-button>
+        <el-button type="primary" @click="add">Add Static Agent</el-button>
       </el-form-item>
     </el-form>
-
-</el-row>
+  </el-row>
 </template>
 
 <script>
 import VueJsonPretty from 'vue-json-pretty';
 const { clipboard } = require('electron');
-import VueQrcode from '@chenfengyuan/vue-qrcode';
+import share from '../../share.js';
+import message_bus from '../../message_bus.js';
 
 export default {
-  name: 'agent-static-connections',
-  props: ['staticconnections', 'title'],
+  name: 'static-connections',
+  mixins: [
+    message_bus(),
+    share([])
+  ],
   components: {
     VueJsonPretty,
-    'qrcode': VueQrcode
   },
   data () {
     return {
+      static_connections: [],
       expanded_items: [],
       static_agent_form:{
         'label':"",
@@ -79,8 +102,26 @@ export default {
       },
     }
   },
+  created: function() {
+    let component = this;
+    this.$message_bus.$on(
+      "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-list",
+      (msg) => component.static_connections = msg.results
+    );
+    this.$message_bus.$on(
+      "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-info",
+      (msg) => component.fetch()
+    );
+    this.$message_bus.$on('static-connections', () => component.fetch());
+  },
   methods: {
-    async addStaticAgent(){
+    fetch: function(){
+      let query_msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-get-list",
+      }
+      this.$message_bus.$emit('send-message', query_msg);
+    },
+    add: function(){
       let query_msg ={
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/create-static-connection",
         "label": this.static_agent_form.label,
@@ -88,12 +129,8 @@ export default {
         "static_did": this.static_agent_form.static_did,
         "static_key": this.static_agent_form.static_key,
         "static_endpoint": this.static_agent_form.static_endpoint,
-        "~transport": {
-          "return_route": "all"
-        }
       }
-      //this.connection.send_message(query_msg);
-      this.$emit('send-connection-message', query_msg);
+      this.$message_bus.$emit('send-message', query_msg);
     },
 
     get_name: function(c) {
@@ -102,11 +139,11 @@ export default {
     copyItem: function(item,title){
       clipboard.writeText(item);
       this.$notify({
-          type: 'success',
-          title: 'Copied',
-          message: 'This '+title+' has been copied to the clipboard.',
-          duration: 2000
-        });
+        type: 'success',
+        title: 'Copied',
+        message: 'This '+title+' has been copied to the clipboard.',
+        duration: 2000
+      });
     },
   }
 }
