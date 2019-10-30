@@ -79,7 +79,7 @@ export default {
       this.getAgentDids();
     },
     async resolveDid(did){
-      this.$message_bus.$emit('send-message', 
+      this.$message_bus.$emit('send-message',
         {
           "@type": "",
           "did": did,
@@ -107,7 +107,7 @@ export default {
       this.$message_bus.$emit('send-message', msg);
     },
     async getAgentActivePublicDid(did){
-      this.$message_bus.$emit('send-message', 
+      this.$message_bus.$emit('send-message',
         {
           "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/get-public-did",
           "~transport": {
@@ -117,7 +117,7 @@ export default {
       );
     },
     async activateAgentDid(did){
-      this.$message_bus.$emit('send-message', 
+      this.$message_bus.$emit('send-message',
         {
           "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/set-public-did",
           "did": did.did,
@@ -130,7 +130,7 @@ export default {
       this.$message_bus.$emit('send-message', {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/set-did-metadata",
         "did": editForm.did,
-        "metadata": { 
+        "metadata": {
           ...editForm.metadata,
           'label':editForm.label,
           'permission':editForm.permission,
@@ -157,8 +157,8 @@ export default {
         this.did_form.label = ""
         this.didsUpdateForm = this.dids
         //if "public" in info.metadata and info.metadata["public"] is True:
-        if('metadata' in msg.result && 
-          'public' in msg.result.metadata && 
+        if('metadata' in msg.result &&
+          'public' in msg.result.metadata &&
           msg.result.metadata.public === true){
           //TODO: remove public from metadata of previous public_did
           this.public_did = msg.result.did

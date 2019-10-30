@@ -239,13 +239,13 @@ export default {
           //   }
           // }
 
-          /* 
+          /*
           {
             "name": "attribute_name",
             "cred_def_id":"",
             "mime_type":"",
             "value": ""
-          } 
+          }
           */
         ],
         predicates: [
@@ -266,7 +266,7 @@ export default {
            *  "cred_def_id": "",
            *  "predicate": "",
            *  "threshold": "",
-           *}  
+           *}
            */
         ]
       },

@@ -50,7 +50,7 @@ export default {
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/presentation-exchange",
         msg => component.holderPresentationRecord()
     );
-        
+
     this.$message_bus.$on(
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentation-exchange",
         msg => component.verifierPresentationExchange()
