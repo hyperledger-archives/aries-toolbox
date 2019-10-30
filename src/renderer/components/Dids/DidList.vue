@@ -109,7 +109,7 @@ export default {
         item => item != did.did
       );
     },
-  },  
+  },
   watch: {
     list: {
       handler: function(newValue) {

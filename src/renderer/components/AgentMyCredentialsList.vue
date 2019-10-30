@@ -30,7 +30,7 @@
         </el-collapse-item>
       </ul>
     </el-collapse>
-    <nav 
+    <nav
       v-if="offerReceivedStateCredentials.length"
       class="navbar navbar-expand-lg navbar-light bg-light">
       <a class="navbar-brand" href="#">Offers</a>
@@ -39,7 +39,7 @@
         icon="el-icon-plus"
         @click="offerFormActive = true">Accept Offer</el-button> -->
     </nav>
-    <el-collapse 
+    <el-collapse
       v-model="expanded_items">
       <ul class="list">
         <el-collapse-item
@@ -200,8 +200,8 @@ export default {
     },
     receivedStateCredentials(){
       return this.credentials.filter(
-        cred => 
-          "state" in cred && 
+        cred =>
+          "state" in cred &&
           cred.state === "credential_received" &&
           cred.state === "stored"
       )

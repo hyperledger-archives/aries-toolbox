@@ -86,7 +86,7 @@ export default {
       this.turstedDidFormActive = false;
     },
     storeTrustedIssuer: function() {
-      this.$emit('store-did', 
+      this.$emit('store-did',
         {
           'id':this.trusted_issuers_form.id,
           'label':this.trusted_issuers_form.label
