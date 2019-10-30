@@ -195,11 +195,9 @@
             </el-row>
           </el-tab-pane>
           <el-tab-pane label="Presentation" name="presentation">
-            <presentations-tab 
+            <presentations
               ref="presentationTab"
-              :activeConnections = "activeConnections"
-              :cred_defs = "cred_defs"
-              ></presentations-tab>
+              ></presentations>
           </el-tab-pane>
           <el-tab-pane label="Verifications">
             <agent-verification
@@ -308,7 +306,7 @@ import AgentInvitations from './Invitations/Invitations.vue';
 import AgentStaticConnections from './Agent/StaticConnections.vue';
 import AgentMyCredentialsList from './AgentMyCredentialsList.vue';
 import AgentTrust from './AgentTrust.vue';
-import PresentationsTab from './Presentations/PresentationsTab.vue';
+import Presentations from './Presentations/Presentations.vue';
 import AgentVerification from './AgentVerification.vue';
 import Vue from 'vue';
 
@@ -327,7 +325,7 @@ export default {
     AgentStaticConnections,
     AgentMyCredentialsList,
     AgentTrust,
-    PresentationsTab,
+    Presentations,
     AgentVerification,
   },
   methods: {
