@@ -2,15 +2,15 @@
   <div id="wrapper" class="container-fluid">
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <a class="navbar-brand" href="#">{{connection.label}}</a>
-      <el-form 
-        v-if="$refs.didsTab" 
-        :disabled="Object.keys($refs.didsTab.dids).length === 0"
+      <el-form
+        v-if="$refs.didsTab"
+        :disabled="Object.keys(dids).length === 0"
         :model="$refs.didsTab.active_ledger_selector">
-        <el-select  
-          v-model="selectedActiveDid" 
+        <el-select
+          v-model="selectedActiveDid"
           filterable placeholder="activate did">
-          <el-option 
-            v-for="did in Object.values($refs.didsTab.dids)"
+          <el-option
+            v-for="did in Object.values(dids)"
             :key="did.did"
             :label="did.did"
             :value="did">
@@ -29,7 +29,7 @@
       </el-form>
     </nav>
 
-    <el-tabs 
+    <el-tabs
       type="border-card"
       v-model="open_tab"
       @tab-click="clickedTab">
@@ -41,65 +41,11 @@
       </el-tab-pane> -->
       
           <el-tab-pane label="Invitations" name="invitations">
-            <agent-invitations></agent-invitations>
+            <invitations></invitations>
           </el-tab-pane>
-          <el-tab-pane label="Connections">
-            <el-row>
-              <agent-connection-list
-                title="Active Connections:"
-                editable="true"
-                v-bind:list="activeConnections"
-                v-on:connection-editted="updateAgentConnection"
-                v-on:connection-deleted="deleteAgentConnection"
-                @refresh="fetchAgentConnections"></agent-connection-list>
-              <agent-connection-list
-                title="Pending Connections:"
-                editable="true"
-                v-bind:list="pendingConnections"
-                v-on:connection-editted="updateAgentConnection"
-                v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
-              <!---<agent-connection-list
-                title="Open Invitations:"
-                editable="true"
-                v-bind:list="openInvitations"
-                v-on:connection-editted="updateAgentConnection"
-                v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
-              <agent-connection-list
-                title="Multiuse Invitations:"
-                editable="true"
-                v-bind:list="multiUseInvitations"
-                v-on:connection-editted="updateAgentConnection"
-                v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
-              <agent-connection-list
-                title="New Invitations:"
-                editable="false"
-                v-bind:list="Object.values(invitations)"
-                v-on:connection-editted="updateAgentConnection"
-                v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>--->
-              <agent-connection-list
-                title="Failed Connections:"
-                editable="false"
-                v-bind:list="errorStateConnections"
-                v-on:connection-editted="updateAgentConnection"
-                v-on:connection-deleted="deleteAgentConnection"></agent-connection-list>
-
-              <p>Add connection from invitation:</p>
-              <el-form @submit.native.prevent :model=agent_invitation_form>
-                <el-form-item
-                  label="Invitation URL:">
-                  <el-input
-                    style="width: 300px;"
-                    v-model="agent_invitation_form.invitation">
-                    <el-button
-                      slot="append"
-                      type="primary"
-                      icon="el-icon-plus"
-                      @click="addAgent()">Add</el-button>
-                  </el-input>
-                </el-form-item>
-              </el-form>
-
-            </el-row>
+          <el-tab-pane label="Connections" name="connections">
+            <connections
+              ref="connections"></connections>
           </el-tab-pane>
           <el-tab-pane label="Static Connections">
             <agent-static-connections
@@ -129,10 +75,10 @@
               <agent-issue-cred-list
                 title="Issued Credentials"
                 v-bind:list="issuer_credentials"
-                v-bind:connections="activeConnections"
+                v-bind:connections="active_connections"
                 v-bind:cred_defs="issuerCredDefs"
                 @issue="issueCredential"
-                @issue-cred-refresh="getIssuedCredentials">            
+                @issue-cred-refresh="getIssuedCredentials">
               </agent-issue-cred-list>
             </el-row>
           </el-tab-pane>
@@ -150,7 +96,7 @@
                 editable="false"
                 v-bind:credentials="holder_credentials"
                 v-bind:cred_defs="proposalCredDefs"
-                v-bind:connections="activeConnections"
+                v-bind:connections="active_connections"
                 @cred-refresh="getHoldersCredentials"
                 @propose="sendCredentialProposal"></agent-my-credentials-list>
             </el-row>
@@ -169,7 +115,7 @@
               <presentations
                 title="Presentations"
                 v-bind:presentations="holder_presentations"
-                v-bind:connections = "activeConnections"
+                v-bind:connections = "active_connections"
                 v-bind:cred_defs = "cred_defs"
                 @presentation-refresh = "getHoldersPresentations"
                 @send-presentation-proposal= "sendPresentationProposal"></presentations>
@@ -179,7 +125,7 @@
             <agent-verification
               title="Verification"
               v-bind:list="issuer_presentations"
-              v-bind:connections="activeConnections"
+              v-bind:connections="active_connections"
               v-bind:cred_defs="cred_defs"
               v-bind:trusted_issuers="trusted_issuers"
               @verification-refresh="getIssuersPresentations"
@@ -270,36 +216,45 @@ const rp = require('request-promise');
 
 import { mapState, mapActions } from "vuex";
 import { from_store } from '../connection_detail.js';
+import message_bus from '../message_bus.js';
+import share from '../share.js';
 
 import VueJsonPretty from 'vue-json-pretty';
 import VJsoneditor from 'v-jsoneditor';
-import AgentConnectionList from './AgentConnectionList.vue';
 import DidsTab from './Dids/DidsTab.vue';
 import LedgerTab from './Ledger/LedgerTab.vue';
+import Connections from './Connections/Connections.vue';
 import AgentSchemaList from './AgentSchemaList.vue';
 import AgentCredDefList from './AgentCredDefList.vue';
 import AgentIssueCredList from './AgentIssueCredList.vue';
-import AgentInvitations from './Invitations/Invitations.vue';
+import Invitations from './Invitations/Invitations.vue';
 import AgentStaticConnections from './Agent/StaticConnections.vue';
 import AgentMyCredentialsList from './AgentMyCredentialsList.vue';
 import AgentTrust from './AgentTrust.vue';
 import Presentations from './Agent/Presentations.vue';
 import AgentVerification from './AgentVerification.vue';
-import Vue from 'vue';
 
 export default {
   name: 'agent-base',
-  message_bus: 'source',
+  mixins: [
+    message_bus(),
+    share([
+      'connections',
+      'active_connections',
+      'dids',
+      'public_did'
+    ])
+  ],
   components: {
     VueJsonPretty,
     VJsoneditor,
-    AgentConnectionList,
     DidsTab,
     LedgerTab,
+    Connections,
     AgentSchemaList,
     AgentCredDefList,
     AgentIssueCredList,
-    AgentInvitations,
+    Invitations,
     AgentStaticConnections,
     AgentMyCredentialsList,
     AgentTrust,
@@ -322,6 +277,9 @@ export default {
       this.message_history = this.connection.message_history;
 
       this.connection_loaded = true;
+    },
+    mutate: function(subject, data) {
+      this[subject] = data;
     },
     async send_connection_message(msg){
       this.connection.send_message(msg);
@@ -357,15 +315,6 @@ export default {
      *  update                   -> connection
      *  create-static-connection -> static-connection-info
      */
-    async fetchAgentConnections(){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-get-list",
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      this.connection.send_message(query_msg);
-    },
     async fetchAgentStaticConnections(){
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-get-list",
@@ -375,38 +324,6 @@ export default {
       }
       this.connection.send_message(query_msg);
     },
-    async updateAgentConnection(editForm){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/update",
-        "connection_id": editForm.connection_id,
-        "label": editForm.label,
-        "role": editForm.role,
-      }
-      this.connection.send_message(query_msg);
-    },
-    async deleteAgentConnection(connection){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/delete",
-        "connection_id": connection.connection_id,
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      this.connection.send_message(query_msg);
-    },
-    async addAgent() {
-      let receive_invite_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/receive-invitation",
-        "invitation": this.agent_invitation_form.invitation,
-        "accept": "auto"
-      };
-      this.connection.send_message(receive_invite_msg);
-      this.agent_invitation_form.invitation = "";
-      setTimeout(() => {
-        return this.fetchAgentConnections();
-      }, 4000);
-    },      
-
     async compose_send(){
       this.connection.send_message(this.compose_json, true);
     },
@@ -460,10 +377,10 @@ export default {
      *  send-credential-definition     -> credential-definition-id
      *  credential-definition-get      -> credential-definition
      *  credential-definition-get-list -> credential-definition-list
-     *  
+     *
      *  send-credential-proposal       -> credential-exchange
      *  send-presentation-proposal     -> presentation-exchange
-     *  credentials-get-list           -> credentials-list 
+     *  credentials-get-list           -> credentials-list
      *  presentations-get-list         -> presentations-list
      */
     async publishCredDef(form){
@@ -592,7 +509,7 @@ export default {
         "presentation_proposal": {
           "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/present-proof/1.0/presentation-preview",
           /**
-           * name 
+           * name
            * cred_def_id //optional
            * mime_type //optional
            * value //optional
@@ -620,7 +537,7 @@ export default {
           })
         },
       };
-         
+
       this.connection.send_message(query_msg);
     },
     async getHoldersCredentials(){
@@ -682,25 +599,12 @@ export default {
      */
     //=========================================================================================================================
 
-    async fetchedConnectionList(msg){
-      const connections = msg.results.reduce(function(acc, cur, i) {
-        acc[cur.connection_id] = cur;
-        return acc;
-      }, {});
-      this.connections = connections;
-      this.connectionUpdateForm = connections;
-    },
     async fetchedStaticConnectionList(msg){
       const staticconnections = msg.results.reduce(function(acc, cur, i) {
         acc[cur.connection_id] = cur;
         return acc;
       }, {});
       this.staticconnections = staticconnections;
-    },
-    async updatedConnection(msg){
-      return this.fetchAgentConnections();
-      /* this.connections[msg.connection.connection_id] = msg.connection
-      this.connectionUpdateForm = this.connections; */
     },
     // ---------------------- shcema handlers --------------------
     async getSchemaListResponse(msg){
@@ -731,7 +635,7 @@ export default {
       this.getSchemas();
     },
     // ---------------------- cred def handlers --------------------
-    
+
     async credentialDefinitionCreatedDirective(msg){
       setTimeout(() => {
         return this.getCredentialDefinitionlist();
@@ -760,7 +664,7 @@ export default {
       if('results' in msg){
         this.cred_defs = msg.results
         this.cred_def_form = this.cred_defs
-      }      
+      }
     },
     // ---------------------- issuance handlers --------------------
     async issuerCredentialRecord(msg) {
@@ -815,10 +719,7 @@ export default {
         //=============================== Credential Definitions ===============================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/disclose": this.ProtocolDisclose,
         //=============================== Connections ==========================================
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-list": this.fetchedConnectionList,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-list": this.fetchedStaticConnectionList,
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection": this.updatedConnection,
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/ack": this.fetchAgentConnections,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-info":this.fetchAgentStaticConnections,// handle added statuc agent
         //=============================== Schemas ==============================================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-list": this.getSchemaListResponse,
@@ -1046,7 +947,6 @@ export default {
         "response_requested": true
       },
       'basicmessage_compose': "",
-      'connections':{},
       'staticconnections': {},
       'connectionUpdateForm':{},
       'exspanded_connection_items':[],
@@ -1074,7 +974,6 @@ export default {
     }
   },
   computed: {
-    ...mapState(['Connections']),
     //=========================================================================================================================
     //------------------------------------------------ Filter methods ---------------------------------------------------
     //=========================================================================================================================
@@ -1082,10 +981,7 @@ export default {
      *
      */
     //=========================================================================================================================
-    // ---------------------- Connection Filters --------------------      
-    activeConnections(){
-      return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "active")
-    },
+    // ---------------------- Connection Filters --------------------
     requestStateConnections(){
       return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "request")
     },
@@ -1120,7 +1016,7 @@ export default {
         conn.state          === "invitation"
       )
     },
-    inactiveConnections(){
+    inactive_connections(){
       return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "inactive")
     },
     staticConnections(){
@@ -1132,14 +1028,14 @@ export default {
     errorStateConnections(){
       return Object.values(this.connections).filter(conn => "state" in conn && conn.state === "error")
     },
-    // ---------------------- Credential Definition Filters --------------------      
+    // ---------------------- Credential Definition Filters --------------------
     /* credentialDefinition(){
         return this.cred_defs.filter(cred => "state" in cred && cred.state === "offer_sent")
       }, */
-    // ---------------------- Issuer Credential Filters --------------------      
+    // ---------------------- Issuer Credential Filters --------------------
     issuerCredDefs() {
       return Object.values(this.cred_defs).filter(
-        cred_def => cred_def.author === "self" || cred_def.cred_def_id.split(':', 2)[0] === this.$refs.didsTab.public_did
+        cred_def => cred_def.author === "self" || cred_def.cred_def_id.split(':', 2)[0] === this.public_did
       );
     },
     issuerOfferSentStateCredentials(){
@@ -1154,10 +1050,10 @@ export default {
     issuerStoredStateCredentials(){
       return this.issuer_credentials.filter(cred => "state" in cred && cred.state === "stored")
     },
-    // ---------------------- Holder Credential Filters --------------------      
+    // ---------------------- Holder Credential Filters --------------------
     proposalCredDefs() {
       return Object.values(this.cred_defs).filter(
-        cred_def => cred_def.author !== "self" || cred_def.cred_def_id.split(':', 2)[0] !== this.$refs.didsTab.public_did
+        cred_def => cred_def.author !== "self" || cred_def.cred_def_id.split(':', 2)[0] !== this.public_did
       );
     },
     holderOfferReceivedStateCredentials(){
@@ -1172,9 +1068,9 @@ export default {
     holderStoredStateCredentials(){
       return this.holder_credentials.filter(cred => "state" in cred && cred.state === "stored")
     },
-    // ---------------------- Presentation Definitions Filters --------------------     
+    // ---------------------- Presentation Definitions Filters --------------------
     /**
-     * Roles 
+     * Roles
      *  'prover'
      *  'verifier'
      * States
@@ -1185,13 +1081,13 @@ export default {
      *  "presentation_sent"
      *  "presentation_received"
      *  "verified"
-     *  */ 
-    // ---------------------- verifier Presentation Filters --------------------     
+     *  */
+    // ---------------------- verifier Presentation Filters --------------------
     verifierSentProposals(){
       return this.presentation_exchanges.filter(
-        exchange => 
-        "state" in exchange && 
-        exchange.state === "proposal_sent"  && 
+        exchange =>
+        "state" in exchange &&
+        exchange.state === "proposal_sent"  &&
         //==========================================
         "role" in exchange &&
         "verifier" === exchange.role
@@ -1199,34 +1095,34 @@ export default {
     },
     verifierReceivedProposals: function(exchange){
       return this.presentation_exchanges.filter(
-        exchange => 
-        "state" in exchange && 
-        exchange.state === "proposal_received" && 
+        exchange =>
+        "state" in exchange &&
+        exchange.state === "proposal_received" &&
         //==========================================
         "role" in exchange &&
         "verifier" === exchange.role)
     },
     verifierSentRequests(){
       return this.presentation_exchanges.filter(
-        exchange => 
+        exchange =>
         "state" in exchange &&
-        exchange.state === "request_sent" && 
+        exchange.state === "request_sent" &&
         //==========================================
         "role" in exchange &&
         "verifier" === exchange.role)
     },
     verifierReceivedRequests(){
       return this.presentation_exchanges.filter(
-        exchange => 
+        exchange =>
         "state" in exchange &&
-        exchange.state === "request_received" && 
+        exchange.state === "request_received" &&
         //==========================================
         "role" in exchange &&
         "verifier" === exchange.role)
     },
     verifierSentPresentations(){
       return this.presentation_exchanges.filter(
-        exchange => 
+        exchange =>
         "state" in exchange &&
         exchange.state === "presentation_sent" &&
         //==========================================
@@ -1235,7 +1131,7 @@ export default {
     },
     verifierReceivedPresentations(){
       return this.presentation_exchanges.filter(
-        exchange => 
+        exchange =>
         "state" in exchange &&
         exchange.state === "presentation_received" &&
         //==========================================
@@ -1244,7 +1140,7 @@ export default {
     },
     verifierVerifiedPresentation(){
       return this.presentation_exchanges.filter(
-        exchange => 
+        exchange =>
         "state" in exchange &&
         exchange.state === "verified" &&
         //==========================================
@@ -1254,9 +1150,9 @@ export default {
     // ---------------------- Prover Presentation Filters --------------------
     proverSentProposals(){
       return this.presentation_exchanges.filter(
-        exchange => 
-        "state" in exchange && 
-        exchange.state === "proposal_sent"  && 
+        exchange =>
+        "state" in exchange &&
+        exchange.state === "proposal_sent"  &&
         //==========================================
         "role" in exchange &&
         "prover" === exchange.role
@@ -1264,34 +1160,34 @@ export default {
     },
     proverReceivedProposals: function(exchange){
       return this.presentation_exchanges.filter(
-        exchange => 
-        "state" in exchange && 
-        exchange.state === "proposal_received" && 
+        exchange =>
+        "state" in exchange &&
+        exchange.state === "proposal_received" &&
         //==========================================
         "role" in exchange &&
         "prover" === exchange.role)
     },
     proverSentRequests(){
       return this.presentation_exchanges.filter(
-        exchange => 
+        exchange =>
         "state" in exchange &&
-        exchange.state === "request_sent" && 
+        exchange.state === "request_sent" &&
         //==========================================
         "role" in exchange &&
         "prover" === exchange.role)
     },
     proverReceivedRequests(){
       return this.presentation_exchanges.filter(
-        exchange => 
+        exchange =>
         "state" in exchange &&
-        exchange.state === "request_received" && 
+        exchange.state === "request_received" &&
         //==========================================
         "role" in exchange &&
         "prover" === exchange.role)
     },
     proverSentPresentations(){
       return this.presentation_exchanges.filter(
-        exchange => 
+        exchange =>
         "state" in exchange &&
         exchange.state === "presentation_sent" &&
         //==========================================
@@ -1300,7 +1196,7 @@ export default {
     },
     proverReceivedPresentations(){
       return this.presentation_exchanges.filter(
-        exchange => 
+        exchange =>
         "state" in exchange &&
         exchange.state === "presentation_received" &&
         //==========================================
@@ -1309,14 +1205,14 @@ export default {
     },
     proverVerifiedPresentations(){
       return this.presentation_exchanges.filter(
-        exchange => 
+        exchange =>
         "state" in exchange &&
         exchange.state === "verified" &&
         //==========================================
         "role" in exchange &&
         "prover" === exchange.role )
     },
-    // ---------------------- Basic Message History --------------------      
+    // ---------------------- Basic Message History --------------------
     basicmessage_history: function () {
       if (this.connection_loaded) {
         return this.connection.message_history.filter(function(h){
@@ -1381,8 +1277,7 @@ export default {
     },
     selectedActiveDid: {
       get () {
-        console.log("get select active did ", this.$refs.didsTab);
-        return this.$refs.didsTab.public_did || "";
+        return this.public_did || "";
       },
       set (optionValue) {
         return this.$message_bus.$emit('activate-agent-did',optionValue);
@@ -1409,7 +1304,6 @@ export default {
     this.getHoldersCredentials();
     this.getHoldersPresentations();
     this.run_protocol_discovery();
-    this.fetchAgentConnections();
     this.fetchAgentStaticConnections();
     //this.fetchAgentInvitations();
     // await this.fetchNewInvite(); // do not automatically create invite

@@ -77,10 +77,13 @@
 import VueJsonPretty from 'vue-json-pretty';
 const { clipboard } = require('electron');
 import VueQrcode from '@chenfengyuan/vue-qrcode';
+import message_bus from '../../message_bus.js';
 
 export default {
-  name: 'agent-invitations',
-  message_bus: 'derive',
+  name: 'invitations',
+  mixins: [
+    message_bus()
+  ],
   components: {
     VueJsonPretty,
     'qrcode': VueQrcode

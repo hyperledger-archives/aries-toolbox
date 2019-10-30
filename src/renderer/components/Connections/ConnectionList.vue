@@ -51,7 +51,7 @@
 import VueJsonPretty from 'vue-json-pretty';
 
 export default {
-  name: 'agent-connection-list',
+  name: 'connection-list',
   props: ['title', 'list','editable'],
   components: {
     VueJsonPretty,
