@@ -123,15 +123,7 @@
         </el-tab-pane>
         <el-tab-pane label="Verifications" name="verifications">
           <verifications
-            ref="verifications"
-            :shared="{
-                     'issuer_presentations':issuer_presentations,
-                     'activeConnections': connections,
-                     'cred_defs': cred_defs,
-                     'trusted_issuers': trusted_issuers,
-                     }"
-            @mutate="mutate"
-            ></verifications>
+            ref="verifications"></verifications>
         </el-tab-pane>
         <el-tab-pane label="Compose">
           <input type="button" class="btn btn-secondary" v-on:click="compose_send()" value="Send"/>

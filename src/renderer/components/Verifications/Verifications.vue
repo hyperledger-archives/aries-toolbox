@@ -21,8 +21,6 @@ import share from '../../share.js';
 
 export default {
   name: 'verifications',
-  props: ['shared'],
-  message_bus: 'derive',
   components: {
     VueJsonPretty,
     Verification,
