@@ -10,22 +10,18 @@ class ConnectionDetail {
         this.did_doc = did_doc;
         this.my_key = my_key;
 
-        this.message_history = [];
-        this.last_sent_msg_id = null;
         this.inbound_processor = inbound_processor;
     }
 
     async send_message(msg, set_return_route = true) {
         var cd = this; // Safe reference to connection detail
         msg['@id'] = '@id' in msg ? msg['@id'] : (uuidv4().toString()); // add id
-        this.last_sent_msg_id = msg['@id']
         if (set_return_route) {
             if (!("~transport" in msg)) {
                 msg["~transport"] = {}
             }
             msg["~transport"]["return_route"] = "all"
         }
-        this.message_history_add(msg, "Sent");
         console.log("sending message", msg);
         //console.log("to", bs58.decode(this.did_doc.service[0].recipientKeys[0]));
         const didcomm = new DIDComm.DIDComm();
@@ -56,17 +52,6 @@ class ConnectionDetail {
             });
     }
 
-    message_history_add(msg, direction){
-        this.message_history.push({
-            'msg':msg,
-            'direction': direction,
-        });
-    }
-
-    message_history_clear(){
-        this.message_history.splice(0, this.message_history.length);//clear all entries
-    }
-
     to_store() {
         return {
             id: this.id,
@@ -91,12 +76,6 @@ function new_connection(label, did_doc, my_key, inbound_processor) {
 }
 
 function from_store(obj, inbound_processor) {
-    if (!obj.message_history) {
-        obj.message_history = [];
-    }
-    if (!obj.last_sent_msg_id) {
-        obj.last_sent_msg_id = null;
-    }
     let my_key = {
         privateKey: bs58.decode(obj.my_key_b58.privateKey),
         publicKey: bs58.decode(obj.my_key_b58.publicKey),
