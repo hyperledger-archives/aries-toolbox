@@ -41,14 +41,18 @@
 
 <script>
 import ConnectionList from './ConnectionList.vue';
+import message_bus from '../../message_bus.js';
+import share from '../../share.js';
 
 export default {
   name: 'connections',
   components: {
     ConnectionList
   },
-  message_bus: 'derive',
-  props: ['shared'],
+  mixins: [
+    message_bus(),
+    share(['connections', 'active_connections'])
+  ],
   data: function() {
     return {
       'invitation': '',
@@ -71,19 +75,6 @@ export default {
     this.$message_bus.$on('connections', () => component.fetch());
   },
   computed: {
-    connections: {
-      get: function() {
-        return this.shared.connections;
-      },
-      set: function(new_connections) {
-        this.$emit('mutate', 'connections', new_connections);
-      }
-    },
-    active_connections: function() {
-      return Object.values(this.connections).filter(
-        conn => "state" in conn && conn.state === "active"
-      );
-    },
     pending_connections: function() {
       return Object.values(this.connections).filter(
         conn => "state" in conn &&
