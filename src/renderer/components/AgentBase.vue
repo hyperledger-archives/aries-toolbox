@@ -16,8 +16,8 @@
             :value="did">
           </el-option>
         </el-select>
-        <!-- <el-select  v-if="$refs.ledgerTab" 
-          v-model="$refs.ledgerTab.active_ledger_selector.ledger" 
+        <!-- <el-select  v-if="$refs.ledgerTab"
+          v-model="$refs.ledgerTab.active_ledger_selector.ledger"
           filterable placeholder="activate ledger" >
           <el-option
           v-for="ledger in $refs.ledgerTab.ledgers"

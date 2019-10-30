@@ -6,7 +6,7 @@
         v-if="retrievable"
         v-model="retrieve_cred_def_id"
         style="width: 300px;">
-        <el-button 
+        <el-button
           slot="append"
           icon="el-icon-search"
           @click="retrieve">Retrieve</el-button>
