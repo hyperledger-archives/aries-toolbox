@@ -803,7 +803,7 @@ export default {
   data() {
     return {
       'id': this.$route.params.agentid,
-      'open_tab': 0,
+      'open_tab': 'dids',
       'connection': {'label':'loading...'},
       'connection_loaded': false,
       'message_history':[],
