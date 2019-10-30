@@ -56,12 +56,8 @@
           ref="connections"></connections>
       </el-tab-pane>
 
-      <el-tab-pane label="Static Connections">
-        <agent-static-connections
-          v-bind:staticconnections="staticconnections"
-          v-on:refresh="fetchAgentStaticConnections"
-          v-on:send-connection-message="send_connection_message">
-        </agent-static-connections>
+      <el-tab-pane label="Static Connections" name="static-connections">
+        <static-connections></static-connections>
       </el-tab-pane>
 
       <el-tab-pane label="Credential Issuance">
@@ -137,37 +133,17 @@
       </el-tab-pane>
 
       <el-tab-pane label="Compose">
-        <input type="button" class="btn btn-secondary" v-on:click="compose_send()" value="Send"/>
-        <v-jsoneditor v-model="compose_json">
-        </v-jsoneditor>
-        <div class="message-display" v-for="(msg, index) in most_recent_sent_msgs" :key="index">
-          <i>{{msg.direction}}</i>
-          <vue-json-pretty
-            :deep=1
-            :data="msg.msg">
-          </vue-json-pretty>
-        </div>
+      
+        <compose></compose>
+        
       </el-tab-pane>
 
       <el-tab-pane label="BasicMessage">
-        <div style="margin-bottom: 1em;">
-          <el-input placeholder="Message to send to the connected Agent" @keyup.enter.native="basicmessage_send" v-model="basicmessage_compose" style="width:500px;"></el-input>
-          <el-button type="primary" @click="basicmessage_send">Send</el-button>
-        </div>
-        <div v-for="m in basicmessage_history.slice().reverse()" :key="m.msg['@id']">
-          <div :class="'basicmessage-'+m.direction">{{m.msg.content}}</div>
-        </div>
+        <basic-message></basic-message>
       </el-tab-pane>
 
       <el-tab-pane label="Message History">
-        <input type="button" class="btn btn-secondary" v-on:click="message_history_clear()" value="Clear"/>
-        <div class="message-display" v-for="m in message_history.slice().reverse()" :key="m.msg['@id']">
-          <i>{{m.direction}}</i>
-          <vue-json-pretty
-            :deep=1
-            :data="m.msg">
-          </vue-json-pretty>
-        </div>
+        <message-history></message-history>
       </el-tab-pane>
 
       <el-tab-pane label="Protocol Discovery">
@@ -188,42 +164,17 @@
   </div>
 </template>
 
-<style>
-.message-display {
-  margin-bottom: 1em;
-  border-bottom: 1px solid lightgrey;
-  padding-bottom: 1em;
-}
-.basicmessage-Sent {
-  background-color: white;
-  margin-right: 4em;
-  margin-bottom: 1em;
-  padding: 1em;
-  border: 1px solid lightgrey;
-  border-radius: 4px;
-}
-.basicmessage-Received {
-  background-color: lightblue;
-  margin-left: 4em;
-  margin-bottom: 1em;
-  padding: 1em;
-  text-align: right;
-  border: 1px solid lightgrey;
-  border-radius: 4px;
-}
-</style>
-
 <script>
 const bs58 = require('bs58');
 const rp = require('request-promise');
 
+import Vue from 'vue';
 import { mapState, mapActions } from "vuex";
 import { from_store } from '../connection_detail.js';
 import message_bus from '../message_bus.js';
 import share from '../share.js';
 
 import VueJsonPretty from 'vue-json-pretty';
-import VJsoneditor from 'v-jsoneditor';
 import Dids from './Dids/Dids.vue';
 import Ledger from './Ledger/Ledger.vue';
 import Connections from './Connections/Connections.vue';
@@ -231,12 +182,14 @@ import AgentSchemaList from './AgentSchemaList.vue';
 import AgentCredDefList from './AgentCredDefList.vue';
 import AgentIssueCredList from './AgentIssueCredList.vue';
 import Invitations from './Invitations/Invitations.vue';
-import AgentStaticConnections from './Agent/StaticConnections.vue';
+import StaticConnections from './StaticConnections/StaticConnections.vue';
 import AgentMyCredentialsList from './AgentMyCredentialsList.vue';
 import AgentTrust from './AgentTrust.vue';
 import Presentations from './Presentations/Presentations.vue';
 import Verifications from './Verifications/Verifications.vue';
-import Vue from 'vue';
+import Compose from './Compose/Compose.vue';
+import BasicMessage from './BasicMessage/BasicMessage.vue';
+import MessageHistory from './MessageHistory/MessageHistory.vue';
 
 export default {
   name: 'agent-base',
@@ -251,7 +204,6 @@ export default {
   ],
   components: {
     VueJsonPretty,
-    VJsoneditor,
     Dids,
     Ledger,
     Connections,
@@ -259,11 +211,14 @@ export default {
     AgentCredDefList,
     AgentIssueCredList,
     Invitations,
-    AgentStaticConnections,
+    StaticConnections,
     AgentMyCredentialsList,
     AgentTrust,
     Presentations,
     Verifications,
+    Compose
+    BasicMessage,
+    MessageHistory,
   },
   methods: {
     ...mapActions("Agents", ["get_agent"]),
@@ -277,9 +232,6 @@ export default {
     async fetchAgentData(){
       //load from vue store
       this.connection = from_store(await this.get_agent(this.id), this.processInbound);
-
-      this.message_history = this.connection.message_history;
-
       this.connection_loaded = true;
     },
     mutate: function(subject, data) {
@@ -319,18 +271,6 @@ export default {
      *  update                   -> connection
      *  create-static-connection -> static-connection-info
      */
-    async fetchAgentStaticConnections(){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-get-list",
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      this.connection.send_message(query_msg);
-    },
-    async compose_send(){
-      this.connection.send_message(this.compose_json, true);
-    },
     async basicmessage_send(){
       let msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message",
@@ -338,6 +278,8 @@ export default {
       };
       this.connection.send_message(msg);
       this.basicmessage_compose = "";
+    async compose_send(){
+      this.connection.send_message(this.compose_json, true);
     },
     //================================ schema events ================================
     /**
@@ -494,14 +436,6 @@ export default {
      *  Received Agent admin messages with directives containing state of wallet and did connections to be displayed.
      */
     //=========================================================================================================================
-
-    async fetchedStaticConnectionList(msg){
-      const staticconnections = msg.results.reduce(function(acc, cur, i) {
-        acc[cur.connection_id] = cur;
-        return acc;
-      }, {});
-      this.staticconnections = staticconnections;
-    },
     // ---------------------- shcema handlers --------------------
     async getSchemaListResponse(msg){
       if('results' in msg){
@@ -592,13 +526,10 @@ export default {
       this.supported_protocols = msg.protocols;
     },
     async processInbound(msg){
-      this.connection.message_history_add(msg, "Received");
       var handlers = {
         //=============================== Credential Definitions ===============================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/disclose": this.ProtocolDisclose,
         //=============================== Connections ==========================================
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-list": this.fetchedStaticConnectionList,
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-info":this.fetchAgentStaticConnections,// handle added statuc agent
         //=============================== Schemas ==============================================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-list": this.getSchemaListResponse,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-id": this.sendSchemaResponse,
@@ -622,6 +553,7 @@ export default {
         console.log("Message without handler", msg);
       }
 
+      this.$message_bus.$emit('message-received', msg);
       this.$message_bus.$emit(msg['@type'], msg);
     },
     connectionsInvitationModeFilterForMulti(connections){
@@ -756,7 +688,6 @@ export default {
       'open_tab': 'dids',
       'connection': {'label':'loading...'},
       'connection_loaded': false,
-      'message_history':[],
       'last_sent_msg_id':'',
       'trusted_issuers':{},
       'schemas':[],
@@ -815,12 +746,11 @@ export default {
       },
       'presentation_exchanges': [],
       'supported_protocols': [],
+      'basicmessage_compose': "",
       'compose_json': {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping",
         "response_requested": true
       },
-      'basicmessage_compose': "",
-      'staticconnections': {},
       'connectionUpdateForm':{},
       'exspanded_connection_items':[],
       'exspanded_active_connection_items':[],
@@ -1082,29 +1012,6 @@ export default {
           "role" in exchange &&
           "prover" === exchange.role )
       },
-      // ---------------------- Basic Message History --------------------
-      basicmessage_history: function () {
-        if (this.connection_loaded) {
-          return this.connection.message_history.filter(function(h){
-            return h.msg['@type'] == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message";
-          });
-        }
-        return [];
-      },
-      msgHistoryGroupedByThid(){
-        if (this.connection_loaded) {
-          return this.connection.message_history.reduce(function(acc, cur, i) {
-            var id = ('~thread'in cur.msg && 'thid' in cur.msg['~thread']) ? cur.msg['~thread'].thid : cur.msg['@id']
-            acc[id] = acc[id] || []
-            acc[id].push(cur)
-            return acc },
-            {})
-        }
-        return [];
-      },
-      most_recent_sent_msgs(){
-        return this.msgHistoryGroupedByThid[this.last_sent_msg_id]
-      },
       /* sentPresentationRequests(){
       return Object.keys(this.presentation_exchanges).reduce((acc, val) =>
         ("request_sent" === this.presentation_exchanges[val].state ?  {
@@ -1172,9 +1079,6 @@ export default {
     this.getIssuedCredentials();
     this.getHoldersCredentials();
     this.run_protocol_discovery();
-    this.fetchAgentStaticConnections();
-    //this.fetchAgentInvitations();
-    // await this.fetchNewInvite(); // do not automatically create invite
     this.$message_bus.$on('send-message', this.send_connection_message);
     this.$message_bus.$emit('agent-created');
   },
