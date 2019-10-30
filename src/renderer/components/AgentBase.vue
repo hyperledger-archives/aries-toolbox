@@ -16,16 +16,19 @@
             :value="did">
           </el-option>
         </el-select>
-        <!-- <el-select  v-if="$refs.ledgerTab"
-          v-model="$refs.ledgerTab.active_ledger_selector.ledger"
-          filterable placeholder="activate ledger" >
-          <el-option
-          v-for="ledger in $refs.ledgerTab.ledgers"
-          :key="ledger.name"
-          :label="ledger.name"
-          :value="ledger.name">
-          </el-option>
-          </el-select> -->
+        <!--
+        <el-select
+            v-if="$refs.ledgerTab"
+            v-model="$refs.ledgerTab.active_ledger_selector.ledger"
+            filterable placeholder="activate ledger" >
+            <el-option
+              v-for="ledger in $refs.ledgerTab.ledgers"
+              :key="ledger.name"
+              :label="ledger.name"
+              :value="ledger.name">
+            </el-option>
+        </el-select>
+        -->
       </el-form>
     </nav>
 
@@ -33,148 +36,158 @@
       type="border-card"
       v-model="open_tab"
       @tab-click="clickedTab">
+
       <el-tab-pane label="Dids" name="dids">
         <dids ref="dids"></dids>
       </el-tab-pane>
-      <!-- <el-tab-pane label="Ledger" name="ledgerTab">
+
+      <!--
+      <el-tab-pane label="Ledger" name="ledgerTab">
         <ledgers ref="ledgerTab"></ledgers>
-        </el-tab-pane> -->
+      </el-tab-pane>
+      -->
 
-        <el-tab-pane label="Invitations" name="invitations">
-          <invitations></invitations>
-        </el-tab-pane>
-        <el-tab-pane label="Connections" name="connections">
-          <connections
-            ref="connections"></connections>
-        </el-tab-pane>
-        <el-tab-pane label="Static Connections">
-          <agent-static-connections
-            v-bind:staticconnections="staticconnections"
-            v-on:refresh="fetchAgentStaticConnections"
-            v-on:send-connection-message="send_connection_message">
-          </agent-static-connections>
-        </el-tab-pane>
-        <el-tab-pane label="Credential Issuance">
-          <el-row>
-            <agent-schema-list
-              title="Schemas"
-              editable="false"
-              v-bind:list="schemas"
-              @schema-send="publishSchema"
-              @schema-get="getSchema"
-              @schema-refresh="getSchemas"></agent-schema-list>
-            <agent-cred-def-list
-              title="Credential Definitions"
-              v-bind:retrievable="false"
-              v-bind:can_create="true"
-              v-bind:list="issuerCredDefs"
-              v-bind:schemas="schemas"
-              @cred-def-send="publishCredDef"
-              @cred-def-get="getCredentialDefinition"
-              @cred-def-refresh="getCredentialDefinitionlist"></agent-cred-def-list>
-            <agent-issue-cred-list
-              title="Issued Credentials"
-              v-bind:list="issuer_credentials"
-              v-bind:connections="active_connections"
-              v-bind:cred_defs="issuerCredDefs"
-              @issue="issueCredential"
-              @issue-cred-refresh="getIssuedCredentials">
-            </agent-issue-cred-list>
-          </el-row>
-        </el-tab-pane>
-        <el-tab-pane label="My Credentials">
-          <el-row>
-            <agent-cred-def-list
-              title="Retrieved Credential Definitions"
-              v-bind:retrievable="true"
-              v-bind:can_create="false"
-              v-bind:list="proposalCredDefs"
-              v-bind:schemas="schemas"
-              @cred-def-get="getCredentialDefinition"></agent-cred-def-list>
-            <agent-my-credentials-list
-              title="Credentials"
-              editable="false"
-              v-bind:credentials="holder_credentials"
-              v-bind:cred_defs="proposalCredDefs"
-              v-bind:connections="active_connections"
-              @cred-refresh="getHoldersCredentials"
-              @propose="sendCredentialProposal"></agent-my-credentials-list>
-          </el-row>
-        </el-tab-pane>
-        <el-tab-pane label="Trusted Issuers">
-          <el-row>
-            <agent-trust
-              title="Trusted Dids"
-              v-bind:trusted_issuers= "trusted_issuers"
-              @remove-did= "removeTrustedIssuer"
-              @store-did= "storeTrustedIssuer"></agent-trust>
-          </el-row>
-        </el-tab-pane>
-        <el-tab-pane label="Presentation">
-          <el-row>
-            <presentations
-              title="Presentations"
-              v-bind:presentations="holder_presentations"
-              v-bind:connections = "active_connections"
-              v-bind:cred_defs = "cred_defs"
-              @presentation-refresh = "getHoldersPresentations"
-              @send-presentation-proposal= "sendPresentationProposal"></presentations>
-          </el-row>
-        </el-tab-pane>
-        <el-tab-pane label="Verifications" name="verifications">
-          <verifications
-            ref="verifications"></verifications>
-        </el-tab-pane>
-        <el-tab-pane label="Compose">
-          <input type="button" class="btn btn-secondary" v-on:click="compose_send()" value="Send"/>
-          <v-jsoneditor v-model="compose_json">
-          </v-jsoneditor>
-          <div class="message-display" v-for="(msg, index) in most_recent_sent_msgs" :key="index">
-            <i>{{msg.direction}}</i>
-            <vue-json-pretty
-              :deep=1
-              :data="msg.msg">
-            </vue-json-pretty>
-          </div>
-        </el-tab-pane>
-        <el-tab-pane label="BasicMessage">
-          <div style="margin-bottom: 1em;">
-            <el-input placeholder="Message to send to the connected Agent" @keyup.enter.native="basicmessage_send" v-model="basicmessage_compose" style="width:500px;"></el-input>
-            <el-button type="primary" @click="basicmessage_send">Send</el-button>
+      <el-tab-pane label="Invitations" name="invitations">
+        <invitations></invitations>
+      </el-tab-pane>
 
-          </div>
-          <div v-for="m in basicmessage_history.slice().reverse()" :key="m.msg['@id']">
-            <div :class="'basicmessage-'+m.direction">{{m.msg.content}}</div>
-          </div>
+      <el-tab-pane label="Connections" name="connections">
+        <connections
+          ref="connections"></connections>
+      </el-tab-pane>
 
-        </el-tab-pane>
-        <el-tab-pane label="Message History">
+      <el-tab-pane label="Static Connections">
+        <agent-static-connections
+          v-bind:staticconnections="staticconnections"
+          v-on:refresh="fetchAgentStaticConnections"
+          v-on:send-connection-message="send_connection_message">
+        </agent-static-connections>
+      </el-tab-pane>
 
-          <input type="button" class="btn btn-secondary" v-on:click="message_history_clear()" value="Clear"/>
-          <div class="message-display" v-for="m in message_history.slice().reverse()" :key="m.msg['@id']">
-            <i>{{m.direction}}</i>
-            <vue-json-pretty
-              :deep=1
-              :data="m.msg">
-            </vue-json-pretty>
-          </div>
+      <el-tab-pane label="Credential Issuance">
+        <el-row>
+          <agent-schema-list
+            title="Schemas"
+            editable="false"
+            v-bind:list="schemas"
+            @schema-send="publishSchema"
+            @schema-get="getSchema"
+            @schema-refresh="getSchemas"></agent-schema-list>
+          <agent-cred-def-list
+            title="Credential Definitions"
+            v-bind:retrievable="false"
+            v-bind:can_create="true"
+            v-bind:list="issuerCredDefs"
+            v-bind:schemas="schemas"
+            @cred-def-send="publishCredDef"
+            @cred-def-get="getCredentialDefinition"
+            @cred-def-refresh="getCredentialDefinitionlist"></agent-cred-def-list>
+          <agent-issue-cred-list
+            title="Issued Credentials"
+            v-bind:list="issuer_credentials"
+            v-bind:connections="active_connections"
+            v-bind:cred_defs="issuerCredDefs"
+            @issue="issueCredential"
+            @issue-cred-refresh="getIssuedCredentials">
+          </agent-issue-cred-list>
+        </el-row>
+      </el-tab-pane>
 
-        </el-tab-pane>
-        <el-tab-pane label="Protocol Discovery">
+      <el-tab-pane label="My Credentials">
+        <el-row>
+          <agent-cred-def-list
+            title="Retrieved Credential Definitions"
+            v-bind:retrievable="true"
+            v-bind:can_create="false"
+            v-bind:list="proposalCredDefs"
+            v-bind:schemas="schemas"
+            @cred-def-get="getCredentialDefinition"></agent-cred-def-list>
+          <agent-my-credentials-list
+            title="Credentials"
+            editable="false"
+            v-bind:credentials="holder_credentials"
+            v-bind:cred_defs="proposalCredDefs"
+            v-bind:connections="active_connections"
+            @cred-refresh="getHoldersCredentials"
+            @propose="sendCredentialProposal"></agent-my-credentials-list>
+        </el-row>
+      </el-tab-pane>
 
-          <input type="button" class="btn btn-secondary" v-on:click="run_protocol_discovery()" value="Query"/>
-          <table class="table table-sm">
-            <tr>
-              <th>Protocol</th>
-              <th>Roles</th>
-            </tr>
-            <tr v-for="p in supported_protocols" :key="p.pid">
-              <td>{{p.pid}}</td>
-              <td>{{p.roles}}</td>
-            </tr>
-          </table>
+      <el-tab-pane label="Trusted Issuers">
+        <el-row>
+          <agent-trust
+            title="Trusted Dids"
+            v-bind:trusted_issuers= "trusted_issuers"
+            @remove-did= "removeTrustedIssuer"
+            @store-did= "storeTrustedIssuer"></agent-trust>
+        </el-row>
+      </el-tab-pane>
 
-        </el-tab-pane>
+      <el-tab-pane label="Presentation">
+        <el-row>
+          <presentations
+            title="Presentations"
+            v-bind:presentations="holder_presentations"
+            v-bind:connections = "active_connections"
+            v-bind:cred_defs = "cred_defs"
+            @presentation-refresh = "getHoldersPresentations"
+            @send-presentation-proposal= "sendPresentationProposal"></presentations>
+        </el-row>
+      </el-tab-pane>
+
+      <el-tab-pane label="Verifications" name="verifications">
+        <verifications
+          ref="verifications"></verifications>
+      </el-tab-pane>
+
+      <el-tab-pane label="Compose">
+        <input type="button" class="btn btn-secondary" v-on:click="compose_send()" value="Send"/>
+        <v-jsoneditor v-model="compose_json">
+        </v-jsoneditor>
+        <div class="message-display" v-for="(msg, index) in most_recent_sent_msgs" :key="index">
+          <i>{{msg.direction}}</i>
+          <vue-json-pretty
+            :deep=1
+            :data="msg.msg">
+          </vue-json-pretty>
+        </div>
+      </el-tab-pane>
+
+      <el-tab-pane label="BasicMessage">
+        <div style="margin-bottom: 1em;">
+          <el-input placeholder="Message to send to the connected Agent" @keyup.enter.native="basicmessage_send" v-model="basicmessage_compose" style="width:500px;"></el-input>
+          <el-button type="primary" @click="basicmessage_send">Send</el-button>
+        </div>
+        <div v-for="m in basicmessage_history.slice().reverse()" :key="m.msg['@id']">
+          <div :class="'basicmessage-'+m.direction">{{m.msg.content}}</div>
+        </div>
+      </el-tab-pane>
+
+      <el-tab-pane label="Message History">
+        <input type="button" class="btn btn-secondary" v-on:click="message_history_clear()" value="Clear"/>
+        <div class="message-display" v-for="m in message_history.slice().reverse()" :key="m.msg['@id']">
+          <i>{{m.direction}}</i>
+          <vue-json-pretty
+            :deep=1
+            :data="m.msg">
+          </vue-json-pretty>
+        </div>
+      </el-tab-pane>
+
+      <el-tab-pane label="Protocol Discovery">
+        <input type="button" class="btn btn-secondary" v-on:click="run_protocol_discovery()" value="Query"/>
+        <table class="table table-sm">
+          <tr>
+            <th>Protocol</th>
+            <th>Roles</th>
+          </tr>
+          <tr v-for="p in supported_protocols" :key="p.pid">
+            <td>{{p.pid}}</td>
+            <td>{{p.roles}}</td>
+          </tr>
+        </table>
+      </el-tab-pane>
+
     </el-tabs>
   </div>
 </template>
@@ -884,9 +897,6 @@ export default {
       'expanded_pres_rec_items':[],
       'expanded_pres_sent_items':[],
       'expanded_pres_ver_items':[],
-      'agent_invitation_form':{
-        'invitation':'',
-      },
     }
   },
   computed: {
