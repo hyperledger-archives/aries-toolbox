@@ -42,7 +42,7 @@
 <script>
 import ConnectionList from './ConnectionList.vue';
 import message_bus from '../../message_bus.js';
-import share from '../../share.js';
+import share, { share_event_listener } from '../../share.js';
 
 export default {
   name: 'connections',
@@ -50,29 +50,27 @@ export default {
     ConnectionList
   },
   mixins: [
-    message_bus(),
-    share(['connections', 'active_connections'])
+    message_bus({
+      events: {
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection":
+        (v, msg) => v.fetch(),
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/ack":
+        (v, msg) => v.fetch(),
+        "connections": (v) => v.fetch()
+      }
+    }),
+    share({
+      use: ['connections', 'active_connections'],
+      events: {
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-list":
+        (share, msg) => share.connections = msg.results,
+      }
+    })
   ],
   data: function() {
     return {
       'invitation': '',
     }
-  },
-  created: function() {
-    let component = this;
-    this.$message_bus.$on(
-      "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-list",
-      msg => component.connections = msg.results
-    );
-    this.$message_bus.$on(
-      "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection",
-      msg => component.fetch()
-    );
-    this.$message_bus.$on(
-      "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/ack",
-      msg => component.fetch(),
-    );
-    this.$message_bus.$on('connections', () => component.fetch());
   },
   computed: {
     pending_connections: function() {
@@ -94,7 +92,7 @@ export default {
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-get-list",
       }
-      this.$message_bus.$emit('send-message', query_msg);
+      this.send_message(query_msg);
     },
     update_connection: function(form) {
       let query_msg = {
@@ -103,14 +101,14 @@ export default {
         "label": form.label,
         "role": form.role,
       }
-      this.$message_bus.$emit('send-message', query_msg);
+      this.send_message(query_msg);
     },
     delete_connection: function(connection) {
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/delete",
         "connection_id": connection.connection_id,
       }
-      this.$message_bus.$emit('send-message', query_msg);
+      this.send_message(query_msg);
     },
     recieve_invitation: function() {
       let receive_invite_msg = {
@@ -118,10 +116,10 @@ export default {
         "invitation": this.invitation,
         "accept": "auto"
       };
-      this.$message_bus.$emit('send-message', receive_invite_msg);
+      this.send_message(receive_invite_msg);
       this.invitation = "";
       setTimeout(() => {
-        return this.fetchAgentConnections();
+        return this.fetch();
       }, 4000);
     },
   },
