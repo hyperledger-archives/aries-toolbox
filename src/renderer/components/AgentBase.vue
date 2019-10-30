@@ -37,7 +37,7 @@
         <dids-tab ref="didsTab"></dids-tab>
       </el-tab-pane>
       <!-- <el-tab-pane label="Ledger" name="ledgerTab">
-        <ledger-tab ref="ledgerTab"></ledger-tab>
+        <ledgers ref="ledgerTab"></ledgers>
       </el-tab-pane> -->
       
           <el-tab-pane label="Invitations" name="invitations">
@@ -224,7 +224,7 @@ import share from '../share.js';
 import VueJsonPretty from 'vue-json-pretty';
 import VJsoneditor from 'v-jsoneditor';
 import DidsTab from './Dids/DidsTab.vue';
-import LedgerTab from './Ledger/LedgerTab.vue';
+import Ledger from './Ledger/Ledger.vue';
 import Connections from './Connections/Connections.vue';
 import AgentSchemaList from './AgentSchemaList.vue';
 import AgentCredDefList from './AgentCredDefList.vue';
@@ -252,7 +252,7 @@ export default {
     VueJsonPretty,
     VJsoneditor,
     DidsTab,
-    LedgerTab,
+    Ledger,
     Connections,
     AgentSchemaList,
     AgentCredDefList,
