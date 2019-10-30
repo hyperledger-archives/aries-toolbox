@@ -16,8 +16,8 @@
 <script>
 import VueJsonPretty from 'vue-json-pretty';
 import Verification from './Verification.vue';
-const { clipboard } = require('electron');
-import VueQrcode from '@chenfengyuan/vue-qrcode';
+import message_bus from '../../message_bus.js';
+import share from '../../share.js';
 
 export default {
   name: 'verifications',
@@ -27,6 +27,15 @@ export default {
     VueJsonPretty,
     Verification,
   },
+  mixins: [
+    message_bus(),
+    share([
+      'issuer_presentations',
+      'active_connections',
+      'cred_defs',
+      'trusted_issuers',
+      ])
+  ],
   data () {
     return {
     }
@@ -54,7 +63,7 @@ export default {
     //this.$message_bus.$on('agent-created', this.getIssuersPresentations);
   },
   methods: {
-    async holderPresentationListRecord(msg){
+    async holderPresentationListRecord(msg={}){
       if('results'in msg ){
         this.holder_presentations = msg.results;
       }
@@ -108,7 +117,7 @@ export default {
       };
       this.$message_bus.$emit('send-message',query_msg);
     },
-    async holderPresentationRecord(msg){
+    async holderPresentationRecord(msg={}){
       return this.getIssuersPresentations();
     },
     async getIssuersPresentations(){
@@ -118,55 +127,17 @@ export default {
         //'verified': ,// optional filter
       });
     },
-    async verifierRequestPresentationRecordDirective(msg){
+    async verifierRequestPresentationRecordDirective(msg={}){
       if('results'in msg ){
         return this.getIssuersPresentations();
       }
     },
-    async verifierPresentationExchange(msg){
+    async verifierPresentationExchange(msg={}){
       setTimeout(() => {
         return this.getIssuersPresentations();
       }, 4500);
     },
   },
-  computed: {
-    issuer_presentations:{
-      get: function() {
-        return this.shared.issuer_presentations;
-      },
-      set: function(value) {
-        this.$emit('mutate', 'issuer_presentations', value);
-      }
-    },
-    connections: {
-      get: function() {
-        return this.shared.connections || [];
-      },
-      set: function(value) {
-        this.$emit('mutate', 'connections', value);
-      }
-    },
-    active_connections: function() {
-      return Object.values(this.connections).filter(
-        conn => "state" in conn && conn.state === "active"
-      );
-    },
-    cred_defs:{
-      get: function() {
-        return this.shared.cred_defs;
-      },
-      set: function(value) {
-        this.$emit('mutate', 'cred_defs', value);
-      }
-    },
-    trusted_issuers:{
-      get: function() {
-        return this.shared.trusted_issuers;
-      },
-      set: function(value) {
-        this.$emit('mutate', 'trusted_issuers', value);
-      }
-    },
-  }
+  computed: {}
 }
 </script>

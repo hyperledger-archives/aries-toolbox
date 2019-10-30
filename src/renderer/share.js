@@ -4,6 +4,8 @@ const SHARED_PROPERTIES = {
     connections: [],
     dids: {},
     public_did: '',
+    trusted_issuers: [],
+    issuer_presentations:[],
 };
 
 const COMPUTED_PROPERTIES = {
