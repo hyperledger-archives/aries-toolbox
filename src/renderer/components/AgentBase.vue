@@ -144,34 +144,14 @@
         <input type="button" class="btn btn-secondary" v-on:click="compose_send()" value="Send"/>
         <v-jsoneditor v-model="compose_json">
         </v-jsoneditor>
-        <div class="message-display" v-for="(msg, index) in most_recent_sent_msgs" :key="index">
-          <i>{{msg.direction}}</i>
-          <vue-json-pretty
-            :deep=1
-            :data="msg.msg">
-          </vue-json-pretty>
-        </div>
       </el-tab-pane>
 
       <el-tab-pane label="BasicMessage">
-        <div style="margin-bottom: 1em;">
-          <el-input placeholder="Message to send to the connected Agent" @keyup.enter.native="basicmessage_send" v-model="basicmessage_compose" style="width:500px;"></el-input>
-          <el-button type="primary" @click="basicmessage_send">Send</el-button>
-        </div>
-        <div v-for="m in basicmessage_history.slice().reverse()" :key="m.msg['@id']">
-          <div :class="'basicmessage-'+m.direction">{{m.msg.content}}</div>
-        </div>
+        <basic-message></basic-message>
       </el-tab-pane>
 
       <el-tab-pane label="Message History">
-        <input type="button" class="btn btn-secondary" v-on:click="message_history_clear()" value="Clear"/>
-        <div class="message-display" v-for="m in message_history.slice().reverse()" :key="m.msg['@id']">
-          <i>{{m.direction}}</i>
-          <vue-json-pretty
-            :deep=1
-            :data="m.msg">
-          </vue-json-pretty>
-        </div>
+        <message-history></message-history>
       </el-tab-pane>
 
       <el-tab-pane label="Protocol Discovery">
@@ -191,31 +171,6 @@
     </el-tabs>
   </div>
 </template>
-
-<style>
-.message-display {
-  margin-bottom: 1em;
-  border-bottom: 1px solid lightgrey;
-  padding-bottom: 1em;
-}
-.basicmessage-Sent {
-  background-color: white;
-  margin-right: 4em;
-  margin-bottom: 1em;
-  padding: 1em;
-  border: 1px solid lightgrey;
-  border-radius: 4px;
-}
-.basicmessage-Received {
-  background-color: lightblue;
-  margin-left: 4em;
-  margin-bottom: 1em;
-  padding: 1em;
-  text-align: right;
-  border: 1px solid lightgrey;
-  border-radius: 4px;
-}
-</style>
 
 <script>
 const bs58 = require('bs58');
@@ -241,6 +196,8 @@ import AgentTrust from './AgentTrust.vue';
 import Presentations from './Agent/Presentations.vue';
 import Verifications from './Verifications/Verifications.vue';
 import Vue from 'vue';
+import BasicMessage from './BasicMessage/BasicMessage.vue';
+import MessageHistory from './MessageHistory/MessageHistory.vue';
 
 export default {
   name: 'agent-base',
@@ -268,6 +225,8 @@ export default {
     AgentTrust,
     Presentations,
     Verifications,
+    BasicMessage,
+    MessageHistory,
   },
   methods: {
     ...mapActions("Agents", ["get_agent"]),
@@ -281,9 +240,6 @@ export default {
     async fetchAgentData(){
       //load from vue store
       this.connection = from_store(await this.get_agent(this.id), this.processInbound);
-
-      this.message_history = this.connection.message_history;
-
       this.connection_loaded = true;
     },
     mutate: function(subject, data) {
@@ -334,14 +290,6 @@ export default {
     },
     async compose_send(){
       this.connection.send_message(this.compose_json, true);
-    },
-    async basicmessage_send(){
-      let msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message",
-        "content": this.basicmessage_compose
-      };
-      this.connection.send_message(msg);
-      this.basicmessage_compose = "";
     },
     //================================ schema events ================================
     /**
@@ -647,7 +595,6 @@ export default {
       this.supported_protocols = msg.protocols;
     },
     async processInbound(msg){
-      this.connection.message_history_add(msg, "Received");
       var handlers = {
         //=============================== Credential Definitions ===============================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/disclose": this.ProtocolDisclose,
@@ -677,6 +624,7 @@ export default {
         console.log("Message without handler", msg);
       }
 
+      this.$message_bus.$emit('message-received', msg);
       this.$message_bus.$emit(msg['@type'], msg);
     },
     connectionsInvitationModeFilterForMulti(connections){
@@ -811,7 +759,6 @@ export default {
       'open_tab': 'dids',
       'connection': {'label':'loading...'},
       'connection_loaded': false,
-      'message_history':[],
       'last_sent_msg_id':'',
       'trusted_issuers':{},
       'schemas':[],
@@ -875,7 +822,6 @@ export default {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping",
         "response_requested": true
       },
-      'basicmessage_compose': "",
       'staticconnections': {},
       'connectionUpdateForm':{},
       'exspanded_connection_items':[],
@@ -1137,29 +1083,6 @@ export default {
           //==========================================
           "role" in exchange &&
           "prover" === exchange.role )
-      },
-      // ---------------------- Basic Message History --------------------
-      basicmessage_history: function () {
-        if (this.connection_loaded) {
-          return this.connection.message_history.filter(function(h){
-            return h.msg['@type'] == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message";
-          });
-        }
-        return [];
-      },
-      msgHistoryGroupedByThid(){
-        if (this.connection_loaded) {
-          return this.connection.message_history.reduce(function(acc, cur, i) {
-            var id = ('~thread'in cur.msg && 'thid' in cur.msg['~thread']) ? cur.msg['~thread'].thid : cur.msg['@id']
-            acc[id] = acc[id] || []
-            acc[id].push(cur)
-            return acc },
-            {})
-        }
-        return [];
-      },
-      most_recent_sent_msgs(){
-        return this.msgHistoryGroupedByThid[this.last_sent_msg_id]
       },
       /* sentPresentationRequests(){
       return Object.keys(this.presentation_exchanges).reduce((acc, val) =>
