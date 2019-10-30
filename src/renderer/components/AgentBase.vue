@@ -141,16 +141,7 @@
       </el-tab-pane>
 
       <el-tab-pane label="Compose">
-        <input type="button" class="btn btn-secondary" v-on:click="compose_send()" value="Send"/>
-        <v-jsoneditor v-model="compose_json">
-        </v-jsoneditor>
-        <div class="message-display" v-for="(msg, index) in most_recent_sent_msgs" :key="index">
-          <i>{{msg.direction}}</i>
-          <vue-json-pretty
-            :deep=1
-            :data="msg.msg">
-          </vue-json-pretty>
-        </div>
+        <compose></compose>
       </el-tab-pane>
 
       <el-tab-pane label="BasicMessage">
@@ -221,13 +212,13 @@
 const bs58 = require('bs58');
 const rp = require('request-promise');
 
+import Vue from 'vue';
 import { mapState, mapActions } from "vuex";
 import { from_store } from '../connection_detail.js';
 import message_bus from '../message_bus.js';
 import share from '../share.js';
 
 import VueJsonPretty from 'vue-json-pretty';
-import VJsoneditor from 'v-jsoneditor';
 import Dids from './Dids/Dids.vue';
 import Ledger from './Ledger/Ledger.vue';
 import Connections from './Connections/Connections.vue';
@@ -240,7 +231,7 @@ import AgentMyCredentialsList from './AgentMyCredentialsList.vue';
 import AgentTrust from './AgentTrust.vue';
 import Presentations from './Agent/Presentations.vue';
 import Verifications from './Verifications/Verifications.vue';
-import Vue from 'vue';
+import Compose from './Compose/Compose.vue';
 
 export default {
   name: 'agent-base',
@@ -255,7 +246,6 @@ export default {
   ],
   components: {
     VueJsonPretty,
-    VJsoneditor,
     Dids,
     Ledger,
     Connections,
@@ -268,6 +258,7 @@ export default {
     AgentTrust,
     Presentations,
     Verifications,
+    Compose
   },
   methods: {
     ...mapActions("Agents", ["get_agent"]),
@@ -331,9 +322,6 @@ export default {
         }
       }
       this.connection.send_message(query_msg);
-    },
-    async compose_send(){
-      this.connection.send_message(this.compose_json, true);
     },
     async basicmessage_send(){
       let msg = {
@@ -871,10 +859,6 @@ export default {
       },
       'presentation_exchanges': [],
       'supported_protocols': [],
-      'compose_json': {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping",
-        "response_requested": true
-      },
       'basicmessage_compose': "",
       'staticconnections': {},
       'connectionUpdateForm':{},
