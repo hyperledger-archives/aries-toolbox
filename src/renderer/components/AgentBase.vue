@@ -216,7 +216,7 @@ export default {
     AgentTrust,
     Presentations,
     Verifications,
-    Compose
+    Compose,
     BasicMessage,
     MessageHistory,
   },
