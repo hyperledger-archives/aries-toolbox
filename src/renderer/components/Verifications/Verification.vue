@@ -209,7 +209,7 @@
 import VueJsonPretty from 'vue-json-pretty';
 
 export default {
-  name: 'agent-verification',
+  name: 'verification',
   props: [
     'title',
     'list',

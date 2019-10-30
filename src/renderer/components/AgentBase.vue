@@ -121,15 +121,17 @@
                 @send-presentation-proposal= "sendPresentationProposal"></presentations>
             </el-row>
           </el-tab-pane>
-          <el-tab-pane label="Verifications">
-            <agent-verification
-              title="Verification"
-              v-bind:list="issuer_presentations"
-              v-bind:connections="active_connections"
-              v-bind:cred_defs="cred_defs"
-              v-bind:trusted_issuers="trusted_issuers"
-              @verification-refresh="getIssuersPresentations"
-              @presentation-request="verifierRequestPresentation"></agent-verification>
+          <el-tab-pane label="Verifications" name="verifications">
+            <verifications
+              ref="verifications"
+              :shared="{
+                'issuer_presentations':issuer_presentations,
+                'activeConnections': connections,
+                'cred_defs': cred_defs,
+                'trusted_issuers': trusted_issuers,
+              }"
+              @mutate="mutate"
+            ></verifications>
           </el-tab-pane>
           <el-tab-pane label="Compose">
             <input type="button" class="btn btn-secondary" v-on:click="compose_send()" value="Send"/>
@@ -232,7 +234,8 @@ import AgentStaticConnections from './Agent/StaticConnections.vue';
 import AgentMyCredentialsList from './AgentMyCredentialsList.vue';
 import AgentTrust from './AgentTrust.vue';
 import Presentations from './Agent/Presentations.vue';
-import AgentVerification from './AgentVerification.vue';
+import Verifications from './Verifications/Verifications.vue';
+import Vue from 'vue';
 
 export default {
   name: 'agent-base',
@@ -259,7 +262,7 @@ export default {
     AgentMyCredentialsList,
     AgentTrust,
     Presentations,
-    AgentVerification,
+    Verifications,
   },
   methods: {
     ...mapActions("Agents", ["get_agent"]),
@@ -420,69 +423,12 @@ export default {
       }
       this.connection.send_message(query_msg);
     },
-    async verifierRequestPresentation(form){
-      // response comes back in admin-issuer/1.0/presentation-exchange
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/request-presentation",
-        connection_id: form.connection_id,
-        comment: form.comment,
-        proof_request: {
-          name: form.name,
-          version: "1.0",
-          requested_attributes: form.attributes.reduce((acc, attribute) => {
-            let transmuted_attr = {
-              name: attribute.name,
-              restrictions: []
-            };
-            if (attribute.restrictions.cred_def || attribute.restrictions.trusted_issuer) {
-              transmuted_attr.restrictions.push({});
-            }
-            if (attribute.restrictions.cred_def) {
-              transmuted_attr.restrictions[0].credential_definition_id = attribute.restrictions.cred_def.cred_def_id;
-            }
-            if (attribute.restrictions.trusted_issuer) {
-              transmuted_attr.restrictions[0].issuer_did = attribute.restrictions.trusted_issuer;
-            }
-            acc[attribute.name] = transmuted_attr;
-            return acc;
-          }, {}),
-          requested_predicates: form.predicates.reduce((acc, predicate) => {
-            let transmuted_pred = {
-              name: predicate.name,
-              p_type: predicate.p_type,
-              p_value: predicate.threshold,
-              restrictions: []
-            };
-            if (predicate.restrictions.cred_def || predicate.restrictions.trusted_issuer) {
-              transmuted_pred.restrictions.push({});
-            }
-            if (predicate.restrictions.cred_def) {
-              transmuted_pred.restrictions[0].credential_definition_id = predicate.restrictions.cred_def.cred_def_id;
-            }
-            if (predicate.restrictions.trusted_issuer) {
-              transmuted_pred.restrictions[0].issuer_did = predicate.restrictions.trusted_issuer;
-            }
-            acc[predicate.name] = transmuted_pred;
-            return acc;
-          }, {}),
-        },
-      };
-      this.connection.send_message(query_msg);
-    },
     async getIssuedCredentials(){
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/credentials-get-list",
         //'connection_id': ,// optional filter
         //'credential_definition_id': ,// optional filters
         //'schema_id': ,// optional filter
-      }
-      this.connection.send_message(query_msg);
-    },
-    async getIssuersPresentations(){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentations-get-list",
-        //'connection_id': ,// optional filter
-        //'verified': ,// optional filter
       }
       this.connection.send_message(query_msg);
     },
@@ -675,20 +621,10 @@ export default {
         this.issuer_credentials = msg.results;
       }
     },
-    async verifierRequestPresentationRecordDirective(msg){
-      if('results'in msg ){
-        return this.getIssuersPresentations();
-      }
-    },
     async verifierPresentationListDirective(msg){
       if('results'in msg ){
         this.issuer_presentations = msg.results;
       }
-    },
-    async verifierPresentationExchange(msg){
-      setTimeout(() => {
-        return this.getIssuersPresentations();
-      }, 4500);
     },
     // ---------------------- holder handlers ------------------------
     async holderCredentialRecord(msg){
@@ -696,17 +632,9 @@ export default {
         return this.getHoldersCredentials();
       }, 4500);
     },
-    async holderPresentationRecord(msg){
-      return this.getIssuersPresentations();
-    },
     async holderCredentialListRecord(msg){
       if('results'in msg ){
         this.holder_credentials = msg.results;
-      }
-    },
-    async holderPresentationListRecord(msg){
-      if('results'in msg ){
-        this.holder_presentations = msg.results;
       }
     },
     async ProtocolDisclose(msg){
@@ -732,14 +660,10 @@ export default {
         //=============================== Credential Issuance ==================================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/credential-exchange": this.issuerCredentialRecord,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/credentials-list": this.issuerCredentialListDirective,
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/request-presentation": this.verifierRequestPresentationRecordDirective,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentations-list": this.verifierPresentationListDirective,
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentation-exchange": this.verifierPresentationExchange,
         //=============================== Credential Holder ====================================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credential-exchange": this.holderCredentialRecord,
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/presentation-exchange": this.holderPresentationRecord,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credentials-list": this.holderCredentialListRecord,
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/presentations-list": this.holderPresentationListRecord,
       };
       var handler = handlers[msg['@type']];
       if(handler){
@@ -1300,7 +1224,6 @@ export default {
     this.getSchemas();
     this.getCredentialDefinitionlist();
     this.getIssuedCredentials();
-    this.getIssuersPresentations();
     this.getHoldersCredentials();
     this.getHoldersPresentations();
     this.run_protocol_discovery();
