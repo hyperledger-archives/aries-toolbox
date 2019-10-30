@@ -1,4 +1,5 @@
 <template >
+  <!-- TODO: Split this into more files? -->
   <div>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <a class="navbar-brand" href="#">{{ title }}</a>
@@ -209,7 +210,7 @@
 import VueJsonPretty from 'vue-json-pretty';
 
 export default {
-  name: 'agent-verification',
+  name: 'verification',
   props: [
     'title',
     'list',
@@ -239,13 +240,13 @@ export default {
           //   }
           // }
 
-          /* 
+          /*
           {
             "name": "attribute_name",
             "cred_def_id":"",
             "mime_type":"",
             "value": ""
-          } 
+          }
           */
         ],
         predicates: [
@@ -266,7 +267,7 @@ export default {
            *  "cred_def_id": "",
            *  "predicate": "",
            *  "threshold": "",
-           *}  
+           *}
            */
         ]
       },

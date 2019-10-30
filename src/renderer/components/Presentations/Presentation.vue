@@ -348,7 +348,7 @@ export default {
     },
     VerifiedPresentations(){
         return this.presentations.filter(
-            exchange => 
+            exchange =>
             "state" in exchange &&
             exchange.state === "verified" &&
             //==========================================
@@ -357,16 +357,16 @@ export default {
     },
     ReceivedRequests(){
       return this.presentations.filter(
-        exchange => 
+        exchange =>
         "state" in exchange &&
-        exchange.state === "request_received" && 
+        exchange.state === "request_received" &&
         //==========================================
         "role" in exchange &&
         "prover" === exchange.role)
     },
     SentPresentations(){
       return this.presentations.filter(
-        exchange => 
+        exchange =>
         "state" in exchange &&
         exchange.state === "presentation_sent" &&
         //==========================================
@@ -375,9 +375,9 @@ export default {
     },
     SentProposals(){
       return this.presentations.filter(
-        exchange => 
-        "state" in exchange && 
-        exchange.state === "proposal_sent"  && 
+        exchange =>
+        "state" in exchange &&
+        exchange.state === "proposal_sent"  &&
         //==========================================
         "role" in exchange &&
         "prover" === exchange.role
