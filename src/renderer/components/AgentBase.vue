@@ -137,9 +137,7 @@
       </el-tab-pane>
 
       <el-tab-pane label="Compose">
-      
         <compose></compose>
-        
       </el-tab-pane>
 
       <el-tab-pane label="BasicMessage">
@@ -220,7 +218,7 @@ export default {
     AgentTrust,
     Presentations,
     Verifications,
-    Compose
+    Compose,
     BasicMessage,
     MessageHistory,
   },
@@ -275,16 +273,6 @@ export default {
      *  update                   -> connection
      *  create-static-connection -> static-connection-info
      */
-    async basicmessage_send(){
-      let msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message",
-        "content": this.basicmessage_compose
-      };
-      this.connection.send_message(msg);
-      this.basicmessage_compose = "";
-    async compose_send(){
-      this.connection.send_message(this.compose_json, true);
-    },
     //================================ schema events ================================
     /**
      * # Message Types
