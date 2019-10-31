@@ -1,106 +1,127 @@
 <template>
-  <div id="wrapper" class="container-fluid">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#">{{connection.label}}</a>
-      <el-form
-        v-if="$refs.dids"
-        :disabled="Object.keys(dids).length === 0"
-        :model="$refs.dids.active_ledger_selector">
-        <el-select
-          v-model="selectedActiveDid"
-          filterable placeholder="activate did">
-          <el-option
-            v-for="did in Object.values(dids)"
-            :key="did.did"
-            :label="did.did"
-            :value="did">
-          </el-option>
-        </el-select>
-        <!--
-          <el-select
-          v-if="$refs.ledgerTab"
-          v-model="$refs.ledgerTab.active_ledger_selector.ledger"
-          filterable placeholder="activate ledger" >
-          <el-option
-          v-for="ledger in $refs.ledgerTab.ledgers"
-          :key="ledger.name"
-          :label="ledger.name"
-          :value="ledger.name">
-          </el-option>
-          </el-select>
-        -->
-      </el-form>
-    </nav>
+  <el-container>
+    <el-aside>
+      <el-menu
+        mode="vertical"
+        class="side-menu"
+        background-color="#545c64"
+        text-color="#fff"
+        active-text-color="#ffd04b"
+        :router="true">
+        <el-menu-item-group index="indirect">
+          <span class="menu-title" slot="title">Agent to Agent</span>
+          <el-menu-item :index="'/agent/{{ id }}/dids'">
+            <i class="el-icon-link"></i>
+            <span>DIDs</span>
+          </el-menu-item>
+          <el-menu-item :index="'/agent/{{ id }}/invitations'">
+            <i class="el-icon-plus"></i>
+            <span>Invitations</span>
+          </el-menu-item>
+          <el-menu-item :index="'/agent/{{ id }}/connections'">
+            <i class="el-icon-user"></i>
+            <span>Connections</span>
+          </el-menu-item>
+          <el-menu-item :index="'/agent/{{ id }}/static-connections'">
+            <i class="el-icon-box"></i>
+            <span>Static Connections</span>
+          </el-menu-item>
+          <el-menu-item :index="'/agent/{{ id }}/credential-issuance'">
+            <i class="el-icon-document"></i>
+            <span>Credential Issuance</span>
+          </el-menu-item>
+          <el-menu-item :index="'/agent/{{ id }}/trusted-issuers'">
+            <i class="el-icon-connection"></i>
+            <span>Trusted Issuers</span>
+          </el-menu-item>
+          <el-menu-item :index="'/agent/{{ id }}/my-credentials'">
+            <i class="el-icon-bank-card"></i>
+            <span>My Credentials</span>
+          </el-menu-item>
+          <el-menu-item :index="'/agent/{{ id }}/presentations'">
+            <i class="el-icon-document-checked"></i>
+            <span>Presentations</span>
+          </el-menu-item>
+          <el-menu-item :index="'/agent/{{ id }}/verifications'">
+            <i class="el-icon-s-claim"></i>
+            <span>Verification</span>
+          </el-menu-item>
+        </el-menu-item-group>
+        <el-menu-item-group index="direct">
+          <span class="menu-title" slot="title">Toolbox to Agent</span>
+          <el-menu-item :index="'/agent/{{ id }}/feature-discovery'">
+            <i class="el-icon-discover"></i>
+            <span>Discovered Features</span>
+          </el-menu-item>
+          <el-menu-item :index="'/agent/{{ id }}/compose'">
+            <i class="el-icon-message"></i>
+            <span>Compose</span>
+          </el-menu-item>
+          <el-menu-item :index="'/agent/{{ id }}/message-history'">
+            <i class="el-icon-receiving"></i>
+            <span>Message History</span>
+          </el-menu-item>
+          <el-menu-item :index="'/agent/{{ id }}/basic-message'">
+            <i class="el-icon-chat-line-square"></i>
+            <span>Basic Message</span>
+          </el-menu-item>
+        </el-menu-item-group>
+      </el-menu>
+    </el-aside>
+    <el-container>
+      <el-header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+          <a class="navbar-brand" href="#">{{connection.label}}</a>
+          <el-form
+            v-if="$refs.dids"
+            :disabled="Object.keys(dids).length === 0"
+            :model="$refs.dids.active_ledger_selector">
+            <el-select
+              v-model="selectedActiveDid"
+              filterable placeholder="activate did">
+              <el-option
+                v-for="did in Object.values(dids)"
+                :key="did.did"
+                :label="did.did"
+                :value="did">
+              </el-option>
+            </el-select>
+            <!--
+              <el-select
+              v-if="$refs.ledgerTab"
+              v-model="$refs.ledgerTab.active_ledger_selector.ledger"
+              filterable placeholder="activate ledger" >
+              <el-option
+              v-for="ledger in $refs.ledgerTab.ledgers"
+              :key="ledger.name"
+              :label="ledger.name"
+              :value="ledger.name">
+              </el-option>
+              </el-select>
+            -->
+          </el-form>
+        </nav>
+      </el-header>
 
-    <el-tabs
-      type="border-card"
-      v-model="open_tab"
-      @tab-click="clickedTab">
-
-      <el-tab-pane label="Dids" name="dids">
-        <dids ref="dids"></dids>
-      </el-tab-pane>
-
-      <!--
-        <el-tab-pane label="Ledger" name="ledgerTab">
-        <ledgers ref="ledgerTab"></ledgers>
-        </el-tab-pane>
-      -->
-
-      <el-tab-pane label="Invitations" name="invitations">
-        <invitations></invitations>
-      </el-tab-pane>
-
-      <el-tab-pane label="Connections" name="connections">
-        <connections></connections>
-      </el-tab-pane>
-
-      <el-tab-pane label="Static Connections" name="static-connections">
-        <static-connections></static-connections>
-      </el-tab-pane>
-
-      <el-tab-pane label="Credential Issuance" name="credential-issuance">
-        <credential-issuance></credential-issuance>
-      </el-tab-pane>
-
-      <el-tab-pane label="My Credentials" name="my-credentials">
-        <my-credentials></my-credentials>
-      </el-tab-pane>
-
-      <el-tab-pane label="Trusted Issuers" name="trusted-issuers">
-        <el-row>
-          <trusted-issuers></trusted-issuers>
-        </el-row>
-      </el-tab-pane>
-
-      <el-tab-pane label="Presentations" name="presentations">
-          <presentations></presentations>
-      </el-tab-pane>
-
-      <el-tab-pane label="Verifications" name="verifications">
-        <verifications
-          ref="verifications"></verifications>
-      </el-tab-pane>
-
-      <el-tab-pane label="Compose" name="compose">
-        <compose></compose>
-      </el-tab-pane>
-
-      <el-tab-pane label="BasicMessage" name="basicmessage">
-        <basic-message></basic-message>
-      </el-tab-pane>
-
-      <el-tab-pane label="Message History" name="message-history">
-        <message-history></message-history>
-      </el-tab-pane>
-
-      <el-tab-pane label="Feature Discovery" name="feature-discovery">
-        <feature-discovery></feature-discovery>
-      </el-tab-pane>
-
-    </el-tabs>
-  </div>
+      <el-main>
+        <router-view></router-view>
+      </el-main>
+    </el-container>
+  </el-container>
 </template>
+
+<style>
+.side-menu {
+  height: 100%;
+  min-height: 400px;
+}
+.side-menu .menu-title {
+  color: #fff
+}
+.side-menu i {
+  color: #409EFF;
+}
+</style>
 
 <script>
 const bs58 = require('bs58');
@@ -111,23 +132,6 @@ import { mapState, mapActions } from "vuex";
 import { from_store } from '../connection_detail.js';
 import message_bus from '../message_bus.js';
 import share from '../share.js';
-
-import VueJsonPretty from 'vue-json-pretty';
-import Dids from './Dids/Dids.vue';
-import Ledger from './Ledger/Ledger.vue';
-import Connections from './Connections/Connections.vue';
-import Invitations from './Invitations/Invitations.vue';
-import StaticConnections from './StaticConnections/StaticConnections.vue';
-import CredentialIssuance from './CredentialIssuance/CredentialIssuance.vue';
-import CredDefList from './CredentialIssuance/CredDefList.vue';
-import TrustedIssuers from './TrustedIssuers/TrustedIssuers.vue';
-import Presentations from './Presentations/Presentations.vue';
-import Verifications from './Verifications/Verifications.vue';
-import Compose from './Compose/Compose.vue';
-import BasicMessage from './BasicMessage/BasicMessage.vue';
-import MessageHistory from './MessageHistory/MessageHistory.vue';
-import FeatureDiscovery from './FeatureDiscovery/FeatureDiscovery.vue';
-import MyCredentials from './MyCredentials/MyCredentials.vue';
 
 export default {
   name: 'agent-base',
@@ -148,22 +152,6 @@ export default {
     ]})
   ],
   components: {
-    VueJsonPretty,
-    Dids,
-    Ledger,
-    Connections,
-    CredentialIssuance,
-    CredDefList,
-    Invitations,
-    StaticConnections,
-    TrustedIssuers,
-    Presentations,
-    Verifications,
-    Compose,
-    BasicMessage,
-    MessageHistory,
-    FeatureDiscovery,
-    MyCredentials
   },
   data() {
     return {

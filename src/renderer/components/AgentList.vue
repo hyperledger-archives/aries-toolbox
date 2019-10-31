@@ -59,9 +59,9 @@ export default {
 
     openConnection: async function(a) {
       const modalPath = process.env.NODE_ENV === 'development'
-        ? 'http://localhost:9080/#/agent/'+a.id
-        : `file://${__dirname}/index.html#agent/`+a.id;
-      let win = new electron.remote.BrowserWindow({ width: 800, height: 600, webPreferences: {webSecurity: false} })
+        ? 'http://localhost:9080/#/agent/'+a.id + '/dids'
+        : `file://${__dirname}/index.html#agent/`+a.id + '/dids';
+      let win = new electron.remote.BrowserWindow({ width: 1000, height: 600, webPreferences: {webSecurity: false} })
       win.on('close', function () { win = null });
       win.loadURL(modalPath)
 

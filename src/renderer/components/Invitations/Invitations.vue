@@ -112,6 +112,7 @@ export default {
       msg => component.invitations = msg.results
     )
     this.$message_bus.$on('invitations', () => component.fetchAgentInvitations());
+    this.fetchAgentInvitations();
   },
   methods: {
     async fetchNewInvite(){

@@ -72,6 +72,9 @@ export default {
       'invitation': '',
     }
   },
+  created: function() {
+    this.fetch();
+  },
   computed: {
     pending_connections: function() {
       return Object.values(this.connections).filter(

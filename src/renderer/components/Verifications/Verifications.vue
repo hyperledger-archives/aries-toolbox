@@ -1,16 +1,14 @@
 <template >
-<el-row>
+  <el-row>
     <verification
-        title="Verification"
-        v-bind:list="issuer_presentations"
-        v-bind:connections="active_connections"
-        v-bind:cred_defs="cred_defs"
-        v-bind:trusted_issuers="trusted_issuers"
-        @verification-refresh="getIssuersPresentations"
-        @presentation-request="verifierRequestPresentation"
-    ></verification>
-
-</el-row>
+      title="Verification"
+      v-bind:list="issuer_presentations"
+      v-bind:connections="active_connections"
+      v-bind:cred_defs="cred_defs"
+      v-bind:trusted_issuers="trusted_issuers"
+      @verification-refresh="getIssuersPresentations"
+      @presentation-request="verifierRequestPresentation"></verification>
+  </el-row>
 </template>
 
 <script>

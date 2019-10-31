@@ -113,6 +113,9 @@ export default {
       formLabelWidth: '100px'
     }
   },
+  created: function() {
+    this.get_cred_def_list();
+  },
   methods: {
     publish_cred_def: function(form) {
       let query_msg = {
