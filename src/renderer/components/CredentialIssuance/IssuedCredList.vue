@@ -90,8 +90,8 @@
 import VueJsonPretty from 'vue-json-pretty';
 
 export default {
-  name: 'agent-issue-cred-list',
-  props: ['title', 'list', 'editable', 'connections', 'cred_defs'],
+  name: 'issued-cred-list',
+  props: ['title', 'list', 'connections', 'cred_defs'],
   components: {
     VueJsonPretty,
   },

@@ -10,7 +10,7 @@
 
 import Vue from 'vue';
 
-export default function() {
+export default function(options = {}) {
     return {
         beforeCreate: function() {
             function derive(component) {
@@ -24,6 +24,25 @@ export default function() {
                 return new Vue();
             }
             this.$message_bus = derive(this);
+        },
+        created: function() {
+            if (options && options.events) {
+                Object.keys(options.events).forEach((event) => {
+                    this.$message_bus.$on(event, (...data) => {
+                        options.events[event](this, ...data);
+                    });
+                });
+            }
+        },
+        methods: {
+            send_message: function(message) {
+                this.$message_bus.$emit('send-message', message);
+            },
+            listen: function(event, listener) {
+                this.$message_bus.$on(event, (data) => {
+                    listener(this, data);
+                });
+            }
         }
     };
 }
