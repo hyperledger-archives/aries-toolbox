@@ -52,8 +52,7 @@
       </el-tab-pane>
 
       <el-tab-pane label="Connections" name="connections">
-        <connections
-          ref="connections"></connections>
+        <connections></connections>
       </el-tab-pane>
 
       <el-tab-pane label="Static Connections" name="static-connections">
@@ -268,12 +267,6 @@ export default {
         "label": trusted_did.label,
       }
     },
-    // ---------------------- issuance handlers --------------------
-    async verifierPresentationListDirective(msg){
-      if('results'in msg ){
-        this.issuer_presentations = msg.results;
-      }
-    },
     // ---------------------- holder handlers ------------------------
     async holderCredentialRecord(msg){
       setTimeout(() => {
@@ -292,8 +285,6 @@ export default {
     async processInbound(msg){
       var handlers = {
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/disclose": this.ProtocolDisclose,
-        //=============================== Credential Issuance ==================================
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentations-list": this.verifierPresentationListDirective,
         //=============================== Credential Holder ====================================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credential-exchange": this.holderCredentialRecord,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credentials-list": this.holderCredentialListRecord,

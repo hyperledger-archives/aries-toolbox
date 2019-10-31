@@ -26,46 +26,33 @@ export default {
     Verification,
   },
   mixins: [
-    message_bus(),
-    share([
-      'issuer_presentations',
-      'active_connections',
-      'cred_defs',
-      'trusted_issuers',
-      ])
+    message_bus({
+      events: {
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentation-exchange":
+        (v, msg) => v.verifierPresentationExchange(),
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/request-presentation":
+        (v, msg) => v.verifierPresentationExchange(),
+        'verifications': (v) => v.getIssuersPresentations()
+      }
+    }),
+    share({
+      use: [
+        'issuer_presentations',
+        'active_connections',
+        'cred_defs',
+        'trusted_issuers',
+      ],
+      events: {
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentations-list":
+        (share, msg) => share.issuer_presentations = msg.results
+      }
+    })
   ],
   data () {
     return {
     }
   },
-  created: function() {
-    let component = this; // Safe rerefence to this
-    this.$message_bus.$on(
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/presentations-list",
-        msg => component.holderPresentationListRecord()
-    );
-    this.$message_bus.$on(
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/presentation-exchange",
-        msg => component.holderPresentationRecord()
-    );
-
-    this.$message_bus.$on(
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentation-exchange",
-        msg => component.verifierPresentationExchange()
-    );
-    this.$message_bus.$on(
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/request-presentation",
-        msg => component.verifierRequestPresentationRecordDirective()
-    );
-    this.$message_bus.$on('verifications', () => component.getIssuersPresentations());
-    //this.$message_bus.$on('agent-created', );
-  },
   methods: {
-    async holderPresentationListRecord(msg={}){
-      if('results'in msg ){
-        this.holder_presentations = msg.results;
-      }
-    },
     async verifierRequestPresentation(form){
       // response comes back in admin-issuer/1.0/presentation-exchange
       let query_msg = {
@@ -115,20 +102,12 @@ export default {
       };
       this.$message_bus.$emit('send-message',query_msg);
     },
-    async holderPresentationRecord(msg={}){
-      return this.getIssuersPresentations();
-    },
     async getIssuersPresentations(){
       this.$message_bus.$emit('send-message', {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentations-get-list",
         //'connection_id': ,// optional filter
         //'verified': ,// optional filter
       });
-    },
-    async verifierRequestPresentationRecordDirective(msg={}){
-      if('results'in msg ){
-        return this.getIssuersPresentations();
-      }
     },
     async verifierPresentationExchange(msg={}){
       setTimeout(() => {
