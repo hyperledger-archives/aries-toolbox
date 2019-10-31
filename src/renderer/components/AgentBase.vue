@@ -93,9 +93,7 @@
       </el-tab-pane>
 
       <el-tab-pane label="Presentations" name="presentations">
-        <el-row>
           <presentations ref="presentations"></presentations>
-        </el-row>
       </el-tab-pane>
 
       <el-tab-pane label="Verifications" name="verifications">
@@ -153,7 +151,7 @@ import CredentialIssuance from './CredentialIssuance/CredentialIssuance.vue';
 import CredDefList from './CredentialIssuance/CredDefList.vue';
 import AgentMyCredentialsList from './AgentMyCredentialsList.vue';
 import AgentTrust from './AgentTrust.vue';
-import Presentations from './Agent/Presentations.vue';
+import Presentations from './Presentations/Presentations.vue';
 import Verifications from './Verifications/Verifications.vue';
 import Compose from './Compose/Compose.vue';
 import BasicMessage from './BasicMessage/BasicMessage.vue';
