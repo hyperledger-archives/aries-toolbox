@@ -77,7 +77,7 @@
 import VueJsonPretty from 'vue-json-pretty';
 
 export default {
-  name: 'agent-schema-list',
+  name: 'schema-list',
   props: ['title', 'list','editable'],
   components: {
     VueJsonPretty,

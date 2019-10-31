@@ -60,44 +60,18 @@
         <static-connections></static-connections>
       </el-tab-pane>
 
-      <el-tab-pane label="Credential Issuance">
-        <el-row>
-          <agent-schema-list
-            title="Schemas"
-            editable="false"
-            v-bind:list="schemas"
-            @schema-send="publishSchema"
-            @schema-get="getSchema"
-            @schema-refresh="getSchemas"></agent-schema-list>
-          <agent-cred-def-list
-            title="Credential Definitions"
-            v-bind:retrievable="false"
-            v-bind:can_create="true"
-            v-bind:list="issuerCredDefs"
-            v-bind:schemas="schemas"
-            @cred-def-send="publishCredDef"
-            @cred-def-get="getCredentialDefinition"
-            @cred-def-refresh="getCredentialDefinitionlist"></agent-cred-def-list>
-          <agent-issue-cred-list
-            title="Issued Credentials"
-            v-bind:list="issuer_credentials"
-            v-bind:connections="active_connections"
-            v-bind:cred_defs="issuerCredDefs"
-            @issue="issueCredential"
-            @issue-cred-refresh="getIssuedCredentials">
-          </agent-issue-cred-list>
-        </el-row>
+      <el-tab-pane label="Credential Issuance" name="credential-issuance">
+        <credential-issuance></credential-issuance>
       </el-tab-pane>
 
       <el-tab-pane label="My Credentials">
         <el-row>
-          <agent-cred-def-list
+          <cred-def-list
             title="Retrieved Credential Definitions"
             v-bind:retrievable="true"
             v-bind:can_create="false"
             v-bind:list="proposalCredDefs"
-            v-bind:schemas="schemas"
-            @cred-def-get="getCredentialDefinition"></agent-cred-def-list>
+            v-bind:schemas="schemas"></cred-def-list>
           <agent-my-credentials-list
             title="Credentials"
             editable="false"
@@ -180,11 +154,10 @@ import VueJsonPretty from 'vue-json-pretty';
 import Dids from './Dids/Dids.vue';
 import Ledger from './Ledger/Ledger.vue';
 import Connections from './Connections/Connections.vue';
-import AgentSchemaList from './AgentSchemaList.vue';
-import AgentCredDefList from './AgentCredDefList.vue';
-import AgentIssueCredList from './AgentIssueCredList.vue';
 import Invitations from './Invitations/Invitations.vue';
 import StaticConnections from './StaticConnections/StaticConnections.vue';
+import CredentialIssuance from './CredentialIssuance/CredentialIssuance.vue';
+import CredDefList from './CredentialIssuance/CredDefList.vue';
 import AgentMyCredentialsList from './AgentMyCredentialsList.vue';
 import AgentTrust from './AgentTrust.vue';
 import Presentations from './Agent/Presentations.vue';
@@ -201,7 +174,8 @@ export default {
       'connections',
       'active_connections',
       'dids',
-      'public_did'
+      'public_did',
+      'cred_defs'
     ])
   ],
   components: {
@@ -209,9 +183,8 @@ export default {
     Dids,
     Ledger,
     Connections,
-    AgentSchemaList,
-    AgentCredDefList,
-    AgentIssueCredList,
+    CredentialIssuance,
+    CredDefList,
     Invitations,
     StaticConnections,
     AgentMyCredentialsList,
@@ -273,100 +246,6 @@ export default {
      *  update                   -> connection
      *  create-static-connection -> static-connection-info
      */
-    //================================ schema events ================================
-    /**
-     * # Message Types
-     *  # event                      | ->  |  directive
-     * ==========================================
-     * send-schema      -> schema-id
-     * schema-get       -> schema
-     * schema-get-list  -> schema-list
-     */
-    async getSchemas(){
-      let msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-get-list",
-        "~transport": {
-          "return_route": "all"
-        }
-      };
-      this.connection.send_message(msg);
-    },
-    async getSchema(schema_id){
-      let msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-get",
-        "schema_id": schema_id,
-      };
-      this.connection.send_message(msg);
-    },
-    async publishSchema(form){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/send-schema",
-        "schema_name": form.name,
-        "schema_version": form.version,
-        "attributes": form.attributes,
-      }
-      this.connection.send_message(query_msg);
-    },
-    //================================ Credential Definition events ================================
-    /**
-     * # Message Types
-     *  # event                      | ->  |  directive
-     * ==========================================
-     *  send-credential-definition     -> credential-definition-id
-     *  credential-definition-get      -> credential-definition
-     *  credential-definition-get-list -> credential-definition-list
-     *
-     *  send-credential-proposal       -> credential-exchange
-     *  send-presentation-proposal     -> presentation-exchange
-     *  credentials-get-list           -> credentials-list
-     *  presentations-get-list         -> presentations-list
-     */
-    async publishCredDef(form){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/send-credential-definition",
-        "schema_id": form.schema_id,
-      }
-      this.connection.send_message(query_msg);
-    },
-    async getCredentialDefinition(cred_def_id){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/credential-definition-get",
-        "cred_def_id": cred_def_id,
-      }
-      this.connection.send_message(query_msg);
-    },
-    async getCredentialDefinitionlist(){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/credential-definition-get-list",
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      this.connection.send_message(query_msg);
-    },
-    //================================ Issuer events ================================
-    async issueCredential(form){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/send-credential",
-        "connection_id": form.connection_id,
-        "credential_definition_id": form.credential_definition_id,
-        "comment": form.comment, //optional
-        "credential_proposal": {
-          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/credential-preview",
-          "attributes": form.attributes
-        }
-      }
-      this.connection.send_message(query_msg);
-    },
-    async getIssuedCredentials(){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/credentials-get-list",
-        //'connection_id': ,// optional filter
-        //'credential_definition_id': ,// optional filters
-        //'schema_id': ,// optional filter
-      }
-      this.connection.send_message(query_msg);
-    },
     //================================ Holder events ================================
     async sendCredentialProposal(form){
       let query_msg = {
@@ -479,75 +358,7 @@ export default {
      *  Received Agent admin messages with directives containing state of wallet and did connections to be displayed.
      */
     //=========================================================================================================================
-    // ---------------------- shcema handlers --------------------
-    async getSchemaListResponse(msg){
-      if('results' in msg){
-        this.schemas = msg.results
-      }
-    },
-    async sendSchemaResponse(msg){
-      return this.getSchemas();
-    },
-    async getSchemaResponse(msg){
-      // attempt to update schema list
-      /* if ('schema_id' in msg) {
-        this.schemas = this.schemas.map( function(item) {
-          if (item.schema_id == msg.schema_id){
-            return {
-              'schema_id': msg.schema_id ,
-              'schema_name': msg.schema_name ,
-              'schema_version': msg.schema_version ,
-              'author': msg.author,
-              'attributes':msg.attributes ,
-            }
-          return item;
-          }
-        });
-      } */
-      // get the updated list
-      this.getSchemas();
-    },
-    // ---------------------- cred def handlers --------------------
-
-    async credentialDefinitionCreatedDirective(msg){
-      setTimeout(() => {
-        return this.getCredentialDefinitionlist();
-      }, 4500);
-      /* if ('cred_def_id' in msg){
-        return this.getCredentialDefinitionlist();
-      } */
-    },
-    async credentialDefinitionReadDirective(msg){// does this work???? Do we need this?
-      // attempt to update current records
-      if ('credential_definition' in msg){
-        var index = this.cred_defs.indexOf(msg.credential_definition);
-        if (index !== -1) {
-          this.cred_defs[index] = msg.credential_definition;
-        }
-        else{
-          this.cred_defs.push(msg.credential_definition);
-        }
-      }
-      // check for update in a little.
-      setTimeout(() => {
-        return this.getCredentialDefinitionlist();
-      }, 4500);
-    },
-    async credentialDefinitionListDirective(msg){
-      if('results' in msg){
-        this.cred_defs = msg.results
-        this.cred_def_form = this.cred_defs
-      }
-    },
     // ---------------------- issuance handlers --------------------
-    async issuerCredentialRecord(msg) {
-      return this.getIssuedCredentials();
-    },
-    async issuerCredentialListDirective(msg){
-      if('results' in msg ){
-        this.issuer_credentials = msg.results;
-      }
-    },
     async verifierPresentationListDirective(msg){
       if('results'in msg ){
         this.issuer_presentations = msg.results;
@@ -570,20 +381,8 @@ export default {
     },
     async processInbound(msg){
       var handlers = {
-        //=============================== Credential Definitions ===============================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/disclose": this.ProtocolDisclose,
-        //=============================== Connections ==========================================
-        //=============================== Schemas ==============================================
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-list": this.getSchemaListResponse,
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-id": this.sendSchemaResponse,
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema": this.getSchemaResponse,
-        //=============================== Credential Definitions ===============================
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/credential-definition-id": this.credentialDefinitionCreatedDirective,
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/credential-definition": this.credentialDefinitionReadDirective,
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/credential-definition-list": this.credentialDefinitionListDirective,
         //=============================== Credential Issuance ==================================
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/credential-exchange": this.issuerCredentialRecord,
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/credentials-list": this.issuerCredentialListDirective,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentations-list": this.verifierPresentationListDirective,
         //=============================== Credential Holder ====================================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credential-exchange": this.holderCredentialRecord,
@@ -741,8 +540,6 @@ export default {
         'version':'',
         'attribute':'',
       },
-      'cred_defs':[],
-      'cred_def_form':{},
       'pres_def_form':{
         'temp_attrs':[],
         'requested_attributes':[],
@@ -1118,9 +915,6 @@ export default {
     // fetch the data when the view is created and the data is
     // already being observed
     await this.fetchAgentData();
-    this.getSchemas();
-    this.getCredentialDefinitionlist();
-    this.getIssuedCredentials();
     this.getHoldersCredentials();
     this.getHoldersPresentations();
     this.run_protocol_discovery();
