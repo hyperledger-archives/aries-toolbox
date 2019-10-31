@@ -121,18 +121,8 @@
         <message-history></message-history>
       </el-tab-pane>
 
-      <el-tab-pane label="Protocol Discovery">
-        <input type="button" class="btn btn-secondary" v-on:click="run_protocol_discovery()" value="Query"/>
-        <table class="table table-sm">
-          <tr>
-            <th>Protocol</th>
-            <th>Roles</th>
-          </tr>
-          <tr v-for="p in supported_protocols" :key="p.pid">
-            <td>{{p.pid}}</td>
-            <td>{{p.roles}}</td>
-          </tr>
-        </table>
+      <el-tab-pane label="Feature Discovery">
+        <feature-discovery></feature-discovery>
       </el-tab-pane>
 
     </el-tabs>
@@ -164,6 +154,7 @@ import Verifications from './Verifications/Verifications.vue';
 import Compose from './Compose/Compose.vue';
 import BasicMessage from './BasicMessage/BasicMessage.vue';
 import MessageHistory from './MessageHistory/MessageHistory.vue';
+import FeatureDiscovery from './FeatureDiscovery/FeatureDiscovery.vue';
 
 export default {
   name: 'agent-base',
@@ -175,14 +166,13 @@ export default {
         }
       }
     }),
-    share([
-      'connections',
+    share({use: [
       'active_connections',
       'dids',
       'public_did',
       'cred_defs',
-      'proposal_cred_defs'
-    ])
+      'proposal_cred_defs',
+    ]})
   ],
   components: {
     VueJsonPretty,
@@ -200,6 +190,7 @@ export default {
     Compose,
     BasicMessage,
     MessageHistory,
+    FeatureDiscovery
   },
   data() {
     return {
@@ -208,11 +199,9 @@ export default {
       'connection': {'label':'loading...'},
       'connection_loaded': false,
       'trusted_issuers':{},
-      'issuer_credentials': [],
       'issuer_presentations': [],
       'holder_credentials': [],
       'holder_presentations': [],
-      'supported_protocols': [],
     }
   },
   methods: {
@@ -231,14 +220,6 @@ export default {
         this.$message_bus.$emit(tab.name);
       }
       this.$forceUpdate();
-    },
-    async run_protocol_discovery(){
-      //send query
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/query",
-        "query": "*"
-      };
-      this.connection.send_message(query_msg);
     },
     //================================ Holder events ================================
     async sendCredentialProposal(form){
@@ -333,13 +314,8 @@ export default {
         this.holder_credentials = msg.results;
       }
     },
-    async ProtocolDisclose(msg){
-      //console.log(msg.protocols);
-      this.supported_protocols = msg.protocols;
-    },
     async processInbound(msg){
       var handlers = {
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/disclose": this.ProtocolDisclose,
         //=============================== Credential Issuance ==================================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentations-list": this.verifierPresentationListDirective,
         //=============================== Credential Holder ====================================
@@ -380,7 +356,7 @@ export default {
     await this.fetchAgentData();
     this.getHoldersCredentials();
     this.getHoldersPresentations();
-    this.run_protocol_discovery();
+    this.$message_bus.$emit('protocols');
     this.$message_bus.$emit('agent-created');
   },
 }

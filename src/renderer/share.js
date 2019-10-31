@@ -8,7 +8,8 @@ const SHARED_PROPERTIES = {
     issuer_presentations:[],
     issued_credentials: [],
     schemas: [],
-    cred_defs: []
+    cred_defs: [],
+    protocols: []
 };
 
 const COMPUTED_PROPERTIES = {
