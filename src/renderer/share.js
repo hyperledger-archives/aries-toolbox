@@ -8,6 +8,7 @@ const SHARED_PROPERTIES = {
     issuer_presentations:[],
     holder_presentations: [],
     issued_credentials: [],
+    holder_credentials: [],
     schemas: [],
     cred_defs: [],
     protocols: []

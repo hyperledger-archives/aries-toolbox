@@ -63,22 +63,8 @@
         <credential-issuance></credential-issuance>
       </el-tab-pane>
 
-      <el-tab-pane label="My Credentials">
-        <el-row>
-          <cred-def-list
-            title="Retrieved Credential Definitions"
-            v-bind:retrievable="true"
-            v-bind:can_create="false"
-            v-bind:list="proposal_cred_defs"></cred-def-list>
-          <agent-my-credentials-list
-            title="Credentials"
-            editable="false"
-            v-bind:credentials="holder_credentials"
-            v-bind:cred_defs="proposal_cred_defs"
-            v-bind:connections="active_connections"
-            @cred-refresh="getHoldersCredentials"
-            @propose="sendCredentialProposal"></agent-my-credentials-list>
-        </el-row>
+      <el-tab-pane label="My Credentials" name="my-redentials">
+        <my-credentials></my-credentials>
       </el-tab-pane>
 
       <el-tab-pane label="Trusted Issuers">
@@ -92,7 +78,7 @@
       </el-tab-pane>
 
       <el-tab-pane label="Presentations" name="presentations">
-          <presentations ref="presentations"></presentations>
+          <presentations></presentations>
       </el-tab-pane>
 
       <el-tab-pane label="Verifications" name="verifications">
@@ -100,19 +86,19 @@
           ref="verifications"></verifications>
       </el-tab-pane>
 
-      <el-tab-pane label="Compose">
+      <el-tab-pane label="Compose" name="compose">
         <compose></compose>
       </el-tab-pane>
 
-      <el-tab-pane label="BasicMessage">
+      <el-tab-pane label="BasicMessage" name="basicmessage">
         <basic-message></basic-message>
       </el-tab-pane>
 
-      <el-tab-pane label="Message History">
+      <el-tab-pane label="Message History" name="message-history">
         <message-history></message-history>
       </el-tab-pane>
 
-      <el-tab-pane label="Feature Discovery">
+      <el-tab-pane label="Feature Discovery" name="feature-discovery">
         <feature-discovery></feature-discovery>
       </el-tab-pane>
 
@@ -138,7 +124,6 @@ import Invitations from './Invitations/Invitations.vue';
 import StaticConnections from './StaticConnections/StaticConnections.vue';
 import CredentialIssuance from './CredentialIssuance/CredentialIssuance.vue';
 import CredDefList from './CredentialIssuance/CredDefList.vue';
-import AgentMyCredentialsList from './AgentMyCredentialsList.vue';
 import AgentTrust from './AgentTrust.vue';
 import Presentations from './Presentations/Presentations.vue';
 import Verifications from './Verifications/Verifications.vue';
@@ -146,6 +131,7 @@ import Compose from './Compose/Compose.vue';
 import BasicMessage from './BasicMessage/BasicMessage.vue';
 import MessageHistory from './MessageHistory/MessageHistory.vue';
 import FeatureDiscovery from './FeatureDiscovery/FeatureDiscovery.vue';
+import MyCredentials from './MyCredentials/MyCredentials.vue';
 
 export default {
   name: 'agent-base',
@@ -174,14 +160,14 @@ export default {
     CredDefList,
     Invitations,
     StaticConnections,
-    AgentMyCredentialsList,
     AgentTrust,
     Presentations,
     Verifications,
     Compose,
     BasicMessage,
     MessageHistory,
-    FeatureDiscovery
+    FeatureDiscovery,
+    MyCredentials
   },
   data() {
     return {
@@ -212,32 +198,6 @@ export default {
       }
       this.$forceUpdate();
     },
-    //================================ Holder events ================================
-    async sendCredentialProposal(form){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/send-credential-proposal",
-        "connection_id": form.connection_id,
-        "credential_definition_id": form.credential_definition_id,
-        "comment": form.comment, //optional
-        "credential_proposal": {
-          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/credential-preview",
-          "attributes": form.attributes
-        }
-      }
-      this.connection.send_message(query_msg);
-    },
-    async getHoldersCredentials(){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credentials-get-list",
-      }
-      this.connection.send_message(query_msg);
-    },
-    async getHoldersPresentations(){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/presentations-get-list",
-      }
-      this.connection.send_message(query_msg);
-    },
     //================================ trusted issuer events ================================
     async removeTrustedIssuer(did){
       this.$delete(this.trusted_issuers,did.id)// TODO:remove this after aca-py support is added.
@@ -249,21 +209,9 @@ export default {
       }
     },
     // ---------------------- holder handlers ------------------------
-    async holderCredentialRecord(msg){
-      setTimeout(() => {
-        return this.getHoldersCredentials();
-      }, 4500);
-    },
-    async holderCredentialListRecord(msg){
-      if('results'in msg ){
-        this.holder_credentials = msg.results;
-      }
-    },
     async processInbound(msg){
       var handlers = {
         //=============================== Credential Holder ====================================
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credential-exchange": this.holderCredentialRecord,
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credentials-list": this.holderCredentialListRecord,
       };
       var handler = handlers[msg['@type']];
       if(handler){
@@ -297,8 +245,6 @@ export default {
     // fetch the data when the view is created and the data is
     // already being observed
     await this.fetchAgentData();
-    this.getHoldersCredentials();
-    this.getHoldersPresentations();
     this.$message_bus.$emit('protocols');
     this.$message_bus.$emit('agent-created');
   },

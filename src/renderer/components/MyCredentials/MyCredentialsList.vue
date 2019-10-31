@@ -119,7 +119,7 @@
 import VueJsonPretty from 'vue-json-pretty';
 
 export default {
-  name: 'agent-my-credentials-list',
+  name: 'my-credentials-list',
   props: [
     'title',
     'editable',
