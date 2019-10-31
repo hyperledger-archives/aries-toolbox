@@ -52,8 +52,7 @@
       </el-tab-pane>
 
       <el-tab-pane label="Connections" name="connections">
-        <connections
-          ref="connections"></connections>
+        <connections></connections>
       </el-tab-pane>
 
       <el-tab-pane label="Static Connections" name="static-connections">
@@ -92,16 +91,8 @@
         </el-row>
       </el-tab-pane>
 
-      <el-tab-pane label="Presentation">
-        <el-row>
-          <presentations
-            title="Presentations"
-            v-bind:presentations="holder_presentations"
-            v-bind:connections = "active_connections"
-            v-bind:cred_defs = "cred_defs"
-            @presentation-refresh = "getHoldersPresentations"
-            @send-presentation-proposal= "sendPresentationProposal"></presentations>
-        </el-row>
+      <el-tab-pane label="Presentations" name="presentations">
+          <presentations ref="presentations"></presentations>
       </el-tab-pane>
 
       <el-tab-pane label="Verifications" name="verifications">
@@ -149,7 +140,7 @@ import CredentialIssuance from './CredentialIssuance/CredentialIssuance.vue';
 import CredDefList from './CredentialIssuance/CredDefList.vue';
 import AgentMyCredentialsList from './AgentMyCredentialsList.vue';
 import AgentTrust from './AgentTrust.vue';
-import Presentations from './Agent/Presentations.vue';
+import Presentations from './Presentations/Presentations.vue';
 import Verifications from './Verifications/Verifications.vue';
 import Compose from './Compose/Compose.vue';
 import BasicMessage from './BasicMessage/BasicMessage.vue';
@@ -235,46 +226,6 @@ export default {
       }
       this.connection.send_message(query_msg);
     },
-    async sendPresentationProposal(form){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/send-presentation-proposal",
-        "connection_id": form.connection_id,
-        "comment": form.comment,
-        "auto_present": form.auto_present , //optional, default to false
-        "presentation_proposal": {
-          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/present-proof/1.0/presentation-preview",
-          /**
-           * name
-           * cred_def_id //optional
-           * mime_type //optional
-           * value //optional
-           * */
-          attributes: form.attributes.map(attribute => {
-            return {
-              name: attribute.name,
-              cred_def_id: attribute.cred_def.cred_def_id,
-              value: attribute.value
-            };
-          }),
-          /**
-           * name
-           * cred_def_id
-           * predicate
-           * threshold
-           */
-          predicates: form.predicates.map(predicate => {
-            return {
-              name: predicate.name,
-              cred_def_id: predicate.cred_def.cred_def_id,
-              predicate: predicate.predicate,
-              threshold: predicate.threshold
-            };
-          })
-        },
-      };
-
-      this.connection.send_message(query_msg);
-    },
     async getHoldersCredentials(){
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credentials-get-list",
@@ -297,12 +248,6 @@ export default {
         "label": trusted_did.label,
       }
     },
-    // ---------------------- issuance handlers --------------------
-    async verifierPresentationListDirective(msg){
-      if('results'in msg ){
-        this.issuer_presentations = msg.results;
-      }
-    },
     // ---------------------- holder handlers ------------------------
     async holderCredentialRecord(msg){
       setTimeout(() => {
@@ -316,8 +261,6 @@ export default {
     },
     async processInbound(msg){
       var handlers = {
-        //=============================== Credential Issuance ==================================
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentations-list": this.verifierPresentationListDirective,
         //=============================== Credential Holder ====================================
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credential-exchange": this.holderCredentialRecord,
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credentials-list": this.holderCredentialListRecord,

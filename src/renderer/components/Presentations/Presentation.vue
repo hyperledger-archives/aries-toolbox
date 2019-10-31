@@ -237,32 +237,32 @@
 import VueJsonPretty from 'vue-json-pretty';
 
 export default {
-  name: 'presentations',
+  name: 'presentation',
   props: [
     'title',
     'presentations',
     'connections',
     'cred_defs',
-    ],
+  ],
   components: {
     VueJsonPretty,
   },
   data () {
     return {
-        ver_pres_expanded_items:[],
-        sent_prop_expanded_items:[],
-        rec_req_expanded_items:[],
-        sent_pres_expanded_items:[],
-        expanded_items:[],
-        proposalFormActive: false,
-        proposalForm: {
-          connection_id: '', // Who
-          comment: '', // Optional comment
-          attributes: [ ],
-          predicates: [ ]
-        },
-        formLabelWidth: '100px',
-        p_type_options: ['>', '<', '>=', '<=']
+      ver_pres_expanded_items:[],
+      sent_prop_expanded_items:[],
+      rec_req_expanded_items:[],
+      sent_pres_expanded_items:[],
+      expanded_items:[],
+      proposalFormActive: false,
+      proposalForm: {
+        connection_id: '', // Who
+        comment: '', // Optional comment
+        attributes: [ ],
+        predicates: [ ]
+      },
+      formLabelWidth: '100px',
+      p_type_options: ['>', '<', '>=', '<=']
     }
   },
   methods: {
@@ -336,24 +336,25 @@ export default {
   },
   computed: {
     connection_map: function() {
-    let map =  this.connections.reduce((acc, item) => {
+      let map =  this.connections.reduce((acc, item) => {
         acc[item.connection_id] = item;
         return acc;
-    }, {});
-    console.log(map);
-    return map;
+      }, {});
+      console.log(map);
+      return map;
     },
     completed_verifications: function() {
-        return this.list.filter(pres_exch => pres_exch.state === 'verified');
+      return this.presentations.filter(pres_exch => pres_exch.state === 'verified');
     },
-    VerifiedPresentations(){
-        return this.presentations.filter(
-            exchange =>
-            "state" in exchange &&
-            exchange.state === "verified" &&
-            //==========================================
-            "role" in exchange &&
-            "prover" === exchange.role )
+    VerifiedPresentations() {
+      console.log('PRESENTATIONS', this.presentations);
+      return this.presentations.filter(
+        exchange =>
+        "state" in exchange &&
+        exchange.state === "verified" &&
+        //==========================================
+        "role" in exchange &&
+        "prover" === exchange.role )
     },
     ReceivedRequests(){
       return this.presentations.filter(
