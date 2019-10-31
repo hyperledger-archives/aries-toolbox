@@ -6,6 +6,8 @@ const SHARED_PROPERTIES = {
     public_did: '',
     trusted_issuers: [],
     issuer_presentations:[],
+    holder_presentations: [],
+    cred_defs: [],
 };
 
 const COMPUTED_PROPERTIES = {

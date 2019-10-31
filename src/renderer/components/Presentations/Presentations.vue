@@ -42,7 +42,7 @@ export default {
         'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/presentations-list',
       msg => component.holderPresentationListRecord(msg)
     );
-    this.$message_bus.$on('presentation', () => component.getHoldersPresentations());
+    this.$message_bus.$on('presentations', () => component.getHoldersPresentations());
   },
   methods: {
     async getHoldersPresentations(){
