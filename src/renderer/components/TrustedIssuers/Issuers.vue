@@ -49,7 +49,7 @@
 import VueJsonPretty from 'vue-json-pretty';
 
 export default {
-  name: 'agent-trust',
+  name: 'issuers',
   props: [
     'title',
     'trusted_issuers',
