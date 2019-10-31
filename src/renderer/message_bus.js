@@ -28,7 +28,9 @@ export default function(options = {}) {
         created: function() {
             if (options && options.events) {
                 Object.keys(options.events).forEach((event) => {
-                    this.$message_bus.$on(event, (data) => options.events[event](this, data));
+                    this.$message_bus.$on(event, (...data) => {
+                        options.events[event](this, ...data);
+                    });
                 });
             }
         },

@@ -9,7 +9,7 @@
         <el-button
           slot="append"
           icon="el-icon-search"
-          @click="retrieve">Retrieve</el-button>
+          @click="get_cred_def">Retrieve</el-button>
       </el-input>
       <el-button
         v-if="can_create && list"
@@ -40,7 +40,7 @@
         </el-collapse-item>
       </ul>
     </el-collapse>
-    <el-dialog title="Create New Credential Definition" :visible.sync="createFormActive" @close="deActivateForm()">
+    <el-dialog title="Create New Credential Definition" :visible.sync="createFormActive" @close="deactivate()">
       <el-form :model="createForm">
         <el-form-item label="Schema:" :label-width="formLabelWidth">
           <el-select
@@ -58,8 +58,8 @@
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="deActivateForm()">Cancel</el-button>
-        <el-button type="primary" @click="create">Confirm</el-button>
+        <el-button @click="deactivate()">Cancel</el-button>
+        <el-button type="primary" @click="publish_cred_def">Confirm</el-button>
       </span>
     </el-dialog>
   </div>
@@ -67,10 +67,38 @@
 
 <script>
 import VueJsonPretty from 'vue-json-pretty';
+import message_bus from '../../message_bus.js';
+import share from '../../share.js';
 
 export default {
-  name: 'agent-cred-def-list',
-  props: ['retrievable','title', 'list', 'can_create', 'schemas'],
+  name: 'cred-def-list',
+  props: [
+    'retrievable',
+    'title',
+    'list',
+    'can_create',
+  ],
+  mixins: [
+    message_bus({
+      events: {
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/credential-definition-id":
+        (v, msg) => setTimeout(v.get_cred_def_list, 4500),
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/credential-definition":
+        (v, msg) => setTimeout(v.get_cred_def_list, 4500),
+        "cred_defs": (v) => v.get_cred_def_list()
+      }
+    }),
+    share({
+      use: [
+        'schemas',
+        'cred_defs'
+      ],
+      events: {
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/credential-definition-list":
+        (share, msg) => share.cred_defs = msg.results
+      }
+    })
+  ],
   components: {
     VueJsonPretty,
   },
@@ -86,27 +114,39 @@ export default {
     }
   },
   methods: {
+    publish_cred_def: function(form) {
+      let query_msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/send-credential-definition",
+        "schema_id": this.createForm.schema_id,
+      };
+      this.send_message(query_msg);
+      this.createFormActive = false;
+      this.createForm.schema_id = '';
+    },
+    get_cred_def: function() {
+      let query_msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/credential-definition-get",
+        "cred_def_id": this.retrieve_cred_def_id,
+      };
+      this.send_message(query_msg);
+      this.retrieve_cred_def_id = '';
+    },
+    get_cred_def_list: function() {
+      let query_msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/credential-definition-get-list",
+      };
+      this.send_message(query_msg);
+    },
+
     collapse_expanded: function(creddef){
       this.expanded_items = this.expanded_items.filter(
         item => item != creddef.cred_def_id
       );
     },
-    deActivateForm: function() {
+    deactivate: function() {
       this.createFormActive = false;
       this.createForm.schema_id = '';
     },
-    create: function() {
-      let values = {
-        schema_id: this.createForm.schema_id
-      }
-      this.createForm.schema_id = '';
-      this.$emit('cred-def-send', values);
-      this.createFormActive = false;
-    },
-    retrieve: function() {
-      this.$emit('cred-def-get', this.retrieve_cred_def_id)
-      this.retrieve_cred_def_id = '';
-    }
   }
 }
 </script>

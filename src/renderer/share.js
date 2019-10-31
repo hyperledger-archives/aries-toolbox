@@ -6,14 +6,33 @@ const SHARED_PROPERTIES = {
     public_did: '',
     trusted_issuers: [],
     issuer_presentations:[],
+    issued_credentials: [],
+    schemas: [],
+    cred_defs: []
 };
 
 const COMPUTED_PROPERTIES = {
     active_connections: function() {
-      return Object.values(this.connections).filter(
-        conn => "state" in conn && conn.state === "active"
-      );
-    }
+        return Object.values(this.connections).filter(
+            conn => "state" in conn && conn.state === "active"
+        );
+    },
+    issuer_cred_defs: function() {
+        return Object.values(this.cred_defs).filter(
+            cred_def => {
+                return cred_def.author === 'self' ||
+                    cred_def.cred_def_id.split(':', 2)[0] === this.public_did
+            }
+        );
+    },
+    proposal_cred_defs: function() {
+        return Object.values(this.cred_defs).filter(
+            cred_def => {
+                return cred_def.author !== 'self' ||
+                    cred_def.cred_def_id.split(':', 2)[0] !== this.public_did
+            }
+        );
+    },
 }
 
 export default function(options) {
