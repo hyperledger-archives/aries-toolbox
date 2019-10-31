@@ -58,7 +58,7 @@ export default {
         msg => component.verifierRequestPresentationRecordDirective()
     );
     this.$message_bus.$on('verifications', () => component.getIssuersPresentations());
-    //this.$message_bus.$on('agent-created', this.getIssuersPresentations);
+    //this.$message_bus.$on('agent-created', );
   },
   methods: {
     async holderPresentationListRecord(msg={}){
