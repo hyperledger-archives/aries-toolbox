@@ -113,6 +113,7 @@ export default {
       (msg) => component.fetch()
     );
     this.$message_bus.$on('static-connections', () => component.fetch());
+    this.fetch();
   },
   methods: {
     fetch: function(){

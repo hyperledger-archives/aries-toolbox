@@ -57,6 +57,7 @@ export default {
     }
   },
   created: function(){
+    console.log('DIDS LOADED');
     this.$message_bus.$on(
       'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/list-dids',
       this.receivedAgentDids
@@ -71,6 +72,7 @@ export default {
     );
     this.$message_bus.$on('dids', this.onOpen);
     this.$message_bus.$on('agent-created', this.getAgentActivePublicDid);
+    this.onOpen();
   },
   methods: {
 

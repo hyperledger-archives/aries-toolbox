@@ -70,6 +70,11 @@ export default {
     CredDefList,
     IssuedCredList
   },
+  created: function() {
+    this.$message_bus.$emit('connections');
+    this.get_schema_list();
+    this.get_issued_credentials();
+  },
   methods: {
     publish_schema: function(form) {
       let query_msg = {
