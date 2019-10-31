@@ -64,21 +64,6 @@
       </el-tab-pane>
 
       <el-tab-pane label="My Credentials">
-        <el-row>
-          <cred-def-list
-            title="Retrieved Credential Definitions"
-            v-bind:retrievable="true"
-            v-bind:can_create="false"
-            v-bind:list="proposal_cred_defs"></cred-def-list>
-          <agent-my-credentials-list
-            title="Credentials"
-            editable="false"
-            v-bind:credentials="holder_credentials"
-            v-bind:cred_defs="proposal_cred_defs"
-            v-bind:connections="active_connections"
-            @cred-refresh="getHoldersCredentials"
-            @propose="sendCredentialProposal"></agent-my-credentials-list>
-        </el-row>
       </el-tab-pane>
 
       <el-tab-pane label="Trusted Issuers">
