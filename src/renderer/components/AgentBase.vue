@@ -387,6 +387,17 @@ export default {
       }
       this.connection.send_message(query_msg);
     },
+    async getHoldersPresentations(){
+      let query_msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/presentations-get-list",
+        //'connection_id': ,// optional filter
+        //'verified': ,// optional filters
+        "~transport": {
+          "return_route": "all"
+        }
+      }
+      this.connection.send_message(query_msg);
+    },
     //================================ trusted issuer events ================================
     async removeTrustedIssuer(did){
       /*let query_msg = {
