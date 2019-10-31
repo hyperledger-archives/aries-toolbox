@@ -24,7 +24,15 @@ const COMPUTED_PROPERTIES = {
                     cred_def.cred_def_id.split(':', 2)[0] === this.public_did
             }
         );
-    }
+    },
+    proposal_cred_defs: function() {
+        return Object.values(this.cred_defs).filter(
+            cred_def => {
+                return cred_def.author !== 'self' ||
+                    cred_def.cred_def_id.split(':', 2)[0] !== this.public_did
+            }
+        );
+    },
 }
 
 export default function(options) {
