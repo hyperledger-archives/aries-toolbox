@@ -63,17 +63,13 @@
         <credential-issuance></credential-issuance>
       </el-tab-pane>
 
-      <el-tab-pane label="My Credentials" name="my-redentials">
+      <el-tab-pane label="My Credentials" name="my-credentials">
         <my-credentials></my-credentials>
       </el-tab-pane>
 
-      <el-tab-pane label="Trusted Issuers">
+      <el-tab-pane label="Trusted Issuers" name="trusted-issuers">
         <el-row>
-          <agent-trust
-            title="Trusted Dids"
-            v-bind:trusted_issuers= "trusted_issuers"
-            @remove-did= "removeTrustedIssuer"
-            @store-did= "storeTrustedIssuer"></agent-trust>
+          <trusted-issuers></trusted-issuers>
         </el-row>
       </el-tab-pane>
 
@@ -124,7 +120,7 @@ import Invitations from './Invitations/Invitations.vue';
 import StaticConnections from './StaticConnections/StaticConnections.vue';
 import CredentialIssuance from './CredentialIssuance/CredentialIssuance.vue';
 import CredDefList from './CredentialIssuance/CredDefList.vue';
-import AgentTrust from './AgentTrust.vue';
+import TrustedIssuers from './TrustedIssuers/TrustedIssuers.vue';
 import Presentations from './Presentations/Presentations.vue';
 import Verifications from './Verifications/Verifications.vue';
 import Compose from './Compose/Compose.vue';
@@ -160,7 +156,7 @@ export default {
     CredDefList,
     Invitations,
     StaticConnections,
-    AgentTrust,
+    TrustedIssuers,
     Presentations,
     Verifications,
     Compose,
@@ -175,7 +171,6 @@ export default {
       'open_tab': 'dids',
       'connection': {'label':'loading...'},
       'connection_loaded': false,
-      'trusted_issuers':{},
       'issuer_presentations': [],
       'holder_credentials': [],
       'holder_presentations': [],
@@ -197,16 +192,6 @@ export default {
         this.$message_bus.$emit(tab.name);
       }
       this.$forceUpdate();
-    },
-    //================================ trusted issuer events ================================
-    async removeTrustedIssuer(did){
-      this.$delete(this.trusted_issuers,did.id)// TODO:remove this after aca-py support is added.
-    },
-    async storeTrustedIssuer(trusted_did){
-      this.trusted_issuers[trusted_did.id] = { // TODO:remove this after aca-py support is added.
-        "id":trusted_did.id,
-        "label": trusted_did.label,
-      }
     },
     // ---------------------- holder handlers ------------------------
     async processInbound(msg){
