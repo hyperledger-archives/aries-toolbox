@@ -1,14 +1,14 @@
 <template >
-<el-row>
+  <el-row>
     <presentation
-    title="Presentations"
-    v-bind:presentations= "holder_presentations"
-    v-bind:connections = "active_connections"
-    v-bind:cred_defs = "cred_defs"
-    @presentation-refresh = "getHoldersPresentations"
-    @send-presentation-proposal= "sendPresentationProposal"
-    ></presentation>
-</el-row>
+      title="Presentations"
+      v-bind:presentations= "holder_presentations"
+      v-bind:connections = "active_connections"
+      v-bind:cred_defs = "cred_defs"
+      @presentation-refresh = "getHoldersPresentations"
+      @send-presentation-proposal= "sendPresentationProposal"
+      ></presentation>
+  </el-row>
 </template>
 
 <script>
@@ -20,7 +20,6 @@ import share from '../../share.js';
 
 export default {
   name: 'presentations',
-  message_bus: 'derive',
   components: {
     VueJsonPretty,
     Presentation,
@@ -30,7 +29,8 @@ export default {
     share([
       'active_connections', 
       'cred_defs',
-      'holder_presentations'])
+      'holder_presentations'
+    ])
   ],
   data () {
     return {
@@ -39,7 +39,7 @@ export default {
   created: function() {
     let component = this; // Safe rerefence to this
     this.$message_bus.$on(
-        'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/presentations-list',
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/presentations-list',
       msg => component.holderPresentationListRecord(msg)
     );
     this.$message_bus.$on('presentations', () => component.getHoldersPresentations());
@@ -48,11 +48,6 @@ export default {
     async getHoldersPresentations(){
         this.$message_bus.$emit('send-message',{
             "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/presentations-get-list",
-            //'connection_id': ,// optional filter
-            //'verified': ,// optional filters
-            "~transport": {
-                "return_route": "all"
-            }
         });
     },
     async holderPresentationListRecord(msg){
