@@ -41,6 +41,9 @@
         <dids ref="dids"></dids>
       </el-tab-pane>
 
+      <el-tab-pane label="FedExDay" name="fedexday">
+        <fedexday></fedexday>
+      </el-tab-pane>
       <!--
         <el-tab-pane label="Ledger" name="ledgerTab">
         <ledgers ref="ledgerTab"></ledgers>
@@ -128,6 +131,7 @@ import BasicMessage from './BasicMessage/BasicMessage.vue';
 import MessageHistory from './MessageHistory/MessageHistory.vue';
 import FeatureDiscovery from './FeatureDiscovery/FeatureDiscovery.vue';
 import MyCredentials from './MyCredentials/MyCredentials.vue';
+import FedExDay from './FedExDay/FedExDay.vue';
 
 export default {
   name: 'agent-base',
@@ -163,7 +167,8 @@ export default {
     BasicMessage,
     MessageHistory,
     FeatureDiscovery,
-    MyCredentials
+    MyCredentials,
+    FedExDay
   },
   data() {
     return {
