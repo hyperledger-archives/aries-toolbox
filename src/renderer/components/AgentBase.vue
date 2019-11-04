@@ -1,126 +1,148 @@
 <template>
   <el-container>
-    <el-aside>
-      <el-menu
-        mode="vertical"
-        class="side-menu"
-        background-color="#545c64"
-        text-color="#fff"
-        active-text-color="#ffd04b"
-        :router="true">
-        <el-menu-item-group index="indirect">
-          <span class="menu-title" slot="title">Agent to Agent</span>
-          <el-menu-item :index="'/agent/{{ id }}/dids'">
-            <i class="el-icon-link"></i>
-            <span>DIDs</span>
-          </el-menu-item>
-          <el-menu-item :index="'/agent/{{ id }}/invitations'">
-            <i class="el-icon-plus"></i>
-            <span>Invitations</span>
-          </el-menu-item>
-          <el-menu-item :index="'/agent/{{ id }}/connections'">
-            <i class="el-icon-user"></i>
-            <span>Connections</span>
-          </el-menu-item>
-          <el-menu-item :index="'/agent/{{ id }}/static-connections'">
-            <i class="el-icon-box"></i>
-            <span>Static Connections</span>
-          </el-menu-item>
-          <el-menu-item :index="'/agent/{{ id }}/credential-issuance'">
-            <i class="el-icon-document"></i>
-            <span>Credential Issuance</span>
-          </el-menu-item>
-          <el-menu-item :index="'/agent/{{ id }}/trusted-issuers'">
-            <i class="el-icon-connection"></i>
-            <span>Trusted Issuers</span>
-          </el-menu-item>
-          <el-menu-item :index="'/agent/{{ id }}/my-credentials'">
-            <i class="el-icon-bank-card"></i>
-            <span>My Credentials</span>
-          </el-menu-item>
-          <el-menu-item :index="'/agent/{{ id }}/presentations'">
-            <i class="el-icon-document-checked"></i>
-            <span>Presentations</span>
-          </el-menu-item>
-          <el-menu-item :index="'/agent/{{ id }}/verifications'">
-            <i class="el-icon-s-claim"></i>
-            <span>Verification</span>
-          </el-menu-item>
-        </el-menu-item-group>
-        <el-menu-item-group index="direct">
-          <span class="menu-title" slot="title">Toolbox to Agent</span>
-          <el-menu-item :index="'/agent/{{ id }}/feature-discovery'">
-            <i class="el-icon-discover"></i>
-            <span>Discovered Features</span>
-          </el-menu-item>
-          <el-menu-item :index="'/agent/{{ id }}/compose'">
-            <i class="el-icon-message"></i>
-            <span>Compose</span>
-          </el-menu-item>
-          <el-menu-item :index="'/agent/{{ id }}/message-history'">
-            <i class="el-icon-receiving"></i>
-            <span>Message History</span>
-          </el-menu-item>
-          <el-menu-item :index="'/agent/{{ id }}/basic-message'">
-            <i class="el-icon-chat-line-square"></i>
-            <span>Basic Message</span>
-          </el-menu-item>
-        </el-menu-item-group>
-      </el-menu>
-    </el-aside>
-    <el-container>
-      <el-header>
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
-          <a class="navbar-brand" href="#">{{connection.label}}</a>
-          <el-form
-            v-if="$refs.dids"
-            :disabled="Object.keys(dids).length === 0"
-            :model="$refs.dids.active_ledger_selector">
-            <el-select
-              v-model="selectedActiveDid"
-              filterable placeholder="activate did">
-              <el-option
-                v-for="did in Object.values(dids)"
-                :key="did.did"
-                :label="did.did"
-                :value="did">
-              </el-option>
-            </el-select>
-            <!--
-              <el-select
-              v-if="$refs.ledgerTab"
-              v-model="$refs.ledgerTab.active_ledger_selector.ledger"
-              filterable placeholder="activate ledger" >
-              <el-option
-              v-for="ledger in $refs.ledgerTab.ledgers"
-              :key="ledger.name"
-              :label="ledger.name"
-              :value="ledger.name">
-              </el-option>
-              </el-select>
-            -->
-          </el-form>
-        </nav>
-      </el-header>
+    <el-menu
+      mode="vertical"
+      id="side-menu"
+      background-color="#545c64"
+      text-color="#fff"
+      active-text-color="#ffd04b"
+      :router="true">
+      <el-menu-item-group index="indirect">
+        <span class="menu-title" slot="title">Agent to Agent</span>
+        <el-menu-item :index="'/agent/{{ id }}/dids'">
+          <i class="el-icon-link"></i>
+          <span>DIDs</span>
+        </el-menu-item>
+        <el-menu-item :index="'/agent/{{ id }}/invitations'">
+          <i class="el-icon-plus"></i>
+          <span>Invitations</span>
+        </el-menu-item>
+        <el-menu-item :index="'/agent/{{ id }}/connections'">
+          <i class="el-icon-user"></i>
+          <span>Connections</span>
+        </el-menu-item>
+        <el-menu-item :index="'/agent/{{ id }}/static-connections'">
+          <i class="el-icon-box"></i>
+          <span>Static Connections</span>
+        </el-menu-item>
+        <el-menu-item :index="'/agent/{{ id }}/credential-issuance'">
+          <i class="el-icon-document"></i>
+          <span>Credential Issuance</span>
+        </el-menu-item>
+        <el-menu-item :index="'/agent/{{ id }}/trusted-issuers'">
+          <i class="el-icon-connection"></i>
+          <span>Trusted Issuers</span>
+        </el-menu-item>
+        <el-menu-item :index="'/agent/{{ id }}/my-credentials'">
+          <i class="el-icon-bank-card"></i>
+          <span>My Credentials</span>
+        </el-menu-item>
+        <el-menu-item :index="'/agent/{{ id }}/presentations'">
+          <i class="el-icon-document-checked"></i>
+          <span>Presentations</span>
+        </el-menu-item>
+        <el-menu-item :index="'/agent/{{ id }}/verifications'">
+          <i class="el-icon-s-claim"></i>
+          <span>Verification</span>
+        </el-menu-item>
+      </el-menu-item-group>
+      <el-menu-item-group index="direct">
+        <span class="menu-title" slot="title">Toolbox to Agent</span>
+        <el-menu-item :index="'/agent/{{ id }}/feature-discovery'">
+          <i class="el-icon-discover"></i>
+          <span>Discovered Features</span>
+        </el-menu-item>
+        <el-menu-item :index="'/agent/{{ id }}/compose'">
+          <i class="el-icon-message"></i>
+          <span>Compose</span>
+        </el-menu-item>
+        <el-menu-item :index="'/agent/{{ id }}/message-history'">
+          <i class="el-icon-receiving"></i>
+          <span>Message History</span>
+        </el-menu-item>
+        <el-menu-item :index="'/agent/{{ id }}/basic-message'">
+          <i class="el-icon-chat-line-square"></i>
+          <span>Basic Message</span>
+        </el-menu-item>
+      </el-menu-item-group>
+    </el-menu>
+    <nav id="top-bar" class="navbar navbar-expand-lg navbar-light bg-light">
+      <a class="navbar-brand" href="#">{{connection.label}}</a>
+      <el-form
+        v-if="$refs.dids"
+        :disabled="Object.keys(dids).length === 0"
+        :model="$refs.dids.active_ledger_selector">
+        <el-select
+          v-model="selectedActiveDid"
+          filterable placeholder="activate did">
+          <el-option
+            v-for="did in Object.values(dids)"
+            :key="did.did"
+            :label="did.did"
+            :value="did">
+          </el-option>
+        </el-select>
+        <!--
+          <el-select
+          v-if="$refs.ledgerTab"
+          v-model="$refs.ledgerTab.active_ledger_selector.ledger"
+          filterable placeholder="activate ledger" >
+          <el-option
+          v-for="ledger in $refs.ledgerTab.ledgers"
+          :key="ledger.name"
+          :label="ledger.name"
+          :value="ledger.name">
+          </el-option>
+          </el-select>
+        -->
+      </el-form>
+    </nav>
 
-      <el-main>
-        <router-view></router-view>
-      </el-main>
-    </el-container>
+    <el-main id="main-display">
+      <router-view></router-view>
+    </el-main>
+
   </el-container>
 </template>
 
 <style>
-.side-menu {
-  height: 100%;
-  min-height: 400px;
-}
-.side-menu .menu-title {
-  color: #fff
-}
-.side-menu i {
-  color: #409EFF;
-}
+  #top-bar {
+    position:absolute;
+    right: 0px;
+    left:200px;
+    height: 60px;
+  }
+
+  #main-display {
+    position: absolute;
+    right:0px;
+    bottom: 0px;
+    top: 60px;
+    left: 200px;
+  }
+
+  #side-menu {
+    height: 100%;
+    width: 200px;
+    position: absolute;
+
+  }
+  #side-menu .menu-title {
+    color: #fff
+  }
+  #side-menu i {
+    color: #409EFF;
+  }
+
+  .el-menu-item-group__title {
+    font-size: 18px;
+  }
+
+  .el-menu-item {
+    height: 36px;
+    line-height: 36px;
+  }
+
 </style>
 
 <script>
