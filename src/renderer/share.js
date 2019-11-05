@@ -1,4 +1,5 @@
 import Vue from 'vue';
+import message_bus from '@/message_bus.js';
 
 const SHARED_PROPERTIES = {
     dids: {},
@@ -117,6 +118,7 @@ export default function(options = {use: [], use_mut: [], actions: []}) {
         }
     }
     return {
+        mixins: [message_bus()],
         beforeCreate: function() {
             function derive(component) {
                 if (component.$share) {
@@ -142,6 +144,7 @@ export default function(options = {use: [], use_mut: [], actions: []}) {
         ),
         methods: actions.reduce((acc, action) => {
             acc[action] = function() {
+                console.log(this);
                 this.$share[action](this.send_message);
             };
             return acc;
