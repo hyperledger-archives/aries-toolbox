@@ -80,6 +80,7 @@ export function share_source(modules) {
     return {
         beforeCreate: function() {
             this.$share = Share(data, computed, speakers);
+            this.$share.message_bus = this.$message_bus;
         },
         created: function() {
             Object.keys(listeners).forEach((event) => {
@@ -118,7 +119,6 @@ export default function(options = {use: [], use_mut: [], actions: []}) {
         }
     }
     return {
-        mixins: [message_bus()],
         beforeCreate: function() {
             function derive(component) {
                 if (component.$share) {
@@ -144,8 +144,9 @@ export default function(options = {use: [], use_mut: [], actions: []}) {
         ),
         methods: actions.reduce((acc, action) => {
             acc[action] = function() {
-                console.log(this);
-                this.$share[action](this.send_message);
+                this.$share[action]((msg) => {
+                    this.$share.message_bus.$emit('send-message', msg);
+                });
             };
             return acc;
         }, {})
