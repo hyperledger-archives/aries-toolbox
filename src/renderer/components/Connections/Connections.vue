@@ -6,7 +6,7 @@
       :list="active_connections"
       @connection-editted="update_connection"
       @connection-deleted="delete_connection"
-      @refresh="fetch"></connection-list>
+      @refresh="fetch_connections"></connection-list>
     <connection-list
       title="Pending Connections:"
       editable="true"
@@ -35,14 +35,40 @@
         </el-input>
       </el-form-item>
     </el-form>
-
   </el-row>
 </template>
 
 <script>
 import ConnectionList from './ConnectionList.vue';
-import message_bus from '../../message_bus.js';
-import share, { share_event_listener } from '../../share.js';
+import share from '@/share.js';
+
+export const shared = {
+  data: {
+    connections: []
+  },
+  computed: {
+    active_connections: function() {
+        return Object.values(this.connections).filter(
+            conn => "state" in conn && conn.state === "active"
+        );
+    },
+  },
+  listeners: {
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-list":
+    (share, msg) => share.connections = msg.results,
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection":
+    (share, msg) => share.fetch_connections(),
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/ack":
+    (share, msg) => share.fetch_connections(),
+  },
+  speakers: {
+    fetch_connections: (send) => {
+      send({
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-get-list",
+      });
+    }
+  }
+};
 
 export default {
   name: 'connections',
@@ -50,21 +76,9 @@ export default {
     ConnectionList
   },
   mixins: [
-    message_bus({
-      events: {
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection":
-        (v, msg) => v.fetch(),
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/ack":
-        (v, msg) => v.fetch(),
-        "connections": (v) => v.fetch()
-      }
-    }),
     share({
       use: ['connections', 'active_connections'],
-      events: {
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-list":
-        (share, msg) => share.connections = msg.results,
-      }
+      actions: ['fetch_connections']
     })
   ],
   data: function() {
@@ -73,7 +87,7 @@ export default {
     }
   },
   created: function() {
-    this.fetch();
+    this.fetch_connections();
   },
   computed: {
     pending_connections: function() {
@@ -91,12 +105,6 @@ export default {
     }
   },
   methods: {
-    fetch: function(){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-get-list",
-      }
-      this.send_message(query_msg);
-    },
     update_connection: function(form) {
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/update",
@@ -122,7 +130,7 @@ export default {
       this.send_message(receive_invite_msg);
       this.invitation = "";
       setTimeout(() => {
-        return this.fetch();
+        return this.fetch_connections();
       }, 4000);
     },
   },

@@ -1,7 +1,6 @@
 import Vue from 'vue';
 
 const SHARED_PROPERTIES = {
-    connections: [],
     dids: {},
     public_did: '',
     trusted_issuers: [],
@@ -15,11 +14,6 @@ const SHARED_PROPERTIES = {
 };
 
 const COMPUTED_PROPERTIES = {
-    active_connections: function() {
-        return Object.values(this.connections).filter(
-            conn => "state" in conn && conn.state === "active"
-        );
-    },
     issuer_cred_defs: function() {
         return Object.values(this.cred_defs).filter(
             cred_def => {
@@ -38,8 +32,70 @@ const COMPUTED_PROPERTIES = {
     },
 }
 
-export default function(options) {
+export function Share(data = {}, computed = {}, methods = {}) {
+    return new Vue({
+        data: function() {
+            return {
+                ...SHARED_PROPERTIES,
+                ...data
+            };
+        },
+        computed: {
+            ...COMPUTED_PROPERTIES,
+            ...computed
+        },
+        methods: {
+            ...methods,
+            mutate(subject, data) {
+                this[subject] = data;
+            },
+        },
+    });
+}
+
+export function share_source(modules) {
+    let data = {};
+    let computed = {};
+    let listeners = {};
+    let speakers = {};
+    modules.forEach((module) => {
+        data = {
+            ...data,
+            ...module.data
+        };
+        computed = {
+            ...computed,
+            ...module.computed
+        };
+        listeners = {
+            ...listeners,
+            ...module.listeners
+        }
+        speakers = {
+            ...speakers,
+            ...module.speakers
+        };
+    });
+    return {
+        beforeCreate: function() {
+            this.$share = Share(data, computed, speakers);
+        },
+        created: function() {
+            Object.keys(listeners).forEach((event) => {
+                share_event_listener(
+                    this.$share,
+                    this.$message_bus,
+                    event,
+                    listeners[event]
+                );
+            });
+        },
+    }
+}
+
+export default function(options = {use: [], use_mut: [], actions: []}) {
     let properties = [];
+    let actions = [];
     // Flat list (backwards compatibility)
     if (options.constructor === Array) {
         options.forEach((prop) => {
@@ -56,6 +112,9 @@ export default function(options) {
                 properties.pus({name: prop, mutable: true});
             });
         }
+        if (options && options.actions) {
+            actions = options.actions;
+        }
     }
     return {
         beforeCreate: function() {
@@ -64,19 +123,9 @@ export default function(options) {
                     return component.$share;
                 }
                 if (component.$parent) {
-                    derive(component.$parent);
+                    return derive(component.$parent);
                 }
-                return new Vue({
-                    data: function() {
-                        return SHARED_PROPERTIES;
-                    },
-                    methods: {
-                        mutate(subject, data) {
-                            this[subject] = data;
-                        },
-                    },
-                    computed: COMPUTED_PROPERTIES,
-                });
+                return undefined;
             }
             this.$share = derive(this);
         },
@@ -91,18 +140,12 @@ export default function(options) {
             },
             {}
         ),
-        created: function() {
-            if (options && options.events) {
-                Object.keys(options.events).forEach((event) => {
-                    share_event_listener(
-                        this.$share,
-                        this.$message_bus,
-                        event,
-                        options.events[event]
-                    );
-                });
-            }
-        }
+        methods: actions.reduce((acc, action) => {
+            acc[action] = function() {
+                this.$share[action](this.send_message);
+            };
+            return acc;
+        }, {})
     };
 }
 
