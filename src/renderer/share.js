@@ -77,9 +77,17 @@ export function share_source(modules) {
             ...module.speakers
         };
     });
+    let methods = Object.keys(speakers).reduce((acc, action) => {
+        acc[action] = function() {
+            speakers[action]((msg) => {
+                this.message_bus.$emit('send-message', msg);
+            });
+        };
+        return acc;
+    }, {})
     return {
         beforeCreate: function() {
-            this.$share = Share(data, computed, speakers);
+            this.$share = Share(data, computed, methods);
             this.$share.message_bus = this.$message_bus;
         },
         created: function() {
@@ -143,13 +151,11 @@ export default function(options = {use: [], use_mut: [], actions: []}) {
             {}
         ),
         methods: actions.reduce((acc, action) => {
-            acc[action] = function() {
-                this.$share[action]((msg) => {
-                    this.$share.message_bus.$emit('send-message', msg);
-                });
-            };
+            acc[action] = function(...data) {
+                return this.$share[action](...data);
+            }
             return acc;
-        }, {})
+        }, {}),
     };
 }
 
