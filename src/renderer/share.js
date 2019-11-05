@@ -58,7 +58,7 @@ export function share_source(modules) {
     let data = {};
     let computed = {};
     let listeners = {};
-    let speakers = {};
+    let methods = {};
     modules.forEach((module) => {
         data = {
             ...data,
@@ -71,23 +71,25 @@ export function share_source(modules) {
         listeners = {
             ...listeners,
             ...module.listeners
-        }
-        speakers = {
-            ...speakers,
-            ...module.speakers
+        };
+        methods = {
+            ...methods,
+            ...module.methods
         };
     });
-    let methods = Object.keys(speakers).reduce((acc, action) => {
+    let mutated_methods = Object.keys(methods).reduce((acc, action) => {
         acc[action] = function() {
-            speakers[action]((msg) => {
-                this.message_bus.$emit('send-message', msg);
+            methods[action]({
+                share: this,
+                message_bus: this.message_bus,
+                send: (msg) => this.message_bus.$emit('send-message', msg)
             });
         };
         return acc;
-    }, {})
+    }, {});
     return {
         beforeCreate: function() {
-            this.$share = Share(data, computed, methods);
+            this.$share = Share(data, computed, mutated_methods);
             this.$share.message_bus = this.$message_bus;
         },
         created: function() {

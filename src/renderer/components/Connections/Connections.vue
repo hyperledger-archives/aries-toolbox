@@ -61,8 +61,8 @@ export const shared = {
     "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/ack":
     (share, msg) => share.fetch_connections(),
   },
-  speakers: {
-    fetch_connections: (send) => {
+  methods: {
+    fetch_connections: ({send}) => {
       send({
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-get-list",
       });
