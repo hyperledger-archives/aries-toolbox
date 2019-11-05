@@ -152,8 +152,9 @@ const rp = require('request-promise');
 import Vue from 'vue';
 import { mapState, mapActions } from "vuex";
 import { from_store } from '../connection_detail.js';
-import message_bus from '../message_bus.js';
-import share from '../share.js';
+import message_bus from '@/message_bus.js';
+import share, {share_source} from '@/share.js';
+import {shared as connection_shared} from './Connections/Connections.vue';
 
 export default {
   name: 'agent-base',
@@ -165,6 +166,7 @@ export default {
         }
       }
     }),
+    share_source([connection_shared]),
     share({use: [
       'active_connections',
       'dids',
