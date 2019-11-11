@@ -78,12 +78,12 @@ export function share_source(modules) {
         };
     });
     let mutated_methods = Object.keys(methods).reduce((acc, action) => {
-        acc[action] = function() {
+        acc[action] = function(...data) {
             methods[action]({
                 share: this,
                 message_bus: this.message_bus,
                 send: (msg) => this.message_bus.$emit('send-message', msg)
-            });
+            }, ...data);
         };
         return acc;
     }, {});
@@ -132,6 +132,10 @@ export default function(options = {use: [], use_mut: [], actions: []}) {
         beforeCreate: function() {
             function derive(component) {
                 if (component.$share) {
+                    let share = component.$share;
+                    // Assume conection is on share source
+                    // TODO better handling here
+                    share.loaded = component.connection_loaded;
                     return component.$share;
                 }
                 if (component.$parent) {
@@ -152,12 +156,17 @@ export default function(options = {use: [], use_mut: [], actions: []}) {
             },
             {}
         ),
-        methods: actions.reduce((acc, action) => {
-            acc[action] = function(...data) {
-                return this.$share[action](...data);
+        methods: {
+            ...actions.reduce((acc, action) => {
+                acc[action] = function(...data) {
+                    return this.$share[action](...data);
+                }
+                return acc;
+            }, {}),
+            ready: async function() {
+                await this.$share.loaded;
             }
-            return acc;
-        }, {}),
+        },
     };
 }
 
