@@ -1,6 +1,12 @@
 <template>
   <el-row>
-    <el-button type="primary" @click="query">Query</el-button>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <a class="navbar-brand" href="#">Discover Feature</a>
+      <el-button
+        type="primary"
+        icon="el-icon-refresh"
+        @click="fetch_protocols"></el-button>
+    </nav>
     <table class="table table-sm">
       <tr>
         <th>Protocol</th>
@@ -15,33 +21,42 @@
 </template>
 
 <script>
-import message_bus from '../../message_bus.js';
-import share from '../../share.js';
+import share from '@/share.js';
+
+export const shared = {
+  data: {
+    protocols: []
+  },
+  computed: {
+
+  },
+  listeners: {
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/disclose":
+    (share, msg) => share.protocols = msg.protocols,
+  },
+  methods: {
+    fetch_protocols: ({send}) => {
+      send({
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/query",
+        "query": "*"
+      });
+    }
+  }
+};
 
 export default {
   name: 'feature-discovery',
   mixins: [
-    message_bus({
-      events: {
-        'protocols': (v) => v.query()
-      }
-    }),
     share({
       use: ['protocols'],
-      events: {
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/disclose":
-        (share, msg) => share.protocols = msg.protocols
-      }
+      actions: ['fetch_protocols'],
     })
   ],
+  created: function() {
+    this.fetch_protocols();
+  },
   methods: {
-    query: function() {
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/query",
-        "query": "*"
-      };
-      this.send_message(query_msg);
-    }
+
   }
 }
 </script>
