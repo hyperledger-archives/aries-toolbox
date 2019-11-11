@@ -82,10 +82,9 @@ export default {
     message_bus({
       events: {
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/credential-definition-id":
-        (v, msg) => setTimeout(v.get_cred_def_list, 4500),
+        (v, msg) => setTimeout(v.fetch_cred_defs, 4500),
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/credential-definition":
-        (v, msg) => setTimeout(v.get_cred_def_list, 4500),
-        "cred_defs": (v) => v.get_cred_def_list()
+        (v, msg) => setTimeout(v.fetch_cred_defs, 4500),
       }
     }),
     share({
@@ -93,10 +92,7 @@ export default {
         'schemas',
         'cred_defs'
       ],
-      events: {
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/credential-definition-list":
-        (share, msg) => share.cred_defs = msg.results
-      }
+      actions: ['fetch_cred_defs'],
     })
   ],
   components: {
@@ -113,8 +109,9 @@ export default {
       formLabelWidth: '100px'
     }
   },
-  created: function() {
-    this.get_cred_def_list();
+  created: async function() {
+    await this.ready()
+    this.fetch_cred_defs();
   },
   methods: {
     publish_cred_def: function(form) {
@@ -134,13 +131,6 @@ export default {
       this.send_message(query_msg);
       this.retrieve_cred_def_id = '';
     },
-    get_cred_def_list: function() {
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/credential-definition-get-list",
-      };
-      this.send_message(query_msg);
-    },
-
     collapse_expanded: function(creddef){
       this.expanded_items = this.expanded_items.filter(
         item => item != creddef.cred_def_id
