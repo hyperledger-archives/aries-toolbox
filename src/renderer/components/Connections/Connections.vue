@@ -93,9 +93,9 @@ export default {
     pending_connections: function() {
       return Object.values(this.connections).filter(
         conn => "state" in conn &&
-        conn.state != "active" &&
-        conn.state != "invitation" &&
-        conn.state != "error"
+        conn.state !== "active" &&
+        conn.state !== "invitation" &&
+        conn.state !== "error"
       );
     },
     failed_connections: function() {
@@ -111,14 +111,14 @@ export default {
         "connection_id": form.connection_id,
         "label": form.label,
         "role": form.role,
-      }
+      };
       this.send_message(query_msg);
     },
     delete_connection: function(connection) {
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/delete",
         "connection_id": connection.connection_id,
-      }
+      };
       this.send_message(query_msg);
     },
     recieve_invitation: function() {
