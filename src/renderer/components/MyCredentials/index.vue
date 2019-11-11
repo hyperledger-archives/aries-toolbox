@@ -11,7 +11,7 @@
       v-bind:credentials="holder_credentials"
       v-bind:cred_defs="proposal_cred_defs"
       v-bind:connections="active_connections"
-      @cred-refresh="get_holder_credentials"
+      @cred-refresh="fetch_holder_credentials"
       @propose="send_proposal"></my-credentials-list>
   </el-row>
 </template>
@@ -21,6 +21,33 @@ import CredDefList from '../CredentialIssuance/CredDefList.vue';
 import MyCredentialsList from './MyCredentialsList.vue';
 import message_bus from '../../message_bus.js';
 import share from '../../share.js';
+
+export const shared = {
+  data: {
+    holder_credentials: [],
+  },
+  computed: {
+    proposal_cred_defs: function() {
+      return this.cred_defs.filter(
+        cred_def => {
+          return cred_def.author !== 'self' ||
+            cred_def.cred_def_id.split(':', 2)[0] !== this.public_did
+        }
+      );
+    },
+  },
+  listeners: {
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credentials-list":
+    (share, msg) => share.holder_credentials = msg.results
+  },
+  methods: {
+    fetch_holder_credentials: ({send}) => {
+      send({
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credentials-get-list",
+      })
+    }
+  }
+}
 
 export default {
   name: 'my-credentials',
@@ -32,8 +59,8 @@ export default {
     message_bus({
       events: {
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credential-exchange":
-        (v, msg) => setTimeout(v.get_holder_credentials, 4500),
-        'my-credentials': (v) => v.get_holder_credentials()
+        (v, msg) => setTimeout(v.fetch_holder_credentials, 4500),
+        'my-credentials': (v) => v.fetch_holder_credentials()
       }
     }),
     share({
@@ -42,19 +69,10 @@ export default {
         'proposal_cred_defs',
         'active_connections'
       ],
-      events: {
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credentials-list":
-        (share, msg) => share.holder_credentials = msg.results
-      }
+      actions: ['fetch_holder_credentials']
     })
   ],
   methods: {
-    get_holder_credentials: function() {
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credentials-get-list",
-      };
-      this.send_message(query_msg);
-    },
     send_proposal: function(form) {
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/send-credential-proposal",

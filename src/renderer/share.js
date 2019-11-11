@@ -5,19 +5,7 @@ const SHARED_PROPERTIES = {
     trusted_issuers: [],
     issuer_presentations:[],
     holder_presentations: [],
-    holder_credentials: [],
 };
-
-const COMPUTED_PROPERTIES = {
-    proposal_cred_defs: function() {
-        return Object.values(this.cred_defs).filter(
-            cred_def => {
-                return cred_def.author !== 'self' ||
-                    cred_def.cred_def_id.split(':', 2)[0] !== this.public_did
-            }
-        );
-    },
-}
 
 export function Share(data = {}, computed = {}, methods = {}) {
     return new Vue({
@@ -28,7 +16,6 @@ export function Share(data = {}, computed = {}, methods = {}) {
             };
         },
         computed: {
-            ...COMPUTED_PROPERTIES,
             ...computed
         },
         methods: {
@@ -134,10 +121,6 @@ export default function(options = {use: [], use_mut: [], actions: []}) {
         },
         computed: properties.reduce(
             (acc, prop) => {
-                if (prop in COMPUTED_PROPERTIES) {
-                    acc[prop.name] = subscribe(prop.name, false);
-                    return acc;
-                }
                 acc[prop.name] = subscribe(prop.name, prop.mutable);
                 return acc;
             },
