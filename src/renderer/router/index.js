@@ -12,7 +12,9 @@ export default new Router({
         },
         {
             path: '/agent/:agentid/',
+            redirect: '/agent/:agentid/dids',
             component: require('@/components/AgentBase').default,
+            props: true,
             children: [
                 {
                     path: 'dids', // Default path

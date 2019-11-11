@@ -9,58 +9,58 @@
       :router="true">
       <el-menu-item-group index="indirect">
         <span class="menu-title" slot="title">Agent to Agent</span>
-        <el-menu-item :index="'/agent/{{ id }}/dids'">
+        <el-menu-item index="1" :route="{name: 'dids'}">
           <i class="el-icon-link"></i>
           <span>DIDs</span>
         </el-menu-item>
-        <el-menu-item :index="'/agent/{{ id }}/invitations'">
+        <el-menu-item index="2" :route="{name: 'invitations'}">
           <i class="el-icon-plus"></i>
           <span>Invitations</span>
         </el-menu-item>
-        <el-menu-item :index="'/agent/{{ id }}/connections'">
+        <el-menu-item index="3" :route="{name: 'connections'}">
           <i class="el-icon-user"></i>
           <span>Connections</span>
         </el-menu-item>
-        <el-menu-item :index="'/agent/{{ id }}/static-connections'">
+        <el-menu-item index="4" :route="{name: 'static-connections'}">
           <i class="el-icon-box"></i>
           <span>Static Connections</span>
         </el-menu-item>
-        <el-menu-item :index="'/agent/{{ id }}/credential-issuance'">
+        <el-menu-item index="5" :route="{name: 'credential-issuance'}">
           <i class="el-icon-document"></i>
           <span>Credential Issuance</span>
         </el-menu-item>
-        <el-menu-item :index="'/agent/{{ id }}/trusted-issuers'">
+        <el-menu-item index="6" :route="{name: 'trusted-issuers'}">
           <i class="el-icon-connection"></i>
           <span>Trusted Issuers</span>
         </el-menu-item>
-        <el-menu-item :index="'/agent/{{ id }}/my-credentials'">
+        <el-menu-item index="7" :route="{name: 'my-credentials'}">
           <i class="el-icon-bank-card"></i>
           <span>My Credentials</span>
         </el-menu-item>
-        <el-menu-item :index="'/agent/{{ id }}/presentations'">
+        <el-menu-item index="8" :route="{name: 'presentations'}">
           <i class="el-icon-document-checked"></i>
           <span>Presentations</span>
         </el-menu-item>
-        <el-menu-item :index="'/agent/{{ id }}/verifications'">
+        <el-menu-item index="9" :route="{name: 'verifications'}">
           <i class="el-icon-s-claim"></i>
           <span>Verification</span>
         </el-menu-item>
       </el-menu-item-group>
       <el-menu-item-group index="direct">
         <span class="menu-title" slot="title">Toolbox to Agent</span>
-        <el-menu-item :index="'/agent/{{ id }}/feature-discovery'">
+        <el-menu-item index="10" :route="{name: 'feature-discovery'}">
           <i class="el-icon-discover"></i>
           <span>Discovered Features</span>
         </el-menu-item>
-        <el-menu-item :index="'/agent/{{ id }}/compose'">
+        <el-menu-item index="11" :route="{name: 'compose'}">
           <i class="el-icon-message"></i>
           <span>Compose</span>
         </el-menu-item>
-        <el-menu-item :index="'/agent/{{ id }}/message-history'">
+        <el-menu-item index="12" :route="{name: 'message-history'}">
           <i class="el-icon-receiving"></i>
           <span>Message History</span>
         </el-menu-item>
-        <el-menu-item :index="'/agent/{{ id }}/basic-message'">
+        <el-menu-item index="13" :route="{name: 'basic-message'}">
           <i class="el-icon-chat-line-square"></i>
           <span>Basic Message</span>
         </el-menu-item>
@@ -177,11 +177,11 @@ export default {
       'proposal_cred_defs',
     ]})
   ],
+  props: ['agentid'],
   components: {
   },
   data() {
     return {
-      'id': this.$route.params.agentid,
       'open_tab': 'dids',
       'connection': {'label':'loading...'},
       'connection_loaded': false,
@@ -194,7 +194,7 @@ export default {
     ...mapActions("Agents", ["get_agent"]),
     async fetchAgentData(){
       //load from vue store
-      this.connection = from_store(await this.get_agent(this.id), this.processInbound);
+      this.connection = from_store(await this.get_agent(this.agentid), this.processInbound);
       this.connection_loaded = true;
     },
     async send_connection_message(msg){
