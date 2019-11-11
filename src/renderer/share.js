@@ -1,21 +1,14 @@
 import Vue from 'vue';
 import message_bus from '@/message_bus.js';
 
-const SHARED_PROPERTIES = {
-    trusted_issuers: [],
-};
-
 export function Share(data = {}, computed = {}, methods = {}) {
     return new Vue({
         data: function() {
             return {
-                ...SHARED_PROPERTIES,
                 ...data
             };
         },
-        computed: {
-            ...computed
-        },
+        computed: computed,
         methods: {
             ...methods,
             mutate(subject, data) {
