@@ -4,7 +4,6 @@ import message_bus from '@/message_bus.js';
 const SHARED_PROPERTIES = {
     trusted_issuers: [],
     issuer_presentations:[],
-    holder_presentations: [],
 };
 
 export function Share(data = {}, computed = {}, methods = {}) {

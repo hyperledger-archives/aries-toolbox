@@ -5,7 +5,7 @@
       v-bind:presentations= "holder_presentations"
       v-bind:connections = "active_connections"
       v-bind:cred_defs = "cred_defs"
-      @presentation-refresh = "getHoldersPresentations"
+      @presentation-refresh = "fetch_holder_presentations"
       @send-presentation-proposal= "sendPresentationProposal"
       ></presentation>
   </el-row>
@@ -15,8 +15,26 @@
 import VueJsonPretty from 'vue-json-pretty';
 const { clipboard } = require('electron');
 import Presentation from './Presentation.vue';
-import message_bus from '../../message_bus.js';
-import share from '../../share.js';
+import message_bus from '@/message_bus.js';
+import share from '@/share.js';
+
+export const shared = {
+  data: {
+    holder_presentations: [],
+  },
+  listeners: {
+    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/presentations-list': (share, msg) => {
+      share.holder_presentations = msg.results;
+    }
+  },
+  methods: {
+    fetch_holder_presentations: ({send}) => {
+      send({
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/presentations-get-list",
+      })
+    }
+  }
+}
 
 export default {
   name: 'presentations',
@@ -26,35 +44,20 @@ export default {
   },
   mixins: [
     message_bus(),
-    share([
-      'active_connections', 
-      'cred_defs',
-      'holder_presentations'
-    ])
+    share({
+      use: [
+        'active_connections', 
+        'cred_defs',
+        'holder_presentations'
+      ],
+      actions: ['fetch_holder_presentations']
+    })
   ],
-  data () {
-    return {
-    }
-  },
-  created: function() {
-    let component = this; // Safe rerefence to this
-    this.$message_bus.$on(
-      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/presentations-list',
-      msg => component.holderPresentationListRecord(msg)
-    );
-    this.$message_bus.$on('presentations', () => component.getHoldersPresentations());
+  created: async function() {
+    await this.ready();
+    this.fetch_holder_presentations();
   },
   methods: {
-    async getHoldersPresentations(){
-        this.$message_bus.$emit('send-message',{
-            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/presentations-get-list",
-        });
-    },
-    async holderPresentationListRecord(msg){
-        if('results'in msg ){
-            this.holder_presentations = msg.results;
-        }
-    },
     async sendPresentationProposal(form){
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/send-presentation-proposal",
@@ -92,7 +95,7 @@ export default {
           })
         },
       };
-        this.$message_bus.$emit('send-message',query_msg);
+        this.send_message(query_msg);
     },
   }
 }
