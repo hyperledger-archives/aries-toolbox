@@ -46,10 +46,12 @@ export function share_source(modules) {
             ...module.methods
         };
 
-        let module_listeners_list = Object.keys(module.listeners).map(
-            key => ({ event: key, listener: module.listeners[key] })
-        );
-        listeners.push(...module_listeners_list);
+        if (module.listeners) {
+            let module_listeners_list = Object.keys(module.listeners).map(
+                key => ({ event: key, listener: module.listeners[key] })
+            );
+            listeners.push(...module_listeners_list);
+        }
     });
     let mutated_methods = Object.keys(methods).reduce((acc, action) => {
         acc[action] = function(...data) {
