@@ -52,7 +52,8 @@ export default {
       actions: ['fetch_protocols'],
     })
   ],
-  created: function() {
+  created: async function() {
+    await this.ready();
     this.fetch_protocols();
   },
   methods: {
