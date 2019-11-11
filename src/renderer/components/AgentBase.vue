@@ -72,7 +72,7 @@
         :disabled="dids.length === 0">
         <el-select
           v-model="active_did"
-          filterable placeholder="Acticate DID">
+          filterable placeholder="Activate DID">
           <el-option
             v-for="did in dids"
             :key="did.did"

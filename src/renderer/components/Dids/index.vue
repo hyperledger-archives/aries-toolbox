@@ -38,10 +38,8 @@ export const shared = {
     public_did: ''
   },
   listeners: {
-    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/list-dids':
-    (share, msg) => share.dids = msg.result,
-    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/did':
-    (share, msg) => {
+    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/list-dids': (share, msg) => share.dids = msg.result,
+    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/did': (share, msg) => {
       if('metadata' in msg.result && 'public' in msg.result.metadata && msg.result.metadata.public === true) {
         share.public_did = msg.result.did;
       }
