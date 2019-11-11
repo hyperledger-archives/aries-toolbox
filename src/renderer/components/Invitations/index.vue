@@ -18,7 +18,7 @@
       <el-button
         type="primary"
         icon="el-icon-refresh"
-        @click="fetchAgentInvitations"></el-button>
+        @click="fetch_invitations"></el-button>
   </nav>
   <el-collapse v-model="expanded_items">
       <ul class="list">
@@ -77,12 +77,39 @@
 import VueJsonPretty from 'vue-json-pretty';
 const { clipboard } = require('electron');
 import VueQrcode from '@chenfengyuan/vue-qrcode';
-import message_bus from '../../message_bus.js';
+import message_bus from '@/message_bus.js';
+import share from '@/share.js';
+
+export const shared = {
+  data: {
+    invitations: [],
+  },
+  listeners: {
+    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation-list': (share, msg) => {
+      share.invitations = msg.results;
+    } 
+  },
+  methods: {
+    fetch_invitations: ({send}) => {
+      send({
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation-get-list",
+      });
+    }
+  }
+}
 
 export default {
   name: 'invitations',
   mixins: [
-    message_bus()
+    message_bus({events: {
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation': (v, msg) => {
+        v.fetch_invitations()
+      }
+    }}),
+    share({
+      use: ['invitations'],
+      actions: ['fetch_invitations']
+    })
   ],
   components: {
     VueJsonPretty,
@@ -90,7 +117,6 @@ export default {
   },
   data () {
     return {
-      invitations: [],
       expanded_items: [],
       QRDialogVisible: false,
       QRDialogURL: '',
@@ -101,18 +127,9 @@ export default {
       invite_multi_use_form:false,
     }
   },
-  created: function() {
-    let component = this; // Safe rerefence to this
-    this.$message_bus.$on(
-      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation',
-      msg => component.fetchAgentInvitations()
-    );
-    this.$message_bus.$on(
-      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation-list',
-      msg => component.invitations = msg.results
-    )
-    this.$message_bus.$on('invitations', () => component.fetchAgentInvitations());
-    this.fetchAgentInvitations();
+  created: async function() {
+    await this.ready();
+    this.fetch_invitations();
   },
   methods: {
     async fetchNewInvite(){
@@ -129,16 +146,7 @@ export default {
       this.invite_accept_form = "auto";
       this.invite_public_form = false;
       this.invite_multi_use_form = false;
-      this.$message_bus.$emit('send-message', query_msg);
-    },
-    fetchAgentInvitations(){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation-get-list",
-        "~transport": {
-          "return_route": "all"
-        }
-      }
-      this.$message_bus.$emit('send-message', query_msg);
+      this.send_message(query_msg);
     },
     get_name: function(i) {
       return i.connection.invitation_mode +" / "+ i.connection.their_role +" / "+ i.connection.created_at ;
