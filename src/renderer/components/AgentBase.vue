@@ -69,14 +69,12 @@
     <nav id="top-bar" class="navbar navbar-expand-lg navbar-light bg-light">
       <a class="navbar-brand" href="#">{{connection.label}}</a>
       <el-form
-        v-if="$refs.dids"
-        :disabled="Object.keys(dids).length === 0"
-        :model="$refs.dids.active_ledger_selector">
+        :disabled="dids.length === 0">
         <el-select
-          v-model="selectedActiveDid"
-          filterable placeholder="activate did">
+          v-model="active_did"
+          filterable placeholder="Acticate DID">
           <el-option
-            v-for="did in Object.values(dids)"
+            v-for="did in dids"
             :key="did.did"
             :label="did.did"
             :value="did">
@@ -101,7 +99,6 @@
     <el-main id="main-display">
       <router-view></router-view>
     </el-main>
-
   </el-container>
 </template>
 
@@ -159,90 +156,50 @@ import {shared} from './components.js';
 export default {
   name: 'agent-base',
   mixins: [
-    message_bus({
-      events: {
-        'send-message': (v, msg, return_route) => {
-          v.send_connection_message(msg, return_route)
-        }
+    message_bus({ events: {
+      'send-message': (v, msg, return_route) => {
+        v.send_connection_message(msg, return_route)
       }
-    }),
+    }}),
     share_source(shared),
-    share({use: [
-      'active_connections',
-      'dids',
-      'public_did',
-      'cred_defs',
-    ]})
+    share({
+      use: ['dids', 'public_did',],
+      actions: ['fetch_dids', 'fetch_active_did', 'activate_did']
+    })
   ],
   props: ['agentid'],
-  components: {
-  },
-  data() {
+  data: function() {
     return {
-      'open_tab': 'dids',
       'connection': {'label':'loading...'},
-      'connection_loaded': false,
-      'issuer_presentations': [],
-      'holder_credentials': [],
-      'holder_presentations': [],
+    }
+  },
+  computed: {
+    active_did: {
+      get () {
+        return this.public_did || "";
+      },
+      set (did) {
+        return this.activate_did(did)
+      }
     }
   },
   methods: {
     ...mapActions("Agents", ["get_agent"]),
-    async fetchAgentData(){
-      //load from vue store
-    },
     async send_connection_message(msg){
       this.connection.send_message(msg);
     },
-    clickedTab: function(tab) {
-      console.log("clickedTab",tab.name);
-      if (tab.name){
-        this.$message_bus.$emit(tab.name);
-      }
-      this.$forceUpdate();
-    },
-    // ---------------------- holder handlers ------------------------
     async processInbound(msg){
-      var handlers = {
-        //=============================== Credential Holder ====================================
-      };
-      var handler = handlers[msg['@type']];
-      if(handler){
-        handler(msg);
-      }
       this.$message_bus.$emit('message-received', msg);
       this.$message_bus.$emit(msg['@type'], msg);
     },
   },
-  computed: {
-    // ---------------------- Holder Credential Filters --------------------
-    selectedActiveDid: {
-      get () {
-        return this.public_did || "";
-      },
-      set (optionValue) {
-        return this.$message_bus.$emit('activate-agent-did',optionValue);
-      },
-    },
-    active_ledger_selector:{
-      get () {
-        console.log("get active ledger selector ", this.$refs.dids);
-        return $refs.dids.active_ledger_selector || "";
-      },
-      set(){
-
-      },
-    },
-  },
-  async created () {
-    // fetch the data when the view is created and the data is
-    // already being observed
+  created: async function() {
     this.connection_loaded = (async () => {
       this.connection = from_store(await this.get_agent(this.agentid), this.processInbound);
     })();
     await this.connection_loaded;
-    this.$message_bus.$emit('protocols');
+    this.fetch_dids();
+    this.fetch_active_did();
     this.$message_bus.$emit('agent-created');
   },
 }
