@@ -191,8 +191,6 @@ export default {
     ...mapActions("Agents", ["get_agent"]),
     async fetchAgentData(){
       //load from vue store
-      this.connection = from_store(await this.get_agent(this.agentid), this.processInbound);
-      this.connection_loaded = true;
     },
     async send_connection_message(msg){
       this.connection.send_message(msg);
@@ -240,7 +238,10 @@ export default {
   async created () {
     // fetch the data when the view is created and the data is
     // already being observed
-    await this.fetchAgentData();
+    this.connection_loaded = (async () => {
+      this.connection = from_store(await this.get_agent(this.agentid), this.processInbound);
+    })();
+    await this.connection_loaded;
     this.$message_bus.$emit('protocols');
     this.$message_bus.$emit('agent-created');
   },
