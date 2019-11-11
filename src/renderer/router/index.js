@@ -19,67 +19,67 @@ export default new Router({
                 {
                     path: 'dids', // Default path
                     name: 'dids',
-                    component: require('@/components/Dids/Dids').default
+                    component: require('@/components/Dids').default
                 },
                 {
                     path: 'invitations',
                     name: 'invitations',
-                    component: require('@/components/Invitations/Invitations').default
+                    component: require('@/components/Invitations').default
                 },
                 {
                     path: 'connections',
                     name: 'connections',
-                    component: require('@/components/Connections/Connections').default
+                    component: require('@/components/Connections').default
                 },
                 {
                     path: 'static-connections',
                     name: 'static-connections',
-                    component: require('@/components/StaticConnections/StaticConnections').default
+                    component: require('@/components/StaticConnections').default
                 },
                 {
                     path: 'credential-issuance',
                     name: 'credential-issuance',
-                    component: require('@/components/CredentialIssuance/CredentialIssuance').default
+                    component: require('@/components/CredentialIssuance').default
                 },
                 {
                     path: 'trusted-issuers',
                     name: 'trusted-issuers',
-                    component: require('@/components/TrustedIssuers/TrustedIssuers').default
+                    component: require('@/components/TrustedIssuers').default
                 },
                 {
                     path: 'my-credentials',
                     name: 'my-credentials',
-                    component: require('@/components/MyCredentials/MyCredentials').default
+                    component: require('@/components/MyCredentials').default
                 },
                 {
                     path: 'presentations',
                     name: 'presentations',
-                    component: require('@/components/Presentations/Presentations').default
+                    component: require('@/components/Presentations').default
                 },
                 {
                     path: 'verifications',
                     name: 'verifications',
-                    component: require('@/components/Verifications/Verifications').default
+                    component: require('@/components/Verifications').default
                 },
                 {
                     path: 'feature-discovery',
                     name: 'feature-discovery',
-                    component: require('@/components/FeatureDiscovery/FeatureDiscovery').default
+                    component: require('@/components/FeatureDiscovery').default
                 },
                 {
                     path: 'compose',
                     name: 'compose',
-                    component: require('@/components/Compose/Compose').default
+                    component: require('@/components/Compose').default
                 },
                 {
                     path: 'message-history',
                     name: 'message-history',
-                    component: require('@/components/MessageHistory/MessageHistory').default
+                    component: require('@/components/MessageHistory').default
                 },
                 {
                     path: 'basic-message',
                     name: 'basic-message',
-                    component: require('@/components/BasicMessage/BasicMessage').default
+                    component: require('@/components/BasicMessage').default
                 },
             ]
         },

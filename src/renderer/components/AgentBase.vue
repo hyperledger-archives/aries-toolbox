@@ -154,9 +154,7 @@ import { mapState, mapActions } from "vuex";
 import { from_store } from '../connection_detail.js';
 import message_bus from '@/message_bus.js';
 import share, {share_source} from '@/share.js';
-// each module with a share must be included here, and in the share_source list below.
-import {shared as connection_shared} from './Connections/Connections.vue';
-import {shared as featurediscovery_shared} from './FeatureDiscovery/FeatureDiscovery.vue';
+import {shared} from './components.js';
 
 export default {
   name: 'agent-base',
@@ -168,13 +166,12 @@ export default {
         }
       }
     }),
-    share_source([connection_shared, featurediscovery_shared]),
+    share_source(shared),
     share({use: [
       'active_connections',
       'dids',
       'public_did',
       'cred_defs',
-      'proposal_cred_defs',
     ]})
   ],
   props: ['agentid'],
