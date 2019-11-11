@@ -185,17 +185,3 @@ export function subscribe(subject, mutable = true) {
         }
     }
 }
-
-export function share_event_listener(share, message_bus, event, listener) {
-    if (!share.listeners) {
-        share.listeners = new Set();
-    }
-    if (share.listeners.has(event)) {
-        console.log('Listener already registered for event; skipping. Skipped event:', event);
-        return;
-    }
-    share.listeners.add(event);
-    message_bus.$on(event, function(data) {
-        listener(share, data);
-    });
-}
