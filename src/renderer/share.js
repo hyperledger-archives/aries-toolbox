@@ -2,27 +2,13 @@ import Vue from 'vue';
 import message_bus from '@/message_bus.js';
 
 const SHARED_PROPERTIES = {
-    dids: {},
-    public_did: '',
     trusted_issuers: [],
     issuer_presentations:[],
     holder_presentations: [],
-    issued_credentials: [],
     holder_credentials: [],
-    schemas: [],
-    cred_defs: [],
-    protocols: []
 };
 
 const COMPUTED_PROPERTIES = {
-    issuer_cred_defs: function() {
-        return Object.values(this.cred_defs).filter(
-            cred_def => {
-                return cred_def.author === 'self' ||
-                    cred_def.cred_def_id.split(':', 2)[0] === this.public_did
-            }
-        );
-    },
     proposal_cred_defs: function() {
         return Object.values(this.cred_defs).filter(
             cred_def => {

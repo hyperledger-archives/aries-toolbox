@@ -90,7 +90,6 @@ export default {
     share({
       use: [
         'schemas',
-        'cred_defs'
       ],
       actions: ['fetch_cred_defs'],
     })
