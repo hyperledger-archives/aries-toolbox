@@ -52,18 +52,18 @@ export const shared = {
       share.basicmessages.push({
         'msg': msg,
         'direction': 'Received'
-      })
+      });
     },
     'send-message': (share, msg) => {
       if (msg['@type'] === 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message') {
         share.basicmessages.push({
           'msg': msg,
           'direction': 'Sent'
-        })
+        });
       }
     }
   }
-}
+};
 
 export default {
   name: 'basic-message',

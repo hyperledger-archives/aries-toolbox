@@ -158,7 +158,7 @@ export default {
   mixins: [
     message_bus({ events: {
       'send-message': (v, msg, return_route) => {
-        v.send_connection_message(msg, return_route)
+        v.send_connection_message(msg, return_route);
       }
     }}),
     share_source(shared),

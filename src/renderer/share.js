@@ -57,7 +57,9 @@ export function Share(data = {}, computed = {}, methods = {}) {
 export function share_source(modules) {
     let data = {};
     let computed = {};
-    let listeners = {};
+    // Share can have multiple listeners for the same event name
+    // Store a list of key value pairs instead of map
+    let listeners = [];
     let methods = {};
     modules.forEach((module) => {
         data = {
@@ -68,14 +70,15 @@ export function share_source(modules) {
             ...computed,
             ...module.computed
         };
-        listeners = {
-            ...listeners,
-            ...module.listeners
-        };
         methods = {
             ...methods,
             ...module.methods
         };
+
+        let module_listeners_list = Object.keys(module.listeners).map(
+            key => ({ event: key, listener: module.listeners[key] })
+        );
+        listeners.push(...module_listeners_list);
     });
     let mutated_methods = Object.keys(methods).reduce((acc, action) => {
         acc[action] = function(...data) {
@@ -93,13 +96,11 @@ export function share_source(modules) {
             this.$share.message_bus = this.$message_bus;
         },
         created: function() {
-            Object.keys(listeners).forEach((event) => {
-                share_event_listener(
-                    this.$share,
-                    this.$message_bus,
-                    event,
-                    listeners[event]
-                );
+            listeners.forEach(({event, listener}) => {
+                this.$message_bus.$on(event,
+                    (...data) => {
+                        listener(this.$share, ...data);
+                    });
             });
         },
     }
