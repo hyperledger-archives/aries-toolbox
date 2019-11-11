@@ -186,6 +186,7 @@ export default {
   methods: {
     ...mapActions("Agents", ["get_agent"]),
     async send_connection_message(msg){
+      await this.connection_loaded;
       this.connection.send_message(msg);
     },
     async processInbound(msg){
