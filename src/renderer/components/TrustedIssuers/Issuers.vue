@@ -11,18 +11,18 @@
     <el-collapse v-model="expanded_items">
       <ul class="list">
         <el-collapse-item
-          v-for="did in trusted_issuers"
-          v-bind:title="did.label"
-          :name="did.id"
-          :key="did.id">
-          <el-row :key="did.id">
+          v-for="issuer in trusted_issuers"
+          v-bind:title="issuer.label"
+          :name="issuer.did"
+          :key="issuer.did">
+          <el-row :key="issuer.did">
             <div>
               <vue-json-pretty
                 :deep=2
-                :data="did">
+                :data="issuer">
               </vue-json-pretty>
             </div>
-            <el-button type="danger" @click="removeTrustedIssuer(did)">Delete</el-button>
+            <el-button type="danger" @click="removeTrustedIssuer(issuer)">Delete</el-button>
           </el-row>
         </el-collapse-item>
       </ul>
@@ -31,7 +31,7 @@
     <el-dialog title="Add Trusted Issuer" :visible.sync="turstedDidFormActive">
         <el-form :model="trusted_issuers_form">
             <el-form-item label="did:" :label-width="formLabelWidth">
-                <el-input v-model="trusted_issuers_form.id" autocomplete="off"></el-input>
+                <el-input v-model="trusted_issuers_form.did" autocomplete="off"></el-input>
             </el-form-item>
             <el-form-item label="label:" :label-width="formLabelWidth">
                 <el-input v-model="trusted_issuers_form.label" autocomplete="off"></el-input>
@@ -39,7 +39,7 @@
         </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="turstedDidFormActive = false">Cancel</el-button>
-        <el-button type="primary" @click="storeTrustedIssuer">storeTrustedIssuer</el-button>
+        <el-button type="primary" @click="storeTrustedIssuer">Confirm</el-button>
       </span>
     </el-dialog>
   </div>
@@ -62,41 +62,31 @@ export default {
       expanded_items:[],
       turstedDidFormActive: false,
       trusted_issuers_form:{
-        'id':'',
+        'did':'',
         'label':'',
-      },
-      proposalFormActive: false,
-      proposalForm: {
-        connection_id: '',
-        selected_cred_def: {},
-        comment: '',
-        attributes: []
       },
       formLabelWidth: '200px'
     }
   },
   methods: {
-    collapse_expanded: function(did){
+    collapse_expanded: function(issuer){
       this.expanded_items = this.expanded_items.filter(
-        item => item != did.id
+        item => item != issuer.did
       );
     },
-    removeTrustedIssuer: function(did) {
-      this.$emit('remove-did', did);
+    removeTrustedIssuer: function(issuer) {
+      this.$emit('remove-issuer', issuer);
       this.turstedDidFormActive = false;
     },
     storeTrustedIssuer: function() {
-      this.$emit('store-did',
-        {
-          'id':this.trusted_issuers_form.id,
-          'label':this.trusted_issuers_form.label
-        }
-      );
-      this.trusted_issuers_form.id = ""
-      this.trusted_issuers_form.label = ""
+      this.$emit('store-issuer', {
+        did: this.trusted_issuers_form.did,
+        label: this.trusted_issuers_form.label
+      });
       this.turstedDidFormActive = false;
+      this.trusted_issuers_form.did = ""
+      this.trusted_issuers_form.label = ""
     },
   },
-  computed: {}
 }
 </script>

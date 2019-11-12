@@ -158,7 +158,7 @@ export default {
   mixins: [
     message_bus({ events: {
       'send-message': (v, msg, return_route) => {
-        v.send_connection_message(msg, return_route)
+        v.send_connection_message(msg, return_route);
       }
     }}),
     share_source(shared),
@@ -186,6 +186,7 @@ export default {
   methods: {
     ...mapActions("Agents", ["get_agent"]),
     async send_connection_message(msg){
+      await this.connection_loaded;
       this.connection.send_message(msg);
     },
     async processInbound(msg){

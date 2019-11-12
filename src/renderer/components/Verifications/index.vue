@@ -6,16 +6,33 @@
       v-bind:connections="active_connections"
       v-bind:cred_defs="cred_defs"
       v-bind:trusted_issuers="trusted_issuers"
-      @verification-refresh="getIssuersPresentations"
-      @presentation-request="verifierRequestPresentation"></verification>
+      @verification-refresh="fetch_issuer_presentations"
+      @presentation-request="presentation_request"></verification>
   </el-row>
 </template>
 
 <script>
 import VueJsonPretty from 'vue-json-pretty';
 import Verification from './Verification.vue';
-import message_bus from '../../message_bus.js';
-import share from '../../share.js';
+import message_bus from '@/message_bus.js';
+import share from '@/share.js';
+
+export const shared = {
+  data: {
+    issuer_presentations: [],
+  },
+  listeners: {
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentations-list":
+    (share, msg) => share.issuer_presentations = msg.results
+  },
+  methods: {
+    fetch_issuer_presentations: ({send}) => {
+      send({
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentations-get-list"
+      })
+    }
+  }
+}
 
 export default {
   name: 'verifications',
@@ -27,10 +44,9 @@ export default {
     message_bus({
       events: {
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentation-exchange":
-        (v, msg) => v.verifierPresentationExchange(),
+        (v, msg) => setTimeout(v.fetch_issuer_presentations, 4500),
         "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/request-presentation":
-        (v, msg) => v.verifierPresentationExchange(),
-        'verifications': (v) => v.getIssuersPresentations()
+        (v, msg) => setTimeout(v.fetch_issuer_presentations, 4500),
       }
     }),
     share({
@@ -40,18 +56,11 @@ export default {
         'cred_defs',
         'trusted_issuers',
       ],
-      events: {
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentations-list":
-        (share, msg) => share.issuer_presentations = msg.results
-      }
+      actions: ['fetch_issuer_presentations']
     })
   ],
-  data () {
-    return {
-    }
-  },
   methods: {
-    async verifierRequestPresentation(form){
+    async presentation_request(form){
       // response comes back in admin-issuer/1.0/presentation-exchange
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/request-presentation",
@@ -98,21 +107,8 @@ export default {
           }, {}),
         },
       };
-      this.$message_bus.$emit('send-message',query_msg);
-    },
-    async getIssuersPresentations(){
-      this.$message_bus.$emit('send-message', {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentations-get-list",
-        //'connection_id': ,// optional filter
-        //'verified': ,// optional filter
-      });
-    },
-    async verifierPresentationExchange(msg={}){
-      setTimeout(() => {
-        return this.getIssuersPresentations();
-      }, 4500);
+      this.send_message(query_msg);
     },
   },
-  computed: {}
 }
 </script>

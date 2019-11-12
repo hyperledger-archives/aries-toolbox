@@ -8,7 +8,7 @@
         style="width:500px;"></el-input>
       <el-button type="primary" @click="send">Send</el-button>
     </div>
-    <div v-for="m in messages.slice().reverse()" :key="m.msg['@id']">
+    <div v-for="m in basicmessages.slice().reverse()" :key="m.msg['@id']">
       <div :class="'basicmessage-'+m.direction">{{m.msg.content}}</div>
     </div>
   </el-row>
@@ -40,37 +40,43 @@
 </style>
 
 <script>
-import message_bus from '../../message_bus.js';
+import message_bus from '@/message_bus.js';
+import share from '@/share.js';
+
+export const shared = {
+  data: {
+    basicmessages: [],
+  },
+  listeners: {
+    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message': (share, msg) => {
+      share.basicmessages.push({
+        'msg': msg,
+        'direction': 'Received'
+      });
+    },
+    'send-message': (share, msg) => {
+      if (msg['@type'] === 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message') {
+        share.basicmessages.push({
+          'msg': msg,
+          'direction': 'Sent'
+        });
+      }
+    }
+  }
+};
 
 export default {
   name: 'basic-message',
-  mixins: [message_bus()],
+  mixins: [
+    message_bus(),
+    share({
+      use: ['basicmessages']
+    })
+  ],
   data: function() {
     return {
-      messages: [],
       content: '',
     }
-  },
-  created: function() {
-    let component = this;
-    this.$message_bus.$on(
-      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message',
-      (msg) => component.messages.push({
-        'msg': msg,
-        'direction': 'Received'
-      })
-    );
-    this.$message_bus.$on(
-      'send-message',
-      (msg) => {
-        if (msg['@type'] === 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message') {
-          component.messages.push({
-            'msg': msg,
-            'direction': 'Sent'
-          })
-        }
-      }
-    );
   },
   methods: {
     send: function() {
@@ -78,7 +84,7 @@ export default {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message",
         "content": this.content
       };
-      this.$message_bus.$emit('send-message', msg);
+      this.send_message(msg);
       this.content = '';
     }
   }

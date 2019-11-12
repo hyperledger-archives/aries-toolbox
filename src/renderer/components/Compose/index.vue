@@ -2,19 +2,12 @@
   <el-row>
     <v-jsoneditor v-model="content"></v-jsoneditor>
     <el-button type="secondary" @click="send">Send</el-button>
-    <div class="message-display" v-for="(msg, index) in most_recent_sent_msgs" :key="index">
-      <i>{{msg.direction}}</i>
-      <vue-json-pretty
-        :deep=1
-        :data="msg.msg">
-      </vue-json-pretty>
-    </div>
   </el-row>
 </template>
 
 <script>
 import VJsoneditor from 'v-jsoneditor';
-import message_bus from '../../message_bus.js';
+import message_bus from '@/message_bus.js';
 
 export default {
   name: 'compose',
@@ -30,14 +23,9 @@ export default {
       },
     };
   },
-  computed: {
-    most_recent_sent_msgs: function() {
-      return [];
-    }
-  },
   methods: {
     send: function() {
-      this.$message_bus.$emit('send-message', this.content);
+      this.send_message(this.content);
     }
   }
 }

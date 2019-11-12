@@ -1,50 +1,14 @@
 import Vue from 'vue';
 import message_bus from '@/message_bus.js';
 
-const SHARED_PROPERTIES = {
-    dids: {},
-    public_did: '',
-    trusted_issuers: [],
-    issuer_presentations:[],
-    holder_presentations: [],
-    issued_credentials: [],
-    holder_credentials: [],
-    schemas: [],
-    cred_defs: [],
-    protocols: []
-};
-
-const COMPUTED_PROPERTIES = {
-    issuer_cred_defs: function() {
-        return Object.values(this.cred_defs).filter(
-            cred_def => {
-                return cred_def.author === 'self' ||
-                    cred_def.cred_def_id.split(':', 2)[0] === this.public_did
-            }
-        );
-    },
-    proposal_cred_defs: function() {
-        return Object.values(this.cred_defs).filter(
-            cred_def => {
-                return cred_def.author !== 'self' ||
-                    cred_def.cred_def_id.split(':', 2)[0] !== this.public_did
-            }
-        );
-    },
-}
-
 export function Share(data = {}, computed = {}, methods = {}) {
     return new Vue({
         data: function() {
             return {
-                ...SHARED_PROPERTIES,
                 ...data
             };
         },
-        computed: {
-            ...COMPUTED_PROPERTIES,
-            ...computed
-        },
+        computed: computed,
         methods: {
             ...methods,
             mutate(subject, data) {
@@ -57,7 +21,9 @@ export function Share(data = {}, computed = {}, methods = {}) {
 export function share_source(modules) {
     let data = {};
     let computed = {};
-    let listeners = {};
+    // Share can have multiple listeners for the same event name
+    // Store a list of key value pairs instead of map
+    let listeners = [];
     let methods = {};
     modules.forEach((module) => {
         data = {
@@ -68,14 +34,17 @@ export function share_source(modules) {
             ...computed,
             ...module.computed
         };
-        listeners = {
-            ...listeners,
-            ...module.listeners
-        };
         methods = {
             ...methods,
             ...module.methods
         };
+
+        if (module.listeners) {
+            let module_listeners_list = Object.keys(module.listeners).map(
+                key => ({ event: key, listener: module.listeners[key] })
+            );
+            listeners.push(...module_listeners_list);
+        }
     });
     let mutated_methods = Object.keys(methods).reduce((acc, action) => {
         acc[action] = function(...data) {
@@ -93,13 +62,11 @@ export function share_source(modules) {
             this.$share.message_bus = this.$message_bus;
         },
         created: function() {
-            Object.keys(listeners).forEach((event) => {
-                share_event_listener(
-                    this.$share,
-                    this.$message_bus,
-                    event,
-                    listeners[event]
-                );
+            listeners.forEach(({event, listener}) => {
+                this.$message_bus.$on(event,
+                    (...data) => {
+                        listener(this.$share, ...data);
+                    });
             });
         },
     }
@@ -147,10 +114,6 @@ export default function(options = {use: [], use_mut: [], actions: []}) {
         },
         computed: properties.reduce(
             (acc, prop) => {
-                if (prop in COMPUTED_PROPERTIES) {
-                    acc[prop.name] = subscribe(prop.name, false);
-                    return acc;
-                }
                 acc[prop.name] = subscribe(prop.name, prop.mutable);
                 return acc;
             },
@@ -183,18 +146,4 @@ export function subscribe(subject, mutable = true) {
             }
         }
     }
-}
-
-export function share_event_listener(share, message_bus, event, listener) {
-    if (!share.listeners) {
-        share.listeners = new Set();
-    }
-    if (share.listeners.has(event)) {
-        console.log('Listener already registered for event; skipping. Skipped event:', event);
-        return;
-    }
-    share.listeners.add(event);
-    message_bus.$on(event, function(data) {
-        listener(share, data);
-    });
 }

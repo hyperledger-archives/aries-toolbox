@@ -6,7 +6,7 @@
       <el-button
         type="primary"
         icon="el-icon-refresh"
-        @click="fetch"></el-button>
+        @click="fetch_static_connections"></el-button>
     </nav>
     <el-collapse v-model="expanded_items">
       <ul class="list">
@@ -77,21 +77,44 @@
 <script>
 import VueJsonPretty from 'vue-json-pretty';
 const { clipboard } = require('electron');
-import share from '../../share.js';
-import message_bus from '../../message_bus.js';
+import share from '@/share.js';
+import message_bus from '@/message_bus.js';
+
+export const shared = {
+  data: {
+    static_connections: []
+  },
+  listeners: {
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-list": (share, msg) => {
+      share.static_connections = msg.results;
+    },
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-info": (share, msg) => {
+      share.fetch_static_connections();
+    }
+  },
+  methods: {
+    fetch_static_connections: ({send}) => {
+      send({
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-get-list"
+      });
+    }
+  }
+}
 
 export default {
   name: 'static-connections',
   mixins: [
     message_bus(),
-    share([])
+    share({
+      use: ['static_connections'],
+      actions: ['fetch_static_connections']
+    })
   ],
   components: {
     VueJsonPretty,
   },
   data () {
     return {
-      static_connections: [],
       expanded_items: [],
       static_agent_form:{
         'label':"",
@@ -102,26 +125,11 @@ export default {
       },
     }
   },
-  created: function() {
-    let component = this;
-    this.$message_bus.$on(
-      "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-list",
-      (msg) => component.static_connections = msg.results
-    );
-    this.$message_bus.$on(
-      "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-info",
-      (msg) => component.fetch()
-    );
-    this.$message_bus.$on('static-connections', () => component.fetch());
-    this.fetch();
+  created: async function() {
+    await this.ready();
+    this.fetch_static_connections();
   },
   methods: {
-    fetch: function(){
-      let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-get-list",
-      }
-      this.$message_bus.$emit('send-message', query_msg);
-    },
     add: function(){
       let query_msg ={
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/create-static-connection",
@@ -131,9 +139,8 @@ export default {
         "static_key": this.static_agent_form.static_key,
         "static_endpoint": this.static_agent_form.static_endpoint,
       }
-      this.$message_bus.$emit('send-message', query_msg);
+      this.send_message(query_msg);
     },
-
     get_name: function(c) {
       return c.their_info.label; //i.connection.invitation_mode +" / "+ i.connection.their_role +" / "+ i.connection.created_at ;
     },
