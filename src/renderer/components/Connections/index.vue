@@ -41,6 +41,7 @@
 <script>
 import ConnectionList from './ConnectionList.vue';
 import share from '@/share.js';
+import message_bus from '@/message_bus.js';
 
 export const shared = {
   data: {
@@ -76,6 +77,7 @@ export default {
     ConnectionList
   },
   mixins: [
+    message_bus(),
     share({
       use: ['connections', 'active_connections'],
       actions: ['fetch_connections']
