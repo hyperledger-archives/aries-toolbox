@@ -23,6 +23,17 @@
 <script>
 import share from '@/share.js';
 
+export const metadata = {
+  menu: {
+    label: 'Discover Features',
+    icon: 'el-icon-discover',
+    group: 'Toolbox to Agent',
+    priority: 5,
+    required_protocols: [
+    ]
+  }
+};
+
 export const shared = {
   data: {
     protocols: []

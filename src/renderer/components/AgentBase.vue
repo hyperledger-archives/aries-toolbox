@@ -1,68 +1,18 @@
 <template>
   <el-container>
     <el-menu
+      style="-webkit-user-select:none;"
       mode="vertical"
       id="side-menu"
       background-color="#545c64"
       text-color="#fff"
       active-text-color="#ffd04b"
       :router="true">
-      <el-menu-item-group index="indirect">
-        <span class="menu-title" slot="title">Agent to Agent</span>
-        <el-menu-item index="1" :route="{name: 'dids'}">
-          <i class="el-icon-link"></i>
-          <span>DIDs</span>
-        </el-menu-item>
-        <el-menu-item index="2" :route="{name: 'invitations'}">
-          <i class="el-icon-plus"></i>
-          <span>Invitations</span>
-        </el-menu-item>
-        <el-menu-item index="3" :route="{name: 'connections'}">
-          <i class="el-icon-user"></i>
-          <span>Connections</span>
-        </el-menu-item>
-        <el-menu-item index="4" :route="{name: 'static-connections'}">
-          <i class="el-icon-box"></i>
-          <span>Static Connections</span>
-        </el-menu-item>
-        <el-menu-item index="5" :route="{name: 'credential-issuance'}">
-          <i class="el-icon-document"></i>
-          <span>Credential Issuance</span>
-        </el-menu-item>
-        <el-menu-item index="6" :route="{name: 'trusted-issuers'}">
-          <i class="el-icon-connection"></i>
-          <span>Trusted Issuers</span>
-        </el-menu-item>
-        <el-menu-item index="7" :route="{name: 'my-credentials'}">
-          <i class="el-icon-bank-card"></i>
-          <span>My Credentials</span>
-        </el-menu-item>
-        <el-menu-item index="8" :route="{name: 'presentations'}">
-          <i class="el-icon-document-checked"></i>
-          <span>Presentations</span>
-        </el-menu-item>
-        <el-menu-item index="9" :route="{name: 'verifications'}">
-          <i class="el-icon-s-claim"></i>
-          <span>Verification</span>
-        </el-menu-item>
-      </el-menu-item-group>
-      <el-menu-item-group index="direct">
-        <span class="menu-title" slot="title">Toolbox to Agent</span>
-        <el-menu-item index="10" :route="{name: 'feature-discovery'}">
-          <i class="el-icon-discover"></i>
-          <span>Discovered Features</span>
-        </el-menu-item>
-        <el-menu-item index="11" :route="{name: 'compose'}">
-          <i class="el-icon-message"></i>
-          <span>Compose</span>
-        </el-menu-item>
-        <el-menu-item index="12" :route="{name: 'message-history'}">
-          <i class="el-icon-receiving"></i>
-          <span>Message History</span>
-        </el-menu-item>
-        <el-menu-item index="13" :route="{name: 'basic-message'}">
-          <i class="el-icon-chat-line-square"></i>
-          <span>Basic Message</span>
+      <el-menu-item-group :index="group" v-for="(group_modules, group) in matching_modules_grouped">
+        <span class="menu-title" slot="title">{{group}}</span>
+        <el-menu-item :index="m.path" v-for="m in group_modules" :route="{name: m.path}">
+          <i v-bind:class="m.icon"></i>
+          <span>{{m.label}}</span>
         </el-menu-item>
       </el-menu-item-group>
     </el-menu>
@@ -151,7 +101,21 @@ import { mapState, mapActions } from "vuex";
 import { from_store } from '../connection_detail.js';
 import message_bus from '@/message_bus.js';
 import share, {share_source} from '@/share.js';
-import {shared} from './components.js';
+import components, {shared} from './components.js';
+
+// icons from https://element.eleme.io/#/en-US/component/icon
+let module_list = Object.entries(components).map(([modulename, module]) => ({
+  path: module.default.name,
+  label: module.metadata && module.metadata.menu && module.metadata.menu.label ? module.metadata.menu.label : module.default.name,
+  icon: module.metadata && module.metadata.menu && module.metadata.menu.icon ? module.metadata.menu.icon : 'el-icon-document',
+  group: module.metadata && module.metadata.menu && module.metadata.menu.group ? module.metadata.menu.group : 'Other',
+  priority: module.metadata && module.metadata.menu && module.metadata.menu.priority ? module.metadata.menu.priority : 100,
+  required_protocols: module.metadata && module.metadata.menu && module.metadata.menu.required_protocols ? module.metadata.menu.required_protocols : [],
+}));
+
+//sort modules by priority, then label
+module_list.sort((a,b)=> a.priority - b.priority ||
+                  a.label.localeCompare(b.label));
 
 export default {
   name: 'agent-base',
@@ -163,14 +127,15 @@ export default {
     }}),
     share_source(shared),
     share({
-      use: ['dids', 'public_did',],
-      actions: ['fetch_dids', 'fetch_active_did', 'activate_did']
+      use: ['dids', 'public_did', 'protocols'],
+      actions: ['fetch_dids', 'fetch_active_did', 'activate_did', 'fetch_protocols']
     })
   ],
   props: ['agentid'],
   data: function() {
     return {
       'connection': {'label':'loading...'},
+      'modules': module_list,
     }
   },
   computed: {
@@ -181,7 +146,22 @@ export default {
       set (did) {
         return this.activate_did(did)
       }
+    },
+    matching_modules_grouped: function(){
+      let pid_list = this.protocols.map(p => p.pid);
+      let filtered_list = module_list.filter(function(m){
+        return m.required_protocols.every(req_protocol => pid_list.includes(req_protocol));
+      });
+      //group modules
+      let module_groups = filtered_list.reduce(function (r, m) {
+          r[m.group] = r[m.group] || [];
+          r[m.group].push(m);
+          return r;
+      }, Object.create(null));
+      console.log("filtered", module_groups);
+      return module_groups;
     }
+
   },
   methods: {
     ...mapActions("Agents", ["get_agent"]),
@@ -199,6 +179,7 @@ export default {
       this.connection = from_store(await this.get_agent(this.agentid), this.processInbound);
     })();
     await this.connection_loaded;
+    this.fetch_protocols();
     this.fetch_dids();
     this.fetch_active_did();
     this.$message_bus.$emit('agent-created');

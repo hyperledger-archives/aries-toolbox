@@ -18,6 +18,18 @@ import Presentation from './Presentation.vue';
 import message_bus from '@/message_bus.js';
 import share from '@/share.js';
 
+export const metadata = {
+  menu: {
+    label: 'Presentations',
+    icon: 'el-icon-document-checked',
+    group: 'Agent to Agent',
+    priority: 90,
+    required_protocols: [
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0'
+    ]
+  }
+};
+
 export const shared = {
   data: {
     holder_presentations: [],

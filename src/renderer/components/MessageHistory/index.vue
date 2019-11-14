@@ -16,6 +16,17 @@ import message_bus from '@/message_bus.js';
 import share from '@/share.js';
 import VueJsonPretty from 'vue-json-pretty';
 
+export const metadata = {
+  menu: {
+    label: 'Message History',
+    icon: 'el-icon-receiving',
+    group: 'Toolbox to Agent',
+    priority: 50,
+    required_protocols: [
+    ]
+  }
+};
+
 export const shared = {
   data: {
     message_history: []

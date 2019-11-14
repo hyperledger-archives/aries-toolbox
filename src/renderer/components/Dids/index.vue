@@ -32,6 +32,18 @@ import DidList from './DidList.vue';
 import message_bus from '../../message_bus.js';
 import share from '../../share.js';
 
+export const metadata = {
+  menu: {
+    label: 'DIDs',
+    icon: 'el-icon-link',
+    group: 'Agent to Agent',
+    priority: 10,
+    required_protocols: [
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0'
+    ]
+  }
+};
+
 export const shared = {
   data: {
     dids: [],

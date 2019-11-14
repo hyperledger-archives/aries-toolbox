@@ -43,6 +43,18 @@
 import message_bus from '@/message_bus.js';
 import share from '@/share.js';
 
+export const metadata = {
+  menu: {
+    label: 'Basic Message',
+    icon: 'el-icon-chat-line-square',
+    group: 'Toolbox to Agent',
+    priority: 20,
+    required_protocols: [
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0'
+    ]
+  }
+};
+
 export const shared = {
   data: {
     basicmessages: [],

@@ -40,6 +40,17 @@
 import VueJsonPretty from 'vue-json-pretty';
 import message_bus from '../../message_bus.js';
 
+export const metadata = {
+  menu: {
+    label: 'Ledgers',
+    icon: 'el-icon-connection',
+    group: 'Agent to Agent',
+    priority: 80,
+    required_protocols: [
+    ]
+  }
+};
+
 export default {
   name: 'ledgers',
   mixins: [
