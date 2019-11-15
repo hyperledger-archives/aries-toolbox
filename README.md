@@ -1,6 +1,25 @@
-# aries-toolbox
+# Aries Toolbox
 
-> Tools for working with Aries Agents
+The Toolbox makes interacting with Aries Agent easier for developers and system administrators.
+Toolbox Modules provide user interface for protocols. Debugging information and details
+are included and visible.
+
+The ToolBox uses the Discover Features Protocol to determine which protocols are supported
+by the connected agent, and will customize the menu of modules to match supported protocols.
+
+The toolbox can connect to multiple agents simultaneously, each with it's own window. This
+makes it possible to manage multiple agents, either in production or in technical training
+exercises.
+
+#### Project State
+
+The structure of the project is well formed and ready for contribution.
+
+Many of the included modules rely on administrative protocols that have not yet been through
+a thorough review. These protocols are supported for ACApy via an extention that can be loaded at runtime.
+As administrative protocols are reviewed, both the appropriate toolbox modules and the ACApy extensions
+will be updated.
+
 
 #### Build Setup
 
