@@ -64,7 +64,6 @@
     <el-form-item label="Multi Use:">
       <el-switch v-model="invite_multi_use_form"></el-switch>
     </el-form-item>
-    </div>
     <el-form-item>
       <el-button type="primary" @click="fetchNewInvite()">Create New Invite</el-button>
     </el-form-item>
@@ -79,6 +78,18 @@ const { clipboard } = require('electron');
 import VueQrcode from '@chenfengyuan/vue-qrcode';
 import message_bus from '@/message_bus.js';
 import share from '@/share.js';
+
+export const metadata = {
+  menu: {
+    label: 'Invitations',
+    icon: 'el-icon-plus',
+    group: 'Agent to Agent',
+    priority: 10,
+    required_protocols: [
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0'
+    ]
+  }
+};
 
 export const shared = {
   data: {

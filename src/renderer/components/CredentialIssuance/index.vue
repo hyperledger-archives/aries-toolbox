@@ -31,6 +31,20 @@ import SchemaList from './SchemaList.vue';
 import CredDefList from './CredDefList.vue';
 import IssuedCredList from './IssuedCredList.vue';
 
+export const metadata = {
+  menu: {
+    label: 'Credential Issuance',
+    icon: 'el-icon-box',
+    group: 'Agent to Agent',
+    priority: 50,
+    required_protocols: [
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0',
+      "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0",
+      "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0"
+    ]
+  }
+};
+
 export const shared = {
   data: {
     schemas: [],

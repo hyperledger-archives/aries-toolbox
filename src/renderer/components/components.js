@@ -3,7 +3,7 @@
  */
 
 const files = require.context('.', true, /\.vue$/);
-const components = {}
+const components = {};
 files.keys().forEach(key => {
     if (key.match(/.\/index.vue/)) {
         //console.log(key.replace(/\.\/|\/index\.vue/g, ''))

@@ -1,7 +1,23 @@
 import Vue from 'vue'
 import Router from 'vue-router'
+import components from '../components/components.js';
 
 Vue.use(Router)
+
+let agent_routes = Object.entries(components).map(([modulename, module]) => ({
+  path: module.default.name,
+  name: module.default.name,
+  component: require('@/components/' + modulename).default
+}));
+
+/*
+each agent component is listed like this
+{
+    path: 'dids',
+    name: 'dids',
+    component: require('@/components/Dids').default
+},
+*/
 
 export default new Router({
     routes: [
@@ -12,76 +28,10 @@ export default new Router({
         },
         {
             path: '/agent/:agentid/',
-            redirect: '/agent/:agentid/dids',
+            //redirect: '/agent/:agentid/dids', //TODO: Needs to point to a screen not dependant on a protocol
             component: require('@/components/AgentBase').default,
             props: true,
-            children: [
-                {
-                    path: 'dids', // Default path
-                    name: 'dids',
-                    component: require('@/components/Dids').default
-                },
-                {
-                    path: 'invitations',
-                    name: 'invitations',
-                    component: require('@/components/Invitations').default
-                },
-                {
-                    path: 'connections',
-                    name: 'connections',
-                    component: require('@/components/Connections').default
-                },
-                {
-                    path: 'static-connections',
-                    name: 'static-connections',
-                    component: require('@/components/StaticConnections').default
-                },
-                {
-                    path: 'credential-issuance',
-                    name: 'credential-issuance',
-                    component: require('@/components/CredentialIssuance').default
-                },
-                {
-                    path: 'trusted-issuers',
-                    name: 'trusted-issuers',
-                    component: require('@/components/TrustedIssuers').default
-                },
-                {
-                    path: 'my-credentials',
-                    name: 'my-credentials',
-                    component: require('@/components/MyCredentials').default
-                },
-                {
-                    path: 'presentations',
-                    name: 'presentations',
-                    component: require('@/components/Presentations').default
-                },
-                {
-                    path: 'verifications',
-                    name: 'verifications',
-                    component: require('@/components/Verifications').default
-                },
-                {
-                    path: 'feature-discovery',
-                    name: 'feature-discovery',
-                    component: require('@/components/FeatureDiscovery').default
-                },
-                {
-                    path: 'compose',
-                    name: 'compose',
-                    component: require('@/components/Compose').default
-                },
-                {
-                    path: 'message-history',
-                    name: 'message-history',
-                    component: require('@/components/MessageHistory').default
-                },
-                {
-                    path: 'basic-message',
-                    name: 'basic-message',
-                    component: require('@/components/BasicMessage').default
-                },
-            ]
+            children: agent_routes, //calculated above
         },
         {
             path: '*',

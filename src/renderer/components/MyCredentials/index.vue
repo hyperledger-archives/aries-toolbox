@@ -22,6 +22,18 @@ import MyCredentialsList from './MyCredentialsList.vue';
 import message_bus from '../../message_bus.js';
 import share from '../../share.js';
 
+export const metadata = {
+  menu: {
+    label: 'My Credentials',
+    icon: 'el-icon-connection',
+    group: 'Agent to Agent',
+    priority: 60,
+    required_protocols: [
+      "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0"
+    ]
+  }
+};
+
 export const shared = {
   data: {
     holder_credentials: [],

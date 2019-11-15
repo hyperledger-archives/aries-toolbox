@@ -43,6 +43,18 @@ import ConnectionList from './ConnectionList.vue';
 import share from '@/share.js';
 import message_bus from '@/message_bus.js';
 
+export const metadata = {
+  menu: {
+    label: 'Connections',
+    icon: 'el-icon-user',
+    group: 'Agent to Agent',
+    priority: 30,
+    required_protocols: [
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0'
+    ]
+  }
+};
+
 export const shared = {
   data: {
     connections: []

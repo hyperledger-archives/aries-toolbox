@@ -17,6 +17,19 @@ import Verification from './Verification.vue';
 import message_bus from '@/message_bus.js';
 import share from '@/share.js';
 
+
+export const metadata = {
+  menu: {
+    label: 'Verification',
+    icon: 'el-icon-s-claim',
+    group: 'Agent to Agent',
+    priority: 100,
+    required_protocols: [
+      "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0"
+    ]
+  }
+};
+
 export const shared = {
   data: {
     issuer_presentations: [],

@@ -80,6 +80,18 @@ const { clipboard } = require('electron');
 import share from '@/share.js';
 import message_bus from '@/message_bus.js';
 
+export const metadata = {
+  menu: {
+    label: 'Static Connections',
+    icon: 'el-icon-box',
+    group: 'Agent to Agent',
+    priority: 40,
+    required_protocols: [
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0'
+    ]
+  }
+};
+
 export const shared = {
   data: {
     static_connections: []
