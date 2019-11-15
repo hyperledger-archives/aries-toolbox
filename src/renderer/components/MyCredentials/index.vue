@@ -25,7 +25,7 @@ import share from '../../share.js';
 export const metadata = {
   menu: {
     label: 'My Credentials',
-    icon: 'el-icon-connection',
+    icon: 'el-icon-bank-card',
     group: 'Agent to Agent',
     priority: 60,
     required_protocols: [
