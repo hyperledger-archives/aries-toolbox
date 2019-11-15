@@ -47,6 +47,7 @@ export const metadata = {
     group: 'Agent to Agent',
     priority: 80,
     required_protocols: [
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-ledgers/1.0'
     ]
   }
 };

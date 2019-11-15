@@ -34,7 +34,7 @@ import IssuedCredList from './IssuedCredList.vue';
 export const metadata = {
   menu: {
     label: 'Credential Issuance',
-    icon: 'el-icon-box',
+    icon: 'el-icon-document',
     group: 'Agent to Agent',
     priority: 50,
     required_protocols: [

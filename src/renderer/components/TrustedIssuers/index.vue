@@ -19,7 +19,7 @@ import share from '@/share.js';
 export const metadata = {
   menu: {
     label: 'Trusted Issuers',
-    icon: 'el-icon-bank-card',
+    icon: 'el-icon-connection',
     group: 'Agent to Agent',
     priority: 70,
     required_protocols: [
