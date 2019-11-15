@@ -138,6 +138,7 @@ export default {
     return {
       'connection': {'label':'loading...'},
       'modules': module_list,
+      'return_route_poll_timer': '',
     }
   },
   computed: {
@@ -175,6 +176,17 @@ export default {
       this.$message_bus.$emit('message-received', msg);
       this.$message_bus.$emit(msg['@type'], msg);
     },
+    return_route_poll(){
+      // This brute forces picking up return route messages
+      let msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping",
+        "response_requested": false,
+        "~transport": {
+          "return_route": "all"
+        }
+      };
+      this.send_message(msg);
+    }
   },
   created: async function() {
     this.connection_loaded = (async () => {
@@ -185,6 +197,12 @@ export default {
     this.fetch_dids();
     this.fetch_active_did();
     this.$message_bus.$emit('agent-created');
+    //start poll timer
+    this.return_route_poll_timer = setInterval(this.return_route_poll, 5000);
   },
+  beforeDestroy: function() {
+      clearInterval(this.return_route_poll_timer)
+  }
 }
 </script>
+
