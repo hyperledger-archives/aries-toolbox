@@ -52,7 +52,7 @@ export const shared = {
   listeners: {
     'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/list-dids': (share, msg) => share.dids = msg.result,
     'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/did': (share, msg) => {
-      if('metadata' in msg.result && 'public' in msg.result.metadata && msg.result.metadata.public === true) {
+      if(msg.result && 'metadata' in msg.result && 'public' in msg.result.metadata && msg.result.metadata.public === true) {
         share.public_did = msg.result.did;
       }
       share.fetch_dids();

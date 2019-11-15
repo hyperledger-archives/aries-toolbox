@@ -8,9 +8,9 @@
       text-color="#fff"
       active-text-color="#ffd04b"
       :router="true">
-      <el-menu-item-group :index="group" v-for="(group_modules, group) in matching_modules_grouped">
+      <el-menu-item-group :index="group" v-for="(group_modules, group) in matching_modules_grouped" v-bind:key="group">
         <span class="menu-title" slot="title">{{group}}</span>
-        <el-menu-item :index="m.path" v-for="m in group_modules" :route="{name: m.path}">
+        <el-menu-item :index="m.path" v-for="m in group_modules" v-bind:key="m.path" :route="{name: m.path}">
           <i v-bind:class="m.icon"></i>
           <span>{{m.label}}</span>
         </el-menu-item>
@@ -103,14 +103,16 @@ import message_bus from '@/message_bus.js';
 import share, {share_source} from '@/share.js';
 import components, {shared} from './components.js';
 
-// icons from https://element.eleme.io/#/en-US/component/icon
+// The (. && .. && ...) || 'default' syntax provides defaults for modules that lack any level of the metadata
+//  definition. It would be useful if javascript had an Elvis Operator, but it does not.
+// The icons from https://element.eleme.io/#/en-US/component/icon
 let module_list = Object.entries(components).map(([modulename, module]) => ({
   path: module.default.name,
-  label: module.metadata && module.metadata.menu && module.metadata.menu.label ? module.metadata.menu.label : module.default.name,
-  icon: module.metadata && module.metadata.menu && module.metadata.menu.icon ? module.metadata.menu.icon : 'el-icon-document',
-  group: module.metadata && module.metadata.menu && module.metadata.menu.group ? module.metadata.menu.group : 'Other',
-  priority: module.metadata && module.metadata.menu && module.metadata.menu.priority ? module.metadata.menu.priority : 100,
-  required_protocols: module.metadata && module.metadata.menu && module.metadata.menu.required_protocols ? module.metadata.menu.required_protocols : [],
+  label: (module.metadata && module.metadata.menu && module.metadata.menu.label) || module.default.name,
+  icon: (module.metadata && module.metadata.menu && module.metadata.menu.icon) || 'el-icon-document',
+  group: (module.metadata && module.metadata.menu && module.metadata.menu.group) || 'Other',
+  priority: (module.metadata && module.metadata.menu && module.metadata.menu.priority) || 100,
+  required_protocols: (module.metadata && module.metadata.menu && module.metadata.menu.required_protocols) || [],
 }));
 
 //sort modules by priority, then label
@@ -148,6 +150,7 @@ export default {
       }
     },
     matching_modules_grouped: function(){
+      // This computed attribute updates when the supported protocol list is updated.
       let pid_list = this.protocols.map(p => p.pid);
       let filtered_list = module_list.filter(function(m){
         return m.required_protocols.every(req_protocol => pid_list.includes(req_protocol));
@@ -158,7 +161,6 @@ export default {
           r[m.group].push(m);
           return r;
       }, Object.create(null));
-      console.log("filtered", module_groups);
       return module_groups;
     }
 

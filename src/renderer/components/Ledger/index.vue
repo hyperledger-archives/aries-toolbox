@@ -23,12 +23,12 @@
     </el-collapse>
     <p>Add new ledger:</p>
     <el-form :model=ledger_form>
-      <el-form-group >
+
         <span slot="label">Name:</span>
         <el-input v-model="ledger_form.name" style="width:100px;"> </el-input>
         <span slot="label">Url to genesis file:</span>
         <el-input v-model="ledger_form.gen_url" style="width:100px;"> </el-input>
-      </el-form-group>
+
       <el-form-item>
         <el-button type="primary" @click="addLedger()">add new ledger</el-button>
       </el-form-item>
