@@ -1,6 +1,6 @@
 <template>
   <el-row>
-    <el-button type="secondary" @click="message_history.slice(o, message_history.length)">Clear</el-button>
+    <el-button type="secondary" @click="clear_history">Clear</el-button>
     <div class="message-display" v-for="m in message_history.slice().reverse()" :key="m.msg['@id']">
       <i>{{m.direction}}</i>
       <vue-json-pretty
@@ -49,6 +49,11 @@ export default {
       use: ['message_history']
     })
   ],
+  methods: {
+    clear_history: function(){
+      this.message_history.length = 0;
+    }
+  },
   components: {
     VueJsonPretty
   },
