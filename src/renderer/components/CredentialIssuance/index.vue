@@ -154,7 +154,7 @@ export default {
         "credential_definition_id": form.credential_definition_id,
         "comment": form.comment, //optional
         "credential_proposal": {
-          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/0.1/credential-preview",
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/credential-preview",
           "attributes": form.attributes
         }
       };

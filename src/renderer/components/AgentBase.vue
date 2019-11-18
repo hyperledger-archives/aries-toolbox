@@ -179,7 +179,7 @@ export default {
     return_route_poll(){
       // This brute forces picking up return route messages
       let msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/0.1/ping",
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping",
         "response_requested": false,
         "~transport": {
           "return_route": "all"
