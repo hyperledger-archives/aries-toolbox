@@ -15,7 +15,7 @@
       <ul class="list">
         <el-collapse-item
           v-for="issued_credential in credentials"
-          v-bind:title="issued_credential.connection_their_label + ' ' + issued_credential.credential_definition_id"
+          v-bind:title="issued_credential.connection_their_label + ' ' + issued_credential.cred_def_id"
           :name="issued_credential.credential_exchange_id"
           :key="issued_credential.credential_exchange_id">
           <el-row>
@@ -142,7 +142,7 @@ export default {
     issue: function() {
       let values = {
         connection_id: this.issueForm.connection_id,
-        credential_definition_id: this.issueForm.selected_cred_def.cred_def_id,
+        cred_def_id: this.issueForm.selected_cred_def.cred_def_id,
         comment: this.issueForm.comment,
         attributes: this.issueForm.attributes,
       }

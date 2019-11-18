@@ -161,7 +161,7 @@ export default {
     propose: function() {
       let values = {
         connection_id: this.proposalForm.connection_id,
-        credential_definition_id: this.proposalForm.selected_cred_def.cred_def_id,
+        cred_def_id: this.proposalForm.selected_cred_def.cred_def_id,
         comment: this.proposalForm.comment,
         attributes: this.proposalForm.attributes,
       }
