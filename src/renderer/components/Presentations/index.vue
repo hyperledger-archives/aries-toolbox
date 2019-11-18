@@ -77,7 +77,7 @@ export default {
         "comment": form.comment,
         "auto_present": form.auto_present , //optional, default to false
         "presentation_proposal": {
-          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/present-proof/0.1/presentation-preview",
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/present-proof/1.0/presentation-preview",
           /**
            * name 
            * cred_def_id //optional

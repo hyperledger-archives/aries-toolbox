@@ -42,13 +42,13 @@ export const shared = {
 
   },
   listeners: {
-    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/0.1/disclose":
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/disclose":
     (share, msg) => share.protocols = msg.protocols,
   },
   methods: {
     fetch_protocols: ({send}) => {
       send({
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/0.1/query",
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/discover-features/1.0/query",
         "query": "*"
       });
     }

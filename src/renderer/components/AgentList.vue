@@ -211,7 +211,7 @@ export default {
         "~transport": {
           "return_route": "all"
         },
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/0.1/request",
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/request",
         "label": "ToolBox",
         "connection": {
           "DID": toolbox_did.did,
