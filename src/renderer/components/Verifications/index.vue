@@ -91,7 +91,7 @@ export default {
               transmuted_attr.restrictions.push({});
             }
             if (attribute.restrictions.cred_def) {
-              transmuted_attr.restrictions[0].credential_definition_id = attribute.restrictions.cred_def.cred_def_id;
+              transmuted_attr.restrictions[0].cred_def_id = attribute.restrictions.cred_def.cred_def_id;
             }
             if (attribute.restrictions.trusted_issuer) {
               transmuted_attr.restrictions[0].issuer_did = attribute.restrictions.trusted_issuer;
@@ -110,7 +110,7 @@ export default {
               transmuted_pred.restrictions.push({});
             }
             if (predicate.restrictions.cred_def) {
-              transmuted_pred.restrictions[0].credential_definition_id = predicate.restrictions.cred_def.cred_def_id;
+              transmuted_pred.restrictions[0].cred_def_id = predicate.restrictions.cred_def.cred_def_id;
             }
             if (predicate.restrictions.trusted_issuer) {
               transmuted_pred.restrictions[0].issuer_did = predicate.restrictions.trusted_issuer;

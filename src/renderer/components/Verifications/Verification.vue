@@ -236,7 +236,7 @@ export default {
           // {
           //   "name": "attribute_name"
           //   "restrictions": {
-          //     "credential_definition_id": "asdf", etc.
+          //     "cred_def_id": "asdf", etc.
           //   }
           // }
 
@@ -256,7 +256,7 @@ export default {
           //   "p_type": ">=",
           //   "p_value": 18,
           //   "restrictions": {
-          //     "credential_definition_id": "asdf", etc.
+          //     "cred_def_id": "asdf", etc.
           //   }
           // }
         ],
