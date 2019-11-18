@@ -39,7 +39,7 @@ export const metadata = {
     group: 'Agent to Agent',
     priority: 10,
     required_protocols: [
-      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0'
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1'
     ]
   }
 };
@@ -50,8 +50,8 @@ export const shared = {
     public_did: ''
   },
   listeners: {
-    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/list-dids': (share, msg) => share.dids = msg.result,
-    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/did': (share, msg) => {
+    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1/list-dids': (share, msg) => share.dids = msg.result,
+    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1/did': (share, msg) => {
       if(msg.result && 'metadata' in msg.result && 'public' in msg.result.metadata && msg.result.metadata.public === true) {
         share.public_did = msg.result.did;
       }
@@ -60,16 +60,16 @@ export const shared = {
   },
   methods: {
     fetch_dids: ({send}) => {
-      send({"@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/get-list-dids"});
+      send({"@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1/get-list-dids"});
     },
     activate_did: ({send}, did) => {
       send({
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/set-public-did",
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1/set-public-did",
         "did": did.did,
       });
     },
     fetch_active_did: ({send}) => {
-      send({"@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/get-public-did"});
+      send({"@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1/get-public-did"});
     },
   }
 };
@@ -79,7 +79,7 @@ export default {
   mixins: [
     message_bus({
       events: {
-        'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/did':
+        'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1/did':
         (v, msg) => {
           if ('result' in msg &&
             'did' in msg.result) {
@@ -120,7 +120,7 @@ export default {
   methods: {
     async createDid(){
       let msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/create-did",
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1/create-did",
       };
       if (this.did_form.did) {
         msg.did = this.did_form.did;
@@ -135,7 +135,7 @@ export default {
     },
     async updateAgentDid(editForm){
       this.send_message({
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0/set-did-metadata",
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1/set-did-metadata",
         "did": editForm.did,
         "metadata": {
           ...editForm.metadata,

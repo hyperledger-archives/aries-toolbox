@@ -38,9 +38,9 @@ export const metadata = {
     group: 'Agent to Agent',
     priority: 50,
     required_protocols: [
-      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0',
-      "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0",
-      "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0"
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/0.1',
+      "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1",
+      "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1"
     ]
   }
 };
@@ -62,27 +62,27 @@ export const shared = {
     },
   },
   listeners: {
-    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-list":
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/0.1/schema-list":
     (share, msg) => share.schemas = msg.results,
-    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/credentials-list":
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/credentials-list":
     (share, msg) => share.issued_credentials = msg.results,
-    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/credential-definition-list":
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/credential-definition-list":
     (share, msg) => share.cred_defs = msg.results
   },
   methods: {
     fetch_schemas: ({send}) => {
       send({
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-get-list"
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/0.1/schema-get-list"
       })
     },
     fetch_cred_defs: ({send}) => {
       send({
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/credential-definition-get-list"
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/credential-definition-get-list"
       })
     },
     fetch_issued_credentials: ({send}) => {
       send({
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/credentials-get-list",
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/credentials-get-list",
       })
     },
   }
@@ -93,11 +93,11 @@ export default {
   mixins: [
     message_bus({
       events: {
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-id":
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/0.1/schema-id":
         (v, msg) => v.fetch_schemas(),
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema":
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/0.1/schema":
         (v, msg) => v.fetch_schemas(),
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/credential-exchange":
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/credential-exchange":
         (v, msg) => v.fetch_issued_credentials(),
       }
     }),
@@ -133,7 +133,7 @@ export default {
   methods: {
     publish_schema: function(form) {
       let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/send-schema",
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/0.1/send-schema",
         "schema_name": form.name,
         "schema_version": form.version,
         "attributes": form.attributes,
@@ -142,19 +142,19 @@ export default {
     },
     get_schema: function(schema_id) {
       let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0/schema-get",
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/0.1/schema-get",
         "schema_id": schema_id,
       };
       this.send_message(query_msg);
     },
     issue_credential: function(form) {
       let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/send-credential",
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/send-credential",
         "connection_id": form.connection_id,
         "credential_definition_id": form.credential_definition_id,
         "comment": form.comment, //optional
         "credential_proposal": {
-          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/credential-preview",
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/0.1/credential-preview",
           "attributes": form.attributes
         }
       };

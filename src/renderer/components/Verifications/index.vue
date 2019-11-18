@@ -25,7 +25,7 @@ export const metadata = {
     group: 'Agent to Agent',
     priority: 100,
     required_protocols: [
-      "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0"
+      "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1"
     ]
   }
 };
@@ -35,13 +35,13 @@ export const shared = {
     issuer_presentations: [],
   },
   listeners: {
-    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentations-list":
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/presentations-list":
     (share, msg) => share.issuer_presentations = msg.results
   },
   methods: {
     fetch_issuer_presentations: ({send}) => {
       send({
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentations-get-list"
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/presentations-get-list"
       })
     }
   }
@@ -56,9 +56,9 @@ export default {
   mixins: [
     message_bus({
       events: {
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/presentation-exchange":
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/presentation-exchange":
         (v, msg) => setTimeout(v.fetch_issuer_presentations, 4500),
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/request-presentation":
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/request-presentation":
         (v, msg) => setTimeout(v.fetch_issuer_presentations, 4500),
       }
     }),
@@ -74,9 +74,9 @@ export default {
   ],
   methods: {
     async presentation_request(form){
-      // response comes back in admin-issuer/1.0/presentation-exchange
+      // response comes back in admin-issuer/0.1/presentation-exchange
       let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0/request-presentation",
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/request-presentation",
         connection_id: form.connection_id,
         comment: form.comment,
         proof_request: {

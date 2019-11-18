@@ -87,7 +87,7 @@ export const metadata = {
     group: 'Agent to Agent',
     priority: 40,
     required_protocols: [
-      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0'
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/0.1'
     ]
   }
 };
@@ -97,17 +97,17 @@ export const shared = {
     static_connections: []
   },
   listeners: {
-    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-list": (share, msg) => {
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/0.1/static-connection-list": (share, msg) => {
       share.static_connections = msg.results;
     },
-    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-info": (share, msg) => {
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/0.1/static-connection-info": (share, msg) => {
       share.fetch_static_connections();
     }
   },
   methods: {
     fetch_static_connections: ({send}) => {
       send({
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/static-connection-get-list"
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/0.1/static-connection-get-list"
       });
     }
   }
@@ -144,7 +144,7 @@ export default {
   methods: {
     add: function(){
       let query_msg ={
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0/create-static-connection",
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/0.1/create-static-connection",
         "label": this.static_agent_form.label,
         "role": this.static_agent_form.role,
         "static_did": this.static_agent_form.static_did,

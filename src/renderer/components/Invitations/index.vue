@@ -86,7 +86,7 @@ export const metadata = {
     group: 'Agent to Agent',
     priority: 10,
     required_protocols: [
-      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0'
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1'
     ]
   }
 };
@@ -96,14 +96,14 @@ export const shared = {
     invitations: [],
   },
   listeners: {
-    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation-list': (share, msg) => {
+    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/invitation-list': (share, msg) => {
       share.invitations = msg.results;
     } 
   },
   methods: {
     fetch_invitations: ({send}) => {
       send({
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation-get-list",
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/invitation-get-list",
       });
     }
   }
@@ -113,7 +113,7 @@ export default {
   name: 'invitations',
   mixins: [
     message_bus({events: {
-      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/invitation': (v, msg) => {
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/invitation': (v, msg) => {
         v.fetch_invitations()
       }
     }}),
@@ -145,7 +145,7 @@ export default {
   methods: {
     async fetchNewInvite(){
       let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/create-invitation",
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/create-invitation",
         "label": this.invite_label_form,
         "role": this.invite_role_form,
         "accept": this.invite_accept_form,

@@ -50,7 +50,7 @@ export const metadata = {
     group: 'Toolbox to Agent',
     priority: 20,
     required_protocols: [
-      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0'
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/0.1'
     ]
   }
 };
@@ -60,14 +60,14 @@ export const shared = {
     basicmessages: [],
   },
   listeners: {
-    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message': (share, msg) => {
+    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/0.1/message': (share, msg) => {
       share.basicmessages.push({
         'msg': msg,
         'direction': 'Received'
       });
     },
     'send-message': (share, msg) => {
-      if (msg['@type'] === 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message') {
+      if (msg['@type'] === 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/0.1/message') {
         share.basicmessages.push({
           'msg': msg,
           'direction': 'Sent'
@@ -93,7 +93,7 @@ export default {
   methods: {
     send: function() {
       let msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message",
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/0.1/message",
         "content": this.content
       };
       this.send_message(msg);
