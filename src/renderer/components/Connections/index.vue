@@ -50,7 +50,7 @@ export const metadata = {
     group: 'Agent to Agent',
     priority: 30,
     required_protocols: [
-      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0'
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1'
     ]
   }
 };
@@ -67,17 +67,17 @@ export const shared = {
     },
   },
   listeners: {
-    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-list":
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/connection-list":
     (share, msg) => share.connections = msg.results,
-    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection":
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/connection":
     (share, msg) => share.fetch_connections(),
-    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/ack":
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/ack":
     (share, msg) => share.fetch_connections(),
   },
   methods: {
     fetch_connections: ({send}) => {
       send({
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/connection-get-list",
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/connection-get-list",
       });
     }
   }
@@ -122,7 +122,7 @@ export default {
   methods: {
     update_connection: function(form) {
       let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/update",
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/update",
         "connection_id": form.connection_id,
         "label": form.label,
         "role": form.role,
@@ -131,14 +131,14 @@ export default {
     },
     delete_connection: function(connection) {
       let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/delete",
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/delete",
         "connection_id": connection.connection_id,
       };
       this.send_message(query_msg);
     },
     recieve_invitation: function() {
       let receive_invite_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0/receive-invitation",
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/receive-invitation",
         "invitation": this.invitation,
         "accept": "auto"
       };

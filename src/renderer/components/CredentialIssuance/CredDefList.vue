@@ -81,9 +81,9 @@ export default {
   mixins: [
     message_bus({
       events: {
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/credential-definition-id":
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/credential-definition-id":
         (v, msg) => setTimeout(v.fetch_cred_defs, 4500),
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/credential-definition":
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/credential-definition":
         (v, msg) => setTimeout(v.fetch_cred_defs, 4500),
       }
     }),
@@ -115,7 +115,7 @@ export default {
   methods: {
     publish_cred_def: function(form) {
       let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/send-credential-definition",
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/send-credential-definition",
         "schema_id": this.createForm.schema_id,
       };
       this.send_message(query_msg);
@@ -124,7 +124,7 @@ export default {
     },
     get_cred_def: function() {
       let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0/credential-definition-get",
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/credential-definition-get",
         "cred_def_id": this.retrieve_cred_def_id,
       };
       this.send_message(query_msg);

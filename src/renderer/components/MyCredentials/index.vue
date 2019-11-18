@@ -29,7 +29,7 @@ export const metadata = {
     group: 'Agent to Agent',
     priority: 60,
     required_protocols: [
-      "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0"
+      "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1"
     ]
   }
 };
@@ -49,13 +49,13 @@ export const shared = {
     },
   },
   listeners: {
-    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credentials-list":
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credentials-list":
     (share, msg) => share.holder_credentials = msg.results
   },
   methods: {
     fetch_holder_credentials: ({send}) => {
       send({
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credentials-get-list",
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credentials-get-list",
       })
     }
   }
@@ -70,7 +70,7 @@ export default {
   mixins: [
     message_bus({
       events: {
-        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/credential-exchange":
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-exchange":
         (v, msg) => setTimeout(v.fetch_holder_credentials, 4500),
         'my-credentials': (v) => v.fetch_holder_credentials()
       }
@@ -87,12 +87,12 @@ export default {
   methods: {
     send_proposal: function(form) {
       let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/1.0/send-credential-proposal",
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/send-credential-proposal",
         "connection_id": form.connection_id,
         "credential_definition_id": form.credential_definition_id,
         "comment": form.comment, //optional
         "credential_proposal": {
-          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/credential-preview",
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/0.1/credential-preview",
           "attributes": form.attributes
         }
       };
