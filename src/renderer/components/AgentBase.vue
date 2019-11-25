@@ -198,7 +198,7 @@ export default {
     this.fetch_active_did();
     this.$message_bus.$emit('agent-created');
     //start poll timer
-    this.return_route_poll_timer = setInterval(this.return_route_poll, 5000);
+    this.return_route_poll_timer = setInterval(this.return_route_poll, 10000);
   },
   beforeDestroy: function() {
       clearInterval(this.return_route_poll_timer)
