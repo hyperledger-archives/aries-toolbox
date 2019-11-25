@@ -14,7 +14,7 @@
     <el-collapse v-model="expanded_items">
       <ul class="list">
         <el-collapse-item
-          v-for="credential in storedStateCredentials"
+          v-for="credential in receivedStateCredentials"
           v-bind:title="credential.credential_exchange_id"
           :name="credential.credential_exchange_id"
           :key="credential.credential_exchange_id">
@@ -202,7 +202,7 @@ export default {
       return this.credentials.filter(
         cred =>
           "state" in cred &&
-          cred.state === "credential_received" &&
+          cred.state === "credential_received" ||
           cred.state === "stored"
       )
     },
