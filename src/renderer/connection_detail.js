@@ -106,7 +106,7 @@ class ConnectionDetail {
                 });
         } else if(this.service_transport_protocol === "ws" || this.service_transport_protocol === "wss"){
             if(this.socket.readyState === this.socket.OPEN){
-                this.socket.send(packedMsg);
+                this.socket.send(new Buffer.from(packedMsg, 'ascii'));
             } else {
                 this.outbound_msg_queue.push(packedMsg);
             }
