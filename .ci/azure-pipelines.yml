@@ -1,0 +1,43 @@
+# Copyright Hyperledger Aries contributors. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+
+name: $(SourceBranchName)-$(Date:yyyyMMdd)$(Rev:.rrr)
+
+trigger:
+- master
+
+variables:
+  - group: credentials
+ 
+strategy:
+  matrix:
+    linux:
+      imageName: 'ubuntu-latest'
+    mac:
+      imageName: 'macos-latest'
+
+pool:
+  vmImage: $(imageName)
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '8.x'
+
+- task: Bash@3
+  inputs:
+    filePath: './.ci/install-prereqs.sh'
+  displayName: 'install pre-reqs'
+
+- task: Bash@3
+  inputs:
+    filePath: './.ci/install-gitlfs.sh'
+  displayName: 'install git-lfs'
+
+- task: Bash@3
+  inputs:
+    filePath: './.ci/build.sh'
+  env:
+    GITHUB_TOKEN: $(GITHUB-PAT)
+  displayName: 'yarn'
