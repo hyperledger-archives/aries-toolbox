@@ -108,7 +108,7 @@ class ConnectionDetail {
             if(this.socket.readyState === this.socket.OPEN){
                 this.socket.send(new Buffer.from(packedMsg, 'ascii'));
             } else {
-                this.outbound_msg_queue.push(packedMsg);
+                this.outbound_msg_queue.push(new Buffer.from(packedMsg, 'ascii'));
             }
         } else {
             throw "Unsupported transport protocol";
