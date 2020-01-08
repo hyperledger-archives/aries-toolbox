@@ -7,9 +7,6 @@ name: $(SourceBranchName)-$(Date:yyyyMMdd)$(Rev:.rrr)
 trigger:
 - master
 
-variables:
-  - group: credentials
- 
 strategy:
   matrix:
     linux:
@@ -25,19 +22,8 @@ steps:
   inputs:
     versionSpec: '8.x'
 
-- task: Bash@3
-  inputs:
-    filePath: './.ci/install-prereqs.sh'
+- script: ./.ci/install-prereqs.sh
   displayName: 'install pre-reqs'
 
-- task: Bash@3
-  inputs:
-    filePath: './.ci/install-gitlfs.sh'
-  displayName: 'install git-lfs'
-
-- task: Bash@3
-  inputs:
-    filePath: './.ci/build.sh'
-  env:
-    GITHUB_TOKEN: $(GITHUB-PAT)
+- script: yarn && yarn run build
   displayName: 'yarn'
