@@ -2,6 +2,8 @@ const DIDComm = require('encryption-envelope-js');
 const bs58 = require('bs58');
 const rp = require('request-promise');
 const uuidv4 = require('uuid/v4');
+const WebSocketAsPromised = require('websocket-as-promised');
+
 
 class ConnectionDetail {
     constructor(id, label, did_doc, my_key, inbound_processor = null) {
@@ -12,17 +14,13 @@ class ConnectionDetail {
 
         this.inbound_processor = inbound_processor;
 
-        this.outbound_msg_queue = [];
-
         this.didcomm = new DIDComm.DIDComm();
-
-        let cd = this;
 
         // evaluate DID Document to pick transport
         // filter for IndyAgent / DIDComm
         let supported_types = ["IndyAgent", "did-communication"];
         this.service_list = this.did_doc.service.filter(s => supported_types.includes(s.type));
-        function protocol(endpoint){
+        function protocol(endpoint) {
             return endpoint.split(":")[0];
         }
         function servicePrioritySort(a, b){
@@ -40,91 +38,103 @@ class ConnectionDetail {
         this.service = this.service_list[0]; //use the first in the list
         this.service_transport_protocol = protocol(this.service.serviceEndpoint);
 
-        if(this.service_transport_protocol === "ws" || this.service_transport_protocol === "wss"){
-            this.socket = new WebSocket(this.service.serviceEndpoint);
+        if (this.service_transport_protocol === "ws" ||
+            this.service_transport_protocol === "wss") {
 
-            // Connection opened
-            this.socket.addEventListener('open', function (event) {
-                console.log("Socket Transport Opened");
-                //socket.send('Hello Server!');
-                //send queued messages in this.outbound_msg_queue
-                while(cd.outbound_msg_queue.length > 0){
-                    cd.socket.send(cd.outbound_msg_queue.pop());
+            this.socket = new WebSocketAsPromised(this.service.serviceEndpoint, {
+                // WebSocket specific pack steps
+                packMessage: data => {
+                    return new Buffer.from(data, 'ascii');
+                },
+                unpackMessage: async data => {
+                    if (data instanceof Blob) {
+                        data = await blobToStr(data);
+                    }
+                    return data;
                 }
             });
 
             // Listen for messages
-            this.socket.addEventListener('message', async function (event) {
-                console.log('Message from server ', event.data);
-                let reader = new FileReader();
-                reader.addEventListener("loadend", async function(){
-                    await cd.unpack_and_process_inbound(reader.result);
-                });
-                reader.readAsText(event.data);
-                //await cd.unpack_and_process_inbound(event.data);
+            this.socket.onUnpackedMessage.addListener(async event => {
+                this.process_inbound(await this.unpackMessage(await event));
             });
         }
-
     }
 
-    needs_return_route_poll(){
+    needs_return_route_poll() {
         return this.service_transport_protocol === "http" || this.service_transport_protocol === "https";
     }
 
     async send_message(msg, set_return_route = true) {
-        let cd = this; // Safe reference to connection detail
-        msg['@id'] = '@id' in msg ? msg['@id'] : (uuidv4().toString()); // add id
+        console.log("Sending message:", msg);
+
+        if (!('@id' in msg)) { // Ensure @id is populated
+            msg['@id'] = uuidv4().toString();
+        }
+
         if (set_return_route) {
             if (!("~transport" in msg)) {
                 msg["~transport"] = {}
             }
             msg["~transport"]["return_route"] = "all"
         }
-        console.log("sending message", msg);
-        //console.log("to", bs58.decode(this.did_doc.service[0].recipientKeys[0]));
-        await this.didcomm.Ready;
-        const packedMsg = await this.didcomm.packMessage(JSON.stringify(msg), [bs58.decode(this.service.recipientKeys[0])], this.my_key);
-        //send request
-        if(this.service_transport_protocol === "http" || this.service_transport_protocol === "https"){
+
+        const packedMsg = await this.packMessage(msg);
+
+        // Send message
+        if (this.service_transport_protocol === "http" ||
+            this.service_transport_protocol === "https") {
+
             var options = {
                 method: 'POST',
                 uri: this.service.serviceEndpoint,
                 body: packedMsg,
             };
             rp(options)
-                .then(async function (parsedBody) {
-                    if (!parsedBody) { // POST succeeded...
+                .then(async parsedBody => { // POST succeeded...
+                    if (!parsedBody) {
                         console.log("No response for post; continuing.");
                         return;
                     }
-
-                    await cd.unpack_and_process_inbound(parsedBody);
-
+                    await this.process_inbound(await this.unpackMessage(parsedBody));
                 })
                 .catch(function (err) { // POST failed...
-                    console.log("request post err", err);
+                    console.log("Error while sending message:", err);
                 });
-        } else if(this.service_transport_protocol === "ws" || this.service_transport_protocol === "wss"){
-            if(this.socket.readyState === this.socket.OPEN){
-                this.socket.send(new Buffer.from(packedMsg, 'ascii'));
+        } else if (this.service_transport_protocol === "ws" ||
+            this.service_transport_protocol === "wss") {
+
+            if (this.socket) {
+                await this.socket.open();
             } else {
-                this.outbound_msg_queue.push(new Buffer.from(packedMsg, 'ascii'));
+                throw 'No socket connection available';
             }
+
+            this.socket.sendPacked(packedMsg);
         } else {
             throw "Unsupported transport protocol";
         }
-
     }
 
-    async unpack_and_process_inbound(packed_msg){
+    async packMessage(msg) {
+        await this.didcomm.Ready;
+        return await this.didcomm.packMessage(
+            JSON.stringify(msg),
+            [bs58.decode(this.service.recipientKeys[0])],
+            this.my_key
+        );
+    }
+
+    async unpackMessage(packed_msg) {
         await this.didcomm.Ready;
         const unpackedResponse = await this.didcomm.unpackMessage(packed_msg, this.my_key);
         //console.log("unpacked", unpackedResponse);
-        const response = JSON.parse(unpackedResponse.message);
+        return JSON.parse(unpackedResponse.message);
+    }
 
-        //TODO: Process signed fields
-        console.log("received message", response);
-        this.inbound_processor(response);
+    process_inbound(msg) {
+        console.log('Received Message:', msg);
+        this.inbound_processor(msg);
     }
 
     to_store() {
@@ -139,6 +149,17 @@ class ConnectionDetail {
         }
     }
 }
+
+async function blobToStr(blob) {
+    return await new Promise((resolve, reject) => {
+        let reader = new FileReader();
+        reader.addEventListener("loadend", async function(){
+            resolve(reader.result);
+        });
+        reader.readAsText(blob);
+    });
+}
+
 
 function new_connection(label, did_doc, my_key, inbound_processor) {
     return new ConnectionDetail(

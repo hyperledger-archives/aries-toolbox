@@ -51,6 +51,7 @@
     }
   },
   "dependencies": {
+    "@chenfengyuan/vue-qrcode": "^1.0.1",
     "axios": "^0.18.0",
     "element-ui": "^2.10.1",
     "encryption-envelope-js": "1.1.4",
@@ -64,7 +65,7 @@
     "vue-router": "^3.0.1",
     "vuex": "^3.0.1",
     "vuex-electron": "^1.0.0",
-    "@chenfengyuan/vue-qrcode": "^1.0.1"
+    "websocket-as-promised": "^1.0.1"
   },
   "devDependencies": {
     "ajv": "^6.5.0",
