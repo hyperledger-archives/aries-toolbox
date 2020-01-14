@@ -203,7 +203,8 @@ export default {
         cred =>
           "state" in cred &&
           cred.state === "credential_received" ||
-          cred.state === "stored"
+          cred.state === "stored" ||
+          cred.state === "credential_acked"
       )
     },
     storedStateCredentials(){
