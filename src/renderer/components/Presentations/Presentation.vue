@@ -350,8 +350,13 @@ export default {
       console.log('PRESENTATIONS', this.presentations);
       return this.presentations.filter(
         exchange =>
-        "state" in exchange &&
-        exchange.state === "verified" &&
+        (
+          "state" in exchange &&
+          (
+            exchange.state === "verified" ||
+            exchange.state === "presentation_acked"
+          )
+        ) &&
         //==========================================
         "role" in exchange &&
         "prover" === exchange.role )
