@@ -14,7 +14,7 @@ This screen serves as an interface to each connected agent. The main component i
 
 The menu is created at runtime based on the modules present in `src/renderer/components` and the protocols supported by the connected agent. Supported protocols are discovered through the _Discover Features Protocol_. 
 
-The dynamic menu allows for the toolbox to support a very wide variety of protocols, and only show the user the modules that can be used with a particular connected agent. This prevents user confusion while allowing the widest possible 
+The dynamic menu allows for the toolbox to support a very wide variety of protocols, and only show the user the modules that can be used with a particular connected agent. This prevents user confusion while allowing the widest possible array of supported protocols and modules.
 
 ## Message Bus
 
