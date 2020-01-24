@@ -15,8 +15,10 @@ exercises.
 
 The structure of the project is well formed and ready for contribution.
 
+Consult the [Architecture](architecture.md) and [How Modules Work](howmoduleswork.md) to learn more or contribute a new module.
+
 Many of the included modules rely on administrative protocols that have not yet been through
-a thorough review. These protocols are supported for ACApy via an extention that can be loaded at runtime.
+a thorough review. These protocols are supported for ACApy via an extension that can be loaded at runtime.
 As administrative protocols are reviewed, both the appropriate toolbox modules and the ACApy extensions
 will be updated.
 
