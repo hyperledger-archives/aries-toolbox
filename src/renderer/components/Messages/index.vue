@@ -1,5 +1,17 @@
 <template>
   <el-row>
+    <p>Send a message to:</p>
+    <el-select 
+      v-model="connection_id"
+      filterable
+      placeholder="Select Connection">
+      <el-option
+        v-for="connection in active_connections"
+        :key="connection.connection_id"
+        :label="connection.their_label"
+        :value="connection.connection_id">
+      </el-option>
+    </el-select>
     <div style="margin-bottom: 1em;">
       <el-input
         placeholder="Message"
@@ -82,13 +94,19 @@ export default {
   mixins: [
     message_bus(),
     share({
-      use: ['a2amessages']
+      use: ['a2amessages', 'active_connections'],
+      actions: ['fetch_connections']
     })
   ],
   data: function() {
     return {
       content: '',
+      connection_id: '',
     }
+  },
+  created: async function() {
+    await this.ready()
+    this.fetch_connections();
   },
   methods: {
     send: function() {
