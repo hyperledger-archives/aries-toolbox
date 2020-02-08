@@ -5,8 +5,13 @@
         placeholder="Message to send to the connected Agent"
         @keyup.enter.native="send"
         v-model="content"
-        style="width:500px;"></el-input>
-      <el-button type="primary" @click="send">Send</el-button>
+        style="width:500px;">
+        <el-button
+          slot="append"
+          type="primary"
+          icon="el-icon-check"
+          @click="send">Send</el-button>
+      </el-input>
     </div>
     <div v-for="m in basicmessages.slice().reverse()" :key="m.msg['@id']">
       <div :class="'basicmessage-'+m.direction">{{m.msg.content}}</div>

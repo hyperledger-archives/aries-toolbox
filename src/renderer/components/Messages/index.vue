@@ -5,7 +5,7 @@
         <el-select
           v-model="connection_id"
           filterable
-          placeholder="Select Connection"
+          placeholder="Select Conversation"
           @change="connection_selected">
           <el-option
             v-for="connection in active_connections"
@@ -16,47 +16,63 @@
         </el-select>
       </el-form-item>
     </el-form>
-    <div style="margin-bottom: 1em;">
+    <el-form :inline="true" style="margin-bottom: 1em;">
       <el-input
         placeholder="Message"
         @keyup.enter.native="send"
         v-model="content"
-        style="width:500px;"></el-input>
-      <el-button type="primary" @click="send">Send</el-button>
-    </div>
-    <div v-for="m in messages" :key="m.message_id">
-      <div :class="'basic_message-'+m.state">
-        <div class="content">{{m.content}}</div>
-        <span class="timestamp">{{nice_time(m.sent_time)}}</span>
-      </div>
+        style="width:500px;">
+      </el-input>
+        <el-button
+          type="primary"
+          icon="el-icon-s-promotion"
+          @click="send">Send</el-button>
+    </el-form>
+    <div id="message-container">
+        <div
+          v-for="m in messages"
+          :key="m.message_id"
+          :class="'basic_message basic_message-'+m.state">
+          <div class="content">{{m.content}}</div>
+          <div class="timestamp">{{nice_time(m.sent_time)}}</div>
+        </div>
     </div>
   </el-row>
 </template>
 
 <style>
+#message-container {
+  display: flex;
+  flex-direction: column;
+}
 .message-display {
   margin-bottom: 1em;
   border-bottom: 1px solid lightgrey;
   padding-bottom: 1em;
 }
+.basic_message:hover .timestamp {
+  display: block;
+}
 .basic_message-sent {
   background-color: white;
-  margin-right: 4em;
+  margin-right: auto;
   margin-bottom: 1em;
   padding: 1em;
   border: 1px solid lightgrey;
   border-radius: 4px;
+  justify-content: flex-start;
 }
 .basic_message-recv {
-  background-color: lightblue;
-  margin-left: 4em;
+  background-color: #ecf5ff;
+  margin-left: auto;
   margin-bottom: 1em;
   padding: 1em;
-  text-align: right;
-  border: 1px solid lightgrey;
+  justify-content: flex-end;
+  border: 1px solid #d9ecff;
   border-radius: 4px;
 }
 .timestamp {
+  display: none;
   font-style: italic;
   font-size: small;
   color: grey;
@@ -99,7 +115,7 @@ export const shared = {
         title: 'New message from ' + share.id_to_connection[msg.connection_id].their_label,
         message: (text => {
             if (text.length > 30) {
-              return text.slice(0, 30) + '...';
+              return text.slice(0, 30).trim() + '...';
             }
             return text;
           })(msg.message.content),
