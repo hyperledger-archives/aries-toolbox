@@ -1,6 +1,6 @@
 <template>
   <el-row>
-    <el-form @submit="" :inline="true">
+    <el-form @submit.native.prevent :inline="true">
       <el-form-item label="To:">
         <el-select
           v-model="connection_id"
