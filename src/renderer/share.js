@@ -1,10 +1,11 @@
 import Vue from 'vue';
 import message_bus from '@/message_bus.js';
 
-export function Share(data = {}, computed = {}, methods = {}) {
+export function Share(vm, data = {}, computed = {}, methods = {}) {
     return new Vue({
         data: function() {
             return {
+                vm: vm,
                 ...data
             };
         },
@@ -58,7 +59,7 @@ export function share_source(modules) {
     }, {});
     return {
         beforeCreate: function() {
-            this.$share = Share(data, computed, mutated_methods);
+            this.$share = Share(this, data, computed, mutated_methods);
             this.$share.message_bus = this.$message_bus;
         },
         created: function() {

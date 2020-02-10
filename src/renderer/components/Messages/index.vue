@@ -1,6 +1,6 @@
 <template>
   <el-row>
-    <el-form :inline="true">
+    <el-form @submit="" :inline="true">
       <el-form-item label="To:">
         <el-select
           v-model="connection_id"
@@ -71,6 +71,13 @@
   border: 1px solid #d9ecff;
   border-radius: 4px;
 }
+.basic_message-recv .timestamp {
+  text-align: right;
+}
+.basic_message-sent .timestamp {
+  text-align: left;
+}
+
 .timestamp {
   display: none;
   font-style: italic;
@@ -98,6 +105,7 @@ export const metadata = {
 export const shared = {
   data: {
     basic_messages: {},
+    latest_message: null
   },
   listeners: {
     'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin_basicmessage/0.1/sent': (share, msg) => {
@@ -111,16 +119,10 @@ export const shared = {
         share.$set(share.basic_messages, msg.connection_id, []);
       }
       share.basic_messages[msg.connection_id].push(msg.message);
-      share.$notify({
-        title: 'New message from ' + share.id_to_connection[msg.connection_id].their_label,
-        message: (text => {
-            if (text.length > 30) {
-              return text.slice(0, 30).trim() + '...';
-            }
-            return text;
-          })(msg.message.content),
-        duration: 2000
-      });
+      if (share.vm.$route.name !== 'a2a-message') {
+        share.new_message_notify(msg.connection_id, msg.message);
+      }
+      share.latest_message = msg;
     },
     'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin_basicmessage/0.1/messages': (share, msg) => {
       share.$set(share.basic_messages, msg.connection_id, msg.messages);
@@ -139,6 +141,23 @@ export const shared = {
         'limit': limit,
         'offset': offset
       });
+    },
+    new_message_notify: function({share}, connection_id, msg) {
+      let label = '[Unknown]';
+      if (connection_id in share.id_to_connection) {
+        label = share.id_to_connection[connection_id].their_label;
+      }
+
+      share.$notify({
+        title: 'New message from ' + label,
+        message: (text => {
+          if (text.length > 30) {
+            return text.slice(0, 30).trim() + '...';
+          }
+          return text;
+        })(msg.content),
+        duration: 4000
+      });
     }
   }
 };
@@ -148,14 +167,21 @@ export default {
   mixins: [
     message_bus(),
     share({
-      use: ['basic_messages', 'active_connections'],
-      actions: ['fetch_connections', 'fetch_messages']
+      use: ['basic_messages', 'active_connections', 'latest_message'],
+      actions: ['fetch_connections', 'fetch_messages', 'new_message_notify']
     })
   ],
   data: function() {
     return {
       content: '',
       connection_id: '',
+    }
+  },
+  watch: {
+    latest_message: function(msg) {
+      if (msg.connection_id != this.connection_id) {
+        this.new_message_notify(msg.connection_id, msg.message);
+      }
     }
   },
   computed: {
@@ -166,7 +192,7 @@ export default {
       return this.basic_messages[this.connection_id].sort((lhs, rhs) => {
         return new Date(rhs.sent_time) - new Date(lhs.sent_time);
       });
-    }
+    },
   },
   created: async function() {
     await this.ready()
