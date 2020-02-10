@@ -53,7 +53,7 @@
 .basic_message:hover .timestamp {
   display: block;
 }
-.basic_message-sent {
+.basic_message-recv {
   background-color: white;
   margin-right: auto;
   margin-bottom: 1em;
@@ -62,7 +62,7 @@
   border-radius: 4px;
   justify-content: flex-start;
 }
-.basic_message-recv {
+.basic_message-sent {
   background-color: #ecf5ff;
   margin-left: auto;
   margin-bottom: 1em;
@@ -71,10 +71,10 @@
   border: 1px solid #d9ecff;
   border-radius: 4px;
 }
-.basic_message-recv .timestamp {
+.basic_message-sent .timestamp {
   text-align: right;
 }
-.basic_message-sent .timestamp {
+.basic_message-recv .timestamp {
   text-align: left;
 }
 
