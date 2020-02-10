@@ -16,7 +16,7 @@
         </el-select>
       </el-form-item>
     </el-form>
-    <el-form :inline="true" style="margin-bottom: 1em;">
+    <el-form @submit.native.prevent :inline="true" style="margin-bottom: 1em;">
       <el-input
         placeholder="Message"
         @keyup.enter.native="send"
