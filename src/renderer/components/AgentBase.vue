@@ -130,7 +130,13 @@ export default {
     share_source(shared),
     share({
       use: ['dids', 'public_did', 'protocols'],
-      actions: ['fetch_dids', 'fetch_active_did', 'activate_did', 'fetch_protocols']
+      actions: [
+        'fetch_dids',
+        'fetch_active_did',
+        'activate_did',
+        'fetch_protocols',
+        'fetch_connections'
+      ]
     })
   ],
   props: ['agentid'],
@@ -196,6 +202,7 @@ export default {
     this.fetch_protocols();
     this.fetch_dids();
     this.fetch_active_did();
+    this.fetch_connections();
     this.$message_bus.$emit('agent-created');
     //start poll timer
     if(this.connection.needs_return_route_poll()){

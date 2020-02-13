@@ -31,7 +31,8 @@ a simplified view of BasicMessages.
 	"message_id": "038cae8b-844c-42a8-823d-e6379d2b848a",
 	"sent_time": "2020-01-28T02:02:00Z",
 	"locale": "en",
-	"content": "Your hovercraft is full of eels."
+	"content": "Your hovercraft is full of eels.",
+	"state": "recv",
 }
 ```
 
@@ -48,6 +49,8 @@ RFC][1].
 [localization decorator][2].
 
 `content`: The contents of the basic message.
+
+`state`: One of `sent` or `recv`.
 
 [1]: https://github.com/hyperledger/aries-rfcs/tree/master/features/0095-basic-message
 [2]: https://github.com/hyperledger/aries-rfcs/tree/master/features/0043-l10n

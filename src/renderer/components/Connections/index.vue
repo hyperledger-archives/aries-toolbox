@@ -65,6 +65,14 @@ export const shared = {
             conn => "state" in conn && conn.state === "active"
         );
     },
+    id_to_connection: function(connection_id) {
+      let map = {};
+      this.connections.forEach((connection) => {
+        map[connection.connection_id] = connection;
+      })
+      console.log(map);
+      return map;
+    }
   },
   listeners: {
     "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/connection-list":
