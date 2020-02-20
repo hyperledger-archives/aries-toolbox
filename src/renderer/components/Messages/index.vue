@@ -90,7 +90,7 @@
 import message_bus from '@/message_bus.js';
 import share from '@/share.js';
 
-export const protocol = 'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin_basicmessage/0.1';
+export const protocol = 'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1';
 export const metadata = {
   menu: {
     label: 'Messages',
