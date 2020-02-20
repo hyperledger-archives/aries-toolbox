@@ -1,1 +1,1 @@
-See [delete](/docs/admin_basicmessage/0.1/README.md#delete).
+See [delete](/docs/admin-basicmessage/0.1/README.md#delete).

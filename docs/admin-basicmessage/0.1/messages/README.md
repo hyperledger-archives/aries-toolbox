@@ -1,1 +1,1 @@
-See [messages](/docs/admin_basicmessage/0.1/README.md#messages).
+See [messages](/docs/admin-basicmessage/0.1/README.md#messages).

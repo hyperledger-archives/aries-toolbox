@@ -1,1 +1,1 @@
-See [get](/docs/admin_basicmessage/0.1/README.md#get).
+See [get](/docs/admin-basicmessage/0.1/README.md#get).
