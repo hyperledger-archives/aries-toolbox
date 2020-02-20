@@ -3,7 +3,7 @@ BasicMessage Admin Protocol
 
 ## Overview
 
-**Protocol URI:** `https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin_basicmessage/0.1`
+**Protocol URI:** `https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1`
 
 ### Protocol Messages
 - [new](#new)
@@ -63,7 +63,7 @@ Instruct the agent to send a new BasicMessage to a specified connection.
 Example:
 ```jsonc
 {
-	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin_basicmessage/0.1/send",
+	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/send",
 	"connection_id": "65dfdda3-2a64-4d9b-b8f1-106834f70a95",
 	"content": "Your hovercraft is full of eels."
 }
@@ -82,7 +82,7 @@ message.
 Example:
 ```jsonc
 {
-	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin_basicmessage/0.1/sent",
+	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/sent",
 	"~thread": {"thid": "<send msg id>"},
 	"connection_id": "64dc865f-3e69-4970-9fb1-5276f9ab63d0",
 	"message": { ... }
@@ -106,7 +106,7 @@ websocket).
 Example:
 ```jsonc
 {
-	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin_basicmessage/0.1/new",
+	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/new",
 	"connection_id": "64dc865f-3e69-4970-9fb1-5276f9ab63d0",
 	"message": { ... }
 }
@@ -128,14 +128,14 @@ The following example will retrieve all received BasicMessages without filtering
 or pagination:
 ```jsonc
 {
-	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin_basicmessage/0.1/get",
+	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/get",
 }
 ```
 
 To limit by connection:
 ```jsonc
 {
-	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin_basicmessage/0.1/get",
+	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/get",
 	"connection_id": "a07422d3-32e9-4ab6-9473-3b37459e1be7"
 }
 ```
@@ -144,7 +144,7 @@ To return only the first 10 messages (the same can also be applied with
 `connection_id`):
 ```jsonc
 {
-	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin_basicmessage/0.1/get",
+	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/get",
 	"limit": 10
 }
 ```
@@ -152,7 +152,7 @@ To return only the first 10 messages (the same can also be applied with
 To return 10 messages, offset by 10 (i.e. retrieve "page 2" of messages):
 ```jsonc
 {
-	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin_basicmessage/0.1/get",
+	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/get",
 	"limit": 10,
 	"offset": 10
 }
@@ -171,7 +171,7 @@ Return the matched messages as requested by the `get` message.
 Example:
 ```jsonc
 {
-	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin_basicmessage/0.1/messages",
+	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/messages",
 	"~thread": {"thid": "<get msg id>"}
 	"connectin_id": "b994182e-1457-4eaf-8014-88cc7eb12bed",
 	"count": 10,
@@ -204,14 +204,14 @@ Delete a message or messages with filtering criteria.
 To delete all messages:
 ```jsonc
 {
-	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin_basicmessage/0.1/delete",
+	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/delete",
 }
 ```
 
 To delete all messages from a connection:
 ```jsonc
 {
-	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin_basicmessage/0.1/delete",
+	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/delete",
 	"connection_id": "ccbea120-4976-4408-a633-94ab118efb2f",
 }
 ```
@@ -219,7 +219,7 @@ To delete all messages from a connection:
 To delete a message by message ID:
 ```jsonc
 {
-	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin_basicmessage/0.1/delete",
+	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/delete",
 	"message_id": "90afbad7-aa4c-4238-9b25-e6cebef32b3d"
 }
 ```
@@ -227,7 +227,7 @@ To delete a message by message ID:
 To delete all messages before a date and time:
 ```jsonc
 {
-	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin_basicmessage/0.1/delete",
+	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/delete",
 	"before_date": "2020-01-28T15:10:38Z"
 }
 ```
@@ -236,7 +236,7 @@ The selection criteria can be mixed to, for instance, delete all messages from
 a connection sent before a certain date and time:
 ```jsonc
 {
-	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin_basicmessage/0.1/delete",
+	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/delete",
 	"connection_id": "49935525-20a9-4631-af0d-b1def4fa0157",
 	"before_date": "2020-01-28T15:10:38Z"
 }
@@ -259,7 +259,7 @@ Acknowledge deletion of messages and optionally return the deleted messages.
 
 ```jsonc
 {
-	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin_basicmessage/0.1/delete",
+	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/delete",
 	"connection_id": "d0b301be-b825-4fbe-bc35-67b49c7a5e38",
 	"deleted": [ { ... }, { ... }, ... ]
 }
