@@ -90,6 +90,7 @@
 import message_bus from '@/message_bus.js';
 import share from '@/share.js';
 
+export const protocol = 'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1';
 export const metadata = {
   menu: {
     label: 'Messages',
@@ -97,8 +98,17 @@ export const metadata = {
     group: 'Agent to Agent',
     priority: 45,
     required_protocols: [
-      'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin_basicmessage/0.1'
+      protocol
     ]
+  },
+  message_types: {
+    new: protocol + '/new',
+    send: protocol + '/send',
+    sent: protocol + '/sent',
+    get: protocol + '/get',
+    messages: protocol + '/messages',
+    delete: protocol + '/delete',
+    deleted: protocol + '/deleted'
   }
 };
 
@@ -108,13 +118,13 @@ export const shared = {
     latest_message: null
   },
   listeners: {
-    'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin_basicmessage/0.1/sent': (share, msg) => {
+    [metadata.message_types.sent]: (share, msg) => {
       if (!(msg.connection_id in share.basic_messages)) {
         share.$set(share.basic_messages, msg.connection_id, []);
       }
       share.basic_messages[msg.connection_id].push(msg.message);
     },
-    'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin_basicmessage/0.1/new': (share, msg) => {
+    [metadata.message_types.new]: (share, msg) => {
       if (!(msg.connection_id in share.basic_messages)) {
         share.$set(share.basic_messages, msg.connection_id, []);
       }
@@ -124,7 +134,7 @@ export const shared = {
       }
       share.latest_message = msg;
     },
-    'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin_basicmessage/0.1/messages': (share, msg) => {
+    [metadata.message_types.messages]: (share, msg) => {
       share.$set(share.basic_messages, msg.connection_id, msg.messages);
     }
   },
@@ -136,7 +146,7 @@ export const shared = {
         offset = limit * page;
       }
       send({
-        '@type': 'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin_basicmessage/0.1/get',
+        '@type': metadata.message_types.get,
         'connection_id': connection_id,
         'limit': limit,
         'offset': offset
@@ -206,7 +216,7 @@ export default {
       }
 
       let msg = {
-        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin_basicmessage/0.1/send",
+        "@type": metadata.message_types.send,
         "connection_id": this.connection_id,
         "content": this.content
       };
