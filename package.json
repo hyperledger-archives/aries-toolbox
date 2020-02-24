@@ -3,7 +3,11 @@
   "version": "0.0.1",
   "author": "Sam Curren <telegramsam@gmail.com>",
   "description": "Tools for working with Aries Agents",
-  "license": null,
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:hyperledger/aries-toolbox.git"
+  },
+  "license": "Apache-2.0",
   "main": "./dist/electron/main.js",
   "scripts": {
     "build": "node .electron-vue/build.js && electron-builder --publish never",
@@ -79,7 +83,6 @@
     "babel-preset-stage-0": "^6.24.1",
     "babel-register": "^6.26.0",
     "babili-webpack-plugin": "^0.1.2",
-    "bootstrap": "^4.3.1",
     "cfonts": "^2.1.2",
     "chalk": "^2.4.1",
     "copy-webpack-plugin": "^5.1.1",
