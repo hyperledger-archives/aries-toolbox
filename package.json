@@ -4,8 +4,8 @@
   "author": "Sam Curren <telegramsam@gmail.com>",
   "description": "Tools for working with Aries Agents",
   "repository": {
-    "type": "git",
-    "url": "git@github.com:hyperledger/aries-toolbox.git"
+    "type": "https",
+    "url": "https://github.com/hyperledger/aries-toolbox.git"
   },
   "license": "Apache-2.0",
   "main": "./dist/electron/main.js",
