@@ -15,7 +15,7 @@
       <ul class="list">
         <el-collapse-item
           v-for="credential in receivedStateCredentials"
-          v-bind:title="credential.credential_exchange_id"
+          v-bind:title="credential_title(credential)"
           :name="credential.credential_exchange_id"
           :key="credential.credential_exchange_id">
           <el-row>
@@ -117,16 +117,18 @@
 
 <script>
 import VueJsonPretty from 'vue-json-pretty';
+import share from '@/share.js';
 
 export default {
   name: 'my-credentials-list',
   props: [
     'title',
     'editable',
-    'credentials',
+    'list',
     'connections',
     'cred_defs'
     ],
+  mixins: [share({use: ['id_to_connection']})],
   components: {
     VueJsonPretty,
   },
@@ -183,14 +185,27 @@ export default {
         });
       });
     },
+    credential_title: function(cred) {
+      let split = cred.schema_id.split(':');
+      let connection_name = '';
+      if (!cred.connection) {
+        connection_name = '[deleted]';
+      } else {
+        connection_name = cred.connection.their_label;
+      }
+      return `${split[2]} v${split[3]} received from ${connection_name}`;
+    }
   },
   computed: {
-    connection_map: function() {
-      let map =  this.connections.reduce((acc, item) => {
-        acc[item.connection_id] = item;
-        return acc;
-      }, {});
-      return map;
+    credentials: function() {
+      return this.list.map(item => {
+        if (item.connection_id in this.id_to_connection) {
+          item.connection = this.id_to_connection[item.connection_id];
+        } else {
+          item.connection = null;
+        }
+        return item;
+      });
     },
     offerReceivedStateCredentials(){
       return this.credentials.filter(cred => "state" in cred && cred.state === "offer_received")
