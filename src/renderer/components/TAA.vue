@@ -66,7 +66,7 @@ export default {
       }
     }),
     share({
-      use: ['protocols', 'public_did']
+      use: ['protocols']
     })
   ],
   data: function() {
@@ -83,8 +83,10 @@ export default {
     }
   },
   watch: {
-    public_did: function() {
-      this.get_acceptance();
+    protocols: function() {
+      if (this.protocols.find(item => item.pid === protocol)) {
+        this.get_acceptance();
+      }
     }
   },
   methods: {
