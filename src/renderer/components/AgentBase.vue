@@ -90,6 +90,10 @@
     line-height: 36px;
   }
 
+  .problem-report-notification {
+    cursor: pointer;
+  }
+
 </style>
 
 <script>
@@ -125,6 +129,21 @@ export default {
     message_bus({ events: {
       'send-message': (v, msg, return_route) => {
         v.send_connection_message(msg, return_route);
+      },
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/notification/1.0/problem-report':
+      (vm, msg) => {
+        vm.$notify.error({
+          title: 'Small problem...',
+          message: (text => {
+            if (text.length > 30) {
+              return text.slice(0, 30).trim() + '...';
+            }
+            return text;
+          })(msg['explain-ltxt']),
+          onClick: () => vm.$router.push({name: 'message-history'}),
+          duration: 4000,
+          customClass: 'problem-report-notification'
+        })
       }
     }}),
     share_source(shared),
