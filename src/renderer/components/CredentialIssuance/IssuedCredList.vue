@@ -15,7 +15,7 @@
       <ul class="list">
         <el-collapse-item
           v-for="issued_credential in credentials"
-          v-bind:title="issued_credential.connection_their_label + ' ' + issued_credential.cred_def_id"
+          v-bind:title="credential_title(issued_credential)"
           :name="issued_credential.credential_exchange_id"
           :key="issued_credential.credential_exchange_id">
           <el-row>
@@ -88,10 +88,12 @@
 
 <script>
 import VueJsonPretty from 'vue-json-pretty';
+import share from '@/share.js';
 
 export default {
   name: 'issued-cred-list',
   props: ['title', 'list', 'connections', 'cred_defs'],
+  mixins: [share({use: ['id_to_connection']})],
   components: {
     VueJsonPretty,
   },
@@ -111,17 +113,14 @@ export default {
   },
   computed: {
     credentials: function() {
-        let joinedCredentialsConnections = this.list.map((item) => {
-          var index = this.connections.map(function(x) {return x.connection_id; }).indexOf(item.connection_id);
-          var objectFound = this.connections[index];
-          if (index >= 0) {
-            item.connection_their_label = this.connections[index].their_label
-          }else{
-            item.connection_their_label = "deleted connetion"
-          }
+      return this.list.map(item => {
+        if (item.connection_id in this.id_to_connection) {
+          item.connection = this.id_to_connection[item.connection_id];
+        } else {
+          item.connection = null;
+        }
         return item;
-        },{})
-        return joinedCredentialsConnections;
+      });
     },
   },
   methods: {
@@ -164,6 +163,16 @@ export default {
         });
       });
     },
+    credential_title: function(cred) {
+      let split = cred.schema_id.split(':');
+      let connection_name = '';
+      if (!cred.connection) {
+        connection_name = '[deleted]';
+      } else {
+        connection_name = cred.connection.their_label;
+      }
+      return `${split[2]} v${split[3]} issued to ${connection_name}`;
+    }
   }
 }
 </script>

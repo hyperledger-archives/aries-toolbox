@@ -8,7 +8,7 @@
     <my-credentials-list
       title="Credentials"
       editable="false"
-      v-bind:credentials="holder_credentials"
+      v-bind:list="holder_credentials"
       v-bind:cred_defs="proposal_cred_defs"
       v-bind:connections="active_connections"
       @cred-refresh="fetch_holder_credentials"
@@ -98,6 +98,9 @@ export default {
       };
       this.send_message(query_msg);
     }
+  },
+  created: function() {
+    this.fetch_holder_credentials();
   }
 }
 </script>
