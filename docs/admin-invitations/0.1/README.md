@@ -1,43 +1,130 @@
-# Aries Toolbox
+Invitations Admin Protocol
+==========================
 
-The Toolbox makes interacting with Aries Agent easier for developers and system administrators.
-Toolbox Modules provide user interface for protocols. Debugging information and details
-are included and visible.
+## Overview
 
-The ToolBox uses the Discover Features Protocol to determine which protocols are supported
-by the connected agent, and will customize the menu of modules to match supported protocols.
+**Protocol URI:** `https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1`
 
-The toolbox can connect to multiple agents simultaneously, each with it's own window. This
-makes it possible to manage multiple agents, either in production or in technical training
-exercises.
+### Notes
+- Missing is the concept of creating an invitation from a public did. We anticipate
+adding a `public_did` attribute to indicate which DID should be used. Currently, we expect
+a new DID to be provisioned for the invitation.
+- This version lacks a way to remove or deactivate a DID.
+- This version lacks paging of invitation lists.
+- This version lacks a way to filter invitations when listing.
 
-#### Project State
+### Protocol Messages
+- [create-invitation](#create-invitation)
+- [invitation](#invitation)
+- [invitation-get-list](#invitation-get-list)
+- [invitation-list](#invitation-list)
 
-The structure of the project is well formed and ready for contribution.
+## Message Definitions
 
-Consult the [Architecture](architecture.md) and [How Modules Work](howmoduleswork.md) to learn more or contribute a new module.
+> _**Note:**_ Some attributes are omitted from the examples in this section,
+> such as the `@id` attribute. The omission is for brevity and clarity of the
+> example and it should be assumed that each example message contains all
+> attributes required to be processed by the receiving agent.
 
-Many of the included modules rely on administrative protocols that have not yet been through
-a thorough review. These protocols are supported for ACApy via an extension that can be loaded at runtime.
-As administrative protocols are reviewed, both the appropriate toolbox modules and the ACApy extensions
-will be updated.
+### Common Attributes
+The following attributes are common across all messages in this protocol. Each time an attribute
+ appears, it means the same thing.
+
+`alias`: The name of the invitation as viewed by the inviter.
+
+`label`: The label presented inside the invitation as a suggestion of what to name the connection.
+
+`role`: The name of the role that resulting connection(s) should receive.
+
+`auto_accept`: True if connections from this invitaiton should be automatically accepted.
+
+`multi_use`: True of this invitation is expected to be used multiple times.
 
 
-#### Build Setup
+--------------------------------------------------------------------------------
 
-``` bash
-# install dependencies
-npm install
+### create-invitation
+Instruct the agent to create a new invitation.
 
-# serve with hot reload at localhost:9080
-npm run dev
-
-# build electron application for production
-npm run build
-
-
+Example:
+```jsonc
+{
+	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/create-invitation",
+	"alias": "Invitation I sent to Alice",
+	"label": "Bob"
+	"role": "admin",
+	"auto_accept": true,
+	"multi_use": true
+}
 ```
 
----
+See [Common Attributes](#common-attributes)
 
-This project was generated with [electron-vue](https://github.com/SimulatedGREG/electron-vue) using [vue-cli](https://github.com/vuejs/vue-cli). Documentation about the original structure can be found [here](https://simulatedgreg.gitbooks.io/electron-vue/content/index.html).
+### invitation
+
+Details of a new invitation created as requested by a `create_invitation` message.
+
+Example:
+```jsonc
+{
+	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/invitation",
+	"~thread": {"thid": "<send msg id>"},
+	"alias": "Invitation I sent to Alice",
+	"label": "Bob"
+	"role": "myrole",
+	"auto_accept": true,
+	"multi_use": true
+}
+```
+
+`~thread`: Thread ID will match the message ID of the corresponding `create_invitation`
+message.
+
+See [Common Attributes](#common-attributes)
+
+
+### invitation-get-list
+The `invitation-get-list` message is sent to ask for a list of existing
+invitations.
+
+Example:
+```jsonc
+{
+	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/invitation-get-list"
+}
+```
+
+
+### invitation-list
+
+List of invitations as requested by a `invitation-get-list` message.
+
+```jsonc
+{
+	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/invitation-list"
+    "results": [
+        {
+            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/invitation",
+            "@id": "5a5901c2-b912-4007-8b0c-0eb65c5c3b4b",
+            "id": "00ed9110-444b-455d-aab4-8575b299565c",
+            "alias": "Invitation I sent to Alice",
+            "label": "Bob",
+            "role": "myrole",
+            "auto_accept": true,
+            "multi_use": true
+            "invitation_url": "http://cc086c23.ngrok.io?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiNzVmNjZmYmQtZDdiNS00Zjg0LWI4YjMtMjBmYzUxZTc1Njc0IiwgInJlY2lwaWVudEtleXMiOiBbIjdZVm0zQks3NHBROHhKU2h5QVJSZ29COTMxZFVtUmN5U2JTUGZIZFpqREsyIl0sICJzZXJ2aWNlRW5kcG9pbnQiOiAiaHR0cDovL2NjMDg2YzIzLm5ncm9rLmlvIiwgImxhYmVsIjogImxsbGxsIn0=",
+            "created_date": "2020-02-21 04:09:37.878504Z",
+        }
+    ]
+}
+```
+
+`results`: A list of invitations.
+
+`id`: The ID of the invitation
+
+`invitation_url`: The invitation in encoded URL form
+
+`created_date`: The date of invitation creation, in ISO8601 form
+
+See [Common Attributes](#common-attributes)
