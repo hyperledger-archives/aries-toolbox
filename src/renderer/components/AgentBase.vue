@@ -45,6 +45,7 @@
         -->
       </el-form>
     </nav>
+    <taa></taa>
 
     <el-main id="main-display">
       <router-view></router-view>
@@ -90,6 +91,10 @@
     line-height: 36px;
   }
 
+  .problem-report-notification {
+    cursor: pointer;
+  }
+
 </style>
 
 <script>
@@ -102,6 +107,7 @@ import { from_store } from '../connection_detail.js';
 import message_bus from '@/message_bus.js';
 import share, {share_source} from '@/share.js';
 import components, {shared} from './components.js';
+import Taa from './TAA.vue';
 
 // The (. && .. && ...) || 'default' syntax provides defaults for modules that lack any level of the metadata
 //  definition. It would be useful if javascript had an Elvis Operator, but it does not.
@@ -125,6 +131,21 @@ export default {
     message_bus({ events: {
       'send-message': (v, msg, return_route) => {
         v.send_connection_message(msg, return_route);
+      },
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/notification/1.0/problem-report':
+      (vm, msg) => {
+        vm.$notify.error({
+          title: 'Small problem...',
+          message: (text => {
+            if (text.length > 30) {
+              return text.slice(0, 30).trim() + '...';
+            }
+            return text;
+          })(msg['explain-ltxt']),
+          onClick: () => vm.$router.push({name: 'message-history'}),
+          duration: 4000,
+          customClass: 'problem-report-notification'
+        })
       }
     }}),
     share_source(shared),
@@ -140,6 +161,7 @@ export default {
     })
   ],
   props: ['agentid'],
+  components: {Taa},
   data: function() {
     return {
       'connection': {'label':'loading...'},

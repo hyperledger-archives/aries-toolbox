@@ -62,7 +62,12 @@ export const shared = {
   computed: {
     active_connections: function() {
         return Object.values(this.connections).filter(
-            conn => "state" in conn && conn.state === "active"
+          conn => {
+            if (!("state" in conn)) {
+              return false;
+            }
+            return conn.state === "active" || conn.state === "response"
+          }
         );
     },
     id_to_connection: function(connection_id) {
