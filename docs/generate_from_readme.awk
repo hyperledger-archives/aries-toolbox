@@ -17,7 +17,7 @@ BEGIN {
 
 # For every line for which the print flag is set
 p {
-    match($2, /\[([[:alpha:]]*)\]\(([#[:alpha:]]*)\)/, matches)
+    match($2, /\[([[:alpha:]-]*)\]\(([#[:alpha:]-]*)\)/, matches)
     name = matches[1]
     link = matches[2]
     print "Generating " DIR "/" name "..."

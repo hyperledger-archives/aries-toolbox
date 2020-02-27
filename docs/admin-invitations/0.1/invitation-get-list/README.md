@@ -1,0 +1,1 @@
+See [invitation-get-list](/docs/admin-invitations/0.1/README.md#invitation-get-list).
