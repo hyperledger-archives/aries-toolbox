@@ -17,7 +17,7 @@
         <el-collapse-item
           v-if="presentations.length"
           v-for="presentation in presentations"
-          v-bind:title="presentation.connection_their_label + ' ' + presentation.presentation_exchange_id"
+          v-bind:title="presentation_title(presentation)"
           :name="presentation.presentation_exchange_id"
           :key="presentation.presentation_exchange_id">
           <el-row>
@@ -208,6 +208,7 @@
 
 <script>
 import VueJsonPretty from 'vue-json-pretty';
+import share from '@/share.js';
 
 export default {
   name: 'verification',
@@ -219,6 +220,7 @@ export default {
     'cred_defs',
     'trusted_issuers'
   ],
+  mixins: [share({use: ['id_to_connection']})],
   components: {
     VueJsonPretty,
   },
@@ -285,23 +287,26 @@ export default {
       return map;
     },
     presentations: function() {
-        let joinedPresentationsConnections = this.list.map((item) => {
-          var index = this.connections.map(function(x) {return x.connection_id; }).indexOf(item.connection_id);
-          var objectFound = this.connections[index];
-          if (index >= 0) {
-            item.connection_their_label = this.connections[index].their_label
-          }else{
+        return this.list.map((item) => {
+          if (item.connection_id in this.id_to_connection) {
+            item.connection_their_label = this.id_to_connection[item.connection_id].their_label;
+          } else {
             item.connection_their_label = "deleted connetion"
           }
-        return item;
-        },{})
-        return joinedPresentationsConnections;
+          if ('presentation' in item && 'proof' in item.presentation) {
+            delete item.presentation.proof;
+          }
+          return item;
+        });
       },
     completed_verifications: function() {
       return this.list.filter(pres_exch => pres_exch.state === 'verified');
     }
   },
   methods: {
+    presentation_title: function(presentation) {
+      return presentation.presentation_request.name + ' requested from ' + presentation.connection_their_label;
+    },
     collapse_expanded: function(creddef) {
       this.expanded_items = this.expanded_items.filter(
         item => item != creddef.presentation_exchange_id
