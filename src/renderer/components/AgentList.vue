@@ -1,42 +1,47 @@
 <template>
-  <div id="wrapper" class="container-fluid">
-
+  <el-row>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#">Agent Toolbox</a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav">
-          <li class="nav-item">
-            <a class="nav-link" href="#">New Connection</a>
-          </li>
-        </ul>
-      </div>
+      <a class="navbar-brand" href="#">Aries Toolbox</a>
     </nav>
 
-    <div class="card" style="" v-for="a in agent_list">
-      <div class="card-body">
-        <h5 class="card-title">{{a.label}}</h5>
-        <a href="#" class="card-link" v-on:click="openConnection(a)">Connect</a>
-        <a href="#" class="card-link">Edit</a>
-        <a href="#" class="card-link" v-on:click="deleteConnection(a)">Delete</a>
+    <el-card shadow="never" class="agent-card" v-for="a in agent_list">
+      <span slot="header"><strong>{{a.label}}</strong></span>
+      <div>
+        <el-button type="text" @click="openConnection(a)">Open</el-button>
+        <el-button type="text" @click="deleteConnection(a)">Delete</el-button>
       </div>
-    </div>
+    </el-card>
 
-    <div class="card">
-      <div class="card-header">
-        New Agent Connection
+    <el-card shadow="never" id="new_agent_connection">
+      <span slot="header">New Agent Connection</span>
+      <div>
+        <el-form :inline="true">
+          <el-input v-model="new_agent_invitation" placeholder="Paste agent invitation"></el-input>
+          <el-button type="primary" @click="new_agent_invitation_process">Connect</el-button>
+        </el-form>
       </div>
-      <div class="card-body">
-        <input type="text" class="form-control" placeholder="Paste Agent Invite" v-model="new_agent_invitation"/>
-        <input type="button" class="btn btn-secondary" v-on:click="new_agent_invitation_process()" value="Add"/>
-      </div>
-    </div>
-
-  </div>
+    </el-card>
+  </el-row>
 </template>
 
+<style>
+.agent-card:first-of-type {
+  margin-top: .5em;
+}
+.agent-card, #new_agent_connection {
+  margin: .5em 1em;
+  border: 1px solid rgba(0, 0, 0, 0.125);
+}
+.agent-card .el-card__header,
+#new_agent_connection .el-card__header {
+  padding: .75rem 1.25rem;
+  background-color: rgba(0, 0, 0, 0.03);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+.agent-card .el-card__body {
+  padding: 0 1em;
+}
+</style>
 
 <script>
 const electron = require('electron');
@@ -200,12 +205,6 @@ export default {
       toolbox_did.privateKey_b58 = bs58.encode(Buffer.from(toolbox_did.privateKey));
       console.log("new pair", toolbox_did);
 
-      //const bob = await didcomm.generateKeyPair()
-      //const message = 'I AM A PRIVATE MESSAGE'
-      //const packedMsg = await didcomm.pack_auth_msg_for_recipients(message, [bob.publicKey], alice, true)
-      //const unpackedMsg = await didcomm.unpackMessage(packedMsg, bob)
-      //create connection request
-
       var req = {
         "@id":  (uuidv4().toString()),
         "~transport": {
@@ -284,6 +283,3 @@ export default {
   }
 }
 </script>
-
-<style>
-</style>
