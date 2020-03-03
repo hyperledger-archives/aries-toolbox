@@ -101,14 +101,14 @@ export const shared = {
     invitations_v1: [],
   },
   listeners: {
-    'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/invitation-list': (share, msg) => {
+    'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/list': (share, msg) => {
       share.invitations_v1 = msg.results;
     } 
   },
   methods: {
     fetch_invitations_v1: ({send}) => {
       send({
-        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/invitation-get-list",
+        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/get-list",
       });
     }
   }
@@ -150,7 +150,7 @@ export default {
   methods: {
     async fetchNewInvite(){
       let query_msg = {
-        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/create-invitation",
+        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/create",
         "label": this.invite_label_form,
         "alias": this.invite_alias_form,
         "role": this.invite_role_form,
