@@ -201,6 +201,13 @@ export default {
       this.connection.send_message(msg);
     },
     async processInbound(msg){
+      // RFC 0348 Step 1: modify prefix (if present) to old standard
+      let OLD = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/";
+      let NEW = "https://didcomm.org/";
+      if(msg['@type'].startsWith(NEW)){
+        msg['@type'] = msg['@type'].replace(NEW, OLD);
+      }
+      // END RFC 0348 Step 1
       this.$message_bus.$emit('message-received', msg);
       this.$message_bus.$emit(msg['@type'], msg);
     },
