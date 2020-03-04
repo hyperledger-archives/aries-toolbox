@@ -30,8 +30,8 @@ the `@type` attribute is omitted.
 
 ```jsonc
 {
-	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/connection"
-	"connection_id": "c08fdc8b-2edc-499a-9f71-5c5960d6abc1"
+	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/connection",
+	"connection_id": "c08fdc8b-2edc-499a-9f71-5c5960d6abc1",
 	"label": "Bob",
 	"my_did": "8zZRWsViMg1gc9GjcL6MFu",
 	"state": "active",
@@ -71,12 +71,12 @@ Example:
 
 ### List
 
-Response message to `get-list`
+Response message to `get-list`.
 
 Example:
 ```jsonc
 {
-	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/list"
+	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/list",
 	"~thread": {"thid": "<get-list msg id>"},
 	"connections": [{ ... }]
 }
@@ -127,11 +127,13 @@ this message.
 
 ### Deleted
 
-Acknowledge deletion of a connection.
+Acknowledge deletion of a connection. `thid` SHOULD be populated with message ID
+of `delete` message.
 
 ```jsonc
 {
 	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/deleted",
+	"~thread": {"thid": "<delete msg id>"},
 	"connection_id": "d0b301be-b825-4fbe-bc35-67b49c7a5e38",
 }
 ```
