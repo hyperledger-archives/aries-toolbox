@@ -1,0 +1,1 @@
+See [get-list](/docs/admin-connections/0.1/README.md#get-list).
