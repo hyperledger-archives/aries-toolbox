@@ -24,9 +24,11 @@ Connections Admin Protocol
 ### Connection
 A representation of a connection as used by the toolbox.
 
-The `connection` message is used as a response to several messages. Additionally
-a similar structure is nested in other messages; where this structure is nested,
-the `@type` attribute is omitted.
+The `connection` message is used as a response to several messages; where this
+message is sent in response to another, the `thid` should be set to the ID of
+the message that caused this message to be sent. Additionally a similar
+structure is nested in other messages; where this structure is nested, the
+`@type` attribute is omitted.
 
 ```jsonc
 {
