@@ -32,14 +32,14 @@ structure is nested in other messages; where this structure is nested, the
 
 ```jsonc
 {
-	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/connection",
-	"connection_id": "c08fdc8b-2edc-499a-9f71-5c5960d6abc1",
-	"label": "Bob",
-	"my_did": "8zZRWsViMg1gc9GjcL6MFu",
-	"state": "active",
-	"their_did": "KHKqmY24wF6oHJ29iSNxir",
-	"role": "",
-	"raw_repr": {...},
+  "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/connection",
+  "connection_id": "c08fdc8b-2edc-499a-9f71-5c5960d6abc1",
+  "label": "Bob",
+  "my_did": "8zZRWsViMg1gc9GjcL6MFu",
+  "state": "active",
+  "their_did": "KHKqmY24wF6oHJ29iSNxir",
+  "role": "",
+  "raw_repr": {...},
 }
 ```
 
@@ -67,7 +67,7 @@ Request a current list of connections from the connected agent.
 Example:
 ```jsonc
 {
-	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/get-list"
+  "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/get-list"
 }
 ```
 
@@ -78,9 +78,9 @@ Response message to `get-list`.
 Example:
 ```jsonc
 {
-	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/list",
-	"~thread": {"thid": "<get-list msg id>"},
-	"connections": [{ ... }]
+  "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/list",
+  "~thread": {"thid": "<get-list msg id>"},
+  "connections": [{ ... }]
 }
 ```
 
@@ -100,10 +100,10 @@ sent in response to this message.
 
 ```jsonc
 {
-	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/update",
-	"connection_id": "c08fdc8b-2edc-499a-9f71-5c5960d6abc1",
-	"label": "new label",
-	"role": "new role",
+  "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/update",
+  "connection_id": "c08fdc8b-2edc-499a-9f71-5c5960d6abc1",
+  "label": "new label",
+  "role": "new role",
 }
 ```
 
@@ -120,8 +120,8 @@ this message.
 
 ```jsonc
 {
-	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/delete",
-	"connection_id": "c08fdc8b-2edc-499a-9f71-5c5960d6abc1"
+  "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/delete",
+  "connection_id": "c08fdc8b-2edc-499a-9f71-5c5960d6abc1"
 }
 ```
 
@@ -134,9 +134,9 @@ of `delete` message.
 
 ```jsonc
 {
-	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/deleted",
-	"~thread": {"thid": "<delete msg id>"},
-	"connection_id": "d0b301be-b825-4fbe-bc35-67b49c7a5e38",
+  "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/deleted",
+  "~thread": {"thid": "<delete msg id>"},
+  "connection_id": "d0b301be-b825-4fbe-bc35-67b49c7a5e38",
 }
 ```
 
@@ -150,9 +150,9 @@ Create a new connection by receiving an invitation.
 
 ```jsonc
 {
-	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/receive-invitation",
-	"invitation": "https://example.com?c_i=..."
-	"auto_accept": true
+  "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/receive-invitation",
+  "invitation": "https://example.com?c_i=..."
+  "auto_accept": true
 }
 ```
 
