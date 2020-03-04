@@ -159,7 +159,7 @@ export default {
       let receive_invite_msg = {
         "@type": metadata.types.receive_invitation,
         "invitation": this.invitation,
-        "accept": "auto"
+        "auto_accept": true
       };
       this.send_message(receive_invite_msg);
       this.invitation = "";
