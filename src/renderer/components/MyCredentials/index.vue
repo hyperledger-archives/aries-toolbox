@@ -89,7 +89,7 @@ export default {
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/send-credential-proposal",
         "connection_id": form.connection_id,
-        "cred_def_id": form.cred_def_id,
+        "credential_definition_id": form.cred_def_id,
         "comment": form.comment, //optional
         "credential_proposal": {
           "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/credential-preview",
