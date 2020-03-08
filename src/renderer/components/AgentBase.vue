@@ -53,50 +53,6 @@
   </el-container>
 </template>
 
-<style>
-  #top-bar {
-    position:absolute;
-    right: 0px;
-    left:200px;
-    height: 60px;
-  }
-
-  #main-display {
-    position: absolute;
-    right:0px;
-    bottom: 0px;
-    top: 60px;
-    left: 200px;
-  }
-
-  #side-menu {
-    height: 100%;
-    width: 200px;
-    position: absolute;
-
-  }
-  #side-menu .menu-title {
-    color: #fff
-  }
-  #side-menu i {
-    color: #409EFF;
-  }
-
-  .el-menu-item-group__title {
-    font-size: 18px;
-  }
-
-  .el-menu-item {
-    height: 36px;
-    line-height: 36px;
-  }
-
-  .problem-report-notification {
-    cursor: pointer;
-  }
-
-</style>
-
 <script>
 const bs58 = require('bs58');
 const rp = require('request-promise');
@@ -246,3 +202,46 @@ export default {
 }
 </script>
 
+<style>
+  #top-bar {
+    position:absolute;
+    right: 0px;
+    left:200px;
+    height: 60px;
+  }
+
+  #main-display {
+    position: absolute;
+    right:0px;
+    bottom: 0px;
+    top: 60px;
+    left: 200px;
+  }
+
+  #side-menu {
+    height: 100%;
+    width: 200px;
+    position: absolute;
+
+  }
+  #side-menu .menu-title {
+    color: #fff
+  }
+  #side-menu i {
+    color: #409EFF;
+  }
+
+  .el-menu-item-group__title {
+    font-size: 18px;
+  }
+
+  .el-menu-item {
+    height: 36px;
+    line-height: 36px;
+  }
+
+  .problem-report-notification {
+    cursor: pointer;
+  }
+
+</style>
