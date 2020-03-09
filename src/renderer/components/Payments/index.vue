@@ -78,9 +78,14 @@
       <ul class="list">
         <el-collapse-item
           v-for="a in payment_addresses"
-          v-bind:title="a.address"
           :name="a.address"
           :key="a.address">
+          <div
+            style="width: 100%;"
+            slot="title">
+            <span>{{address_title(a)}}</span>
+            <span style="float: right; margin-right: 1em;">{{a.balance}}</span>
+          </div>
           <el-row :key="a.address">
             <p>Balance: {{a.balance}}</p>
             <p>Method: {{a.method}}</p>
@@ -200,6 +205,14 @@ export default {
     transfer_dialog: function(){
       this.TransferDialogVisible = true;
     },
+    address_title: function(address) {
+      return (text => {
+          if (text.length > 30) {
+            return text.slice(0, 30).trim() + '...';
+          }
+          return text;
+        })(address.address);
+    }
   }
 }
 </script>
