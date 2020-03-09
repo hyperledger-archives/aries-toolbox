@@ -24,13 +24,18 @@
     </el-dialog>
 
       <el-dialog
-      title="Transfer Paymet"
+      title="Transfer Payment"
       :visible.sync="TransferDialogVisible"
       width="500">
 
         <el-form :inline="true">
+          <el-form-item label="Payment Method">
+            <el-select v-model="transfer_form_method" placeholder="">
+                <el-option value="sov">Sovrin (sov)</el-option>
+            </el-select>
+          </el-form-item>
           <el-form-item label="From">
-            <el-select v-model="transfer_from_form" placeholder="Select From Payment Address">
+            <el-select v-model="transfer_form_from" placeholder="Select From Payment Address">
               <el-option
                 v-for="a in payment_addresses"
                 :key="a.address"
@@ -108,43 +113,24 @@ export const metadata = {
     group: 'Agent to Agent',
     priority: 10,
     required_protocols: [
-      //'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-payments/0.1'
+      'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-payments/0.1'
     ]
   }
 };
 
 export const shared = {
   data: {
-    payment_addresses: [
-      {
-          "address": "11111111111111",
-          "method": "sov",
-          "balance": 12345,
-          "raw_repr": {} //optional
-      },
-      {
-          "address": "222222222222",
-          "method": "sov",
-          "balance": 12345,
-          "raw_repr": {} //optional
-      },
-      {
-          "address": "333333333333333",
-          "method": "sov",
-          "balance": 12345,
-          "raw_repr": {} //optional
-      },
-    ],
+    payment_addresses: [],
   },
   listeners: {
     'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-payments/0.1/address-list': (share, msg) => {
       share.payment_addresses = msg.addresses;
-    } 
+    }
   },
   methods: {
     fetch_payment_addresses: ({send}) => {
       send({
-        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-payments/0.1/invitation-get-list",
+        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-payments/0.1/get-address-list",
       });
     }
   }
@@ -154,13 +140,13 @@ export default {
   name: 'payments',
   mixins: [
     message_bus({events: {
-      'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-payments/0.1/invitation': (v, msg) => {
+      'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-payments/0.1/address': (v, msg) => {
         v.fetch_payment_addresses()
       }
     }}),
     share({
       use: ['payment_addresses'],
-      actions: ['fetch_invitations']
+      actions: ['fetch_payment_addresses']
     })
   ],
   components: {
@@ -171,42 +157,42 @@ export default {
       expanded_items: [],
       CreateDialogVisible: false,
       TransferDialogVisible: false,
-      transfer_form_from:"",
-      transfer_form_to:"",
-      transfer_form_amount:0,
-      create_form_seed:"",
+      transfer_form_method: "",
+      transfer_form_from: "",
+      transfer_form_to: "",
+      transfer_form_amount: 0,
+      create_form_seed: "",
       create_form_method: "sov",
     }
   },
   created: async function() {
     await this.ready();
-    //this.fetch_payment_addresses();
+    this.fetch_payment_addresses();
   },
   methods: {
     async create_payment_address(){
       let query_msg = {
-        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-payments/0.1/create-invitation",
-        "label": this.invite_label_form,
-        "role": this.invite_role_form,
-        "accept": this.invite_accept_form,
-        "public": this.invite_public_form,
-        "multi_use": this.invite_multi_use_form,
+        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-payments/0.1/create-address",
+        "method": this.create_form_method,
+        "seed": this.create_form_seed,
       };
-      this.invite_label_form = "";
-      this.invite_role_form = "";
-      this.invite_accept_form = "auto";
-      this.invite_public_form = false;
-      this.invite_multi_use_form = false;
-      //this.send_message(query_msg);
+      this.create_form_seed = "";
+      this.send_message(query_msg);
+      this.CreateDialogVisible = false;
     },
-    copyURL: function(url){
-      clipboard.writeText(url);
-      this.$notify({
-          type: 'success',
-          title: 'Copied',
-          message: 'This Invitation has been copied to the clipboard.',
-          duration: 2000
-        });
+    transfer: async function() {
+      this.send_message({
+        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-payments/0.1/transfer",
+        "method": this.transfer_form_method,
+        "from_address": this.transfer_form_from,
+        "to_address": this.transfer_form_to,
+        "amount": this.transfer_form_amount
+      });
+      this.transfer_form_method = "sov";
+      this.transfer_form_from = "";
+      this.transfer_form_to = "";
+      this.transfer_form_amount = 0;
+      this.TransferDialogVisible = false;
     },
     create_dialog: function(){
       this.CreateDialogVisible = true;
