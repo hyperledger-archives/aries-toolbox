@@ -124,6 +124,17 @@ import VueQrcode from '@chenfengyuan/vue-qrcode';
 import message_bus from '@/message_bus.js';
 import share from '@/share.js';
 
+const method_to_unit_name = {
+  'sov': 'token(s)',
+  'btc': 'bitcoin'
+};
+function units_for_method(method) {
+  if (method in method_to_unit_name) {
+    return method_to_unit_name[method];
+  }
+  return 'unit(s)';
+};
+
 export const metadata = {
   menu: {
     label: 'Payments',
@@ -143,6 +154,10 @@ export const shared = {
   listeners: {
     'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-payments/0.1/address-list': (share, msg) => {
       share.payment_addresses = msg.addresses;
+    },
+    'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-payments/0.1/transfer-complete': (share, msg) => {
+      share.payment_transfer_complete_notify(msg.from_address, msg.to_address, msg.amount);
+      share.fetch_payment_addresses()
     }
   },
   methods: {
@@ -150,6 +165,15 @@ export const shared = {
       send({
         "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-payments/0.1/get-address-list",
       });
+    },
+    payment_transfer_complete_notify: ({share}, from, to, amount, method) => {
+      share.$notify({
+        title: 'Transfer Complete',
+        type: 'success',
+        message: 'Successfully transfered ' + amount + ' ' + units_for_method(method),
+        duration: 4000
+      });
+
     }
   }
 }
