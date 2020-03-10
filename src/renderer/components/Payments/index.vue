@@ -3,7 +3,7 @@
 <el-row>
     <el-dialog
       title="Create Payment Address"
-      :visible.sync="CreateDialogVisible"
+      :visible.sync="create_dialog_visible"
       width="500">
 
         <el-form :inline="true">
@@ -18,23 +18,29 @@
         </el-form>
 
       <span slot="footer" class="dialog-footer">
-        <el-button @click="CreateDialogVisible = false">Cancel</el-button>
+        <el-button @click="create_dialog_visible = false">Cancel</el-button>
         <el-button type="primary" @click="create_payment_address()">Create Payment Address</el-button>
       </span>
     </el-dialog>
 
       <el-dialog
       title="Transfer Payment"
-      :visible.sync="TransferDialogVisible"
+      :visible.sync="transfer_dialog_visible"
       width="500">
 
         <el-form :inline="true">
-          <el-form-item label="Payment Method">
+          <el-form-item
+            label-width="150px"
+            label-position="right"
+            label="Payment Method">
             <el-select v-model="transfer_form_method" placeholder="">
                 <el-option value="sov">Sovrin (sov)</el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="From">
+          <el-form-item
+            label-width="150px"
+            label-position="right"
+            label="From">
             <el-select v-model="transfer_form_from" placeholder="Select From Payment Address">
               <el-option
                 v-for="a in payment_addresses"
@@ -46,18 +52,47 @@
               </el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="To">
+          <el-form-item
+            label-width="150px"
+            label-position="right"
+            label="To">
             <el-input v-model="transfer_form_to" style="width:200px;"> </el-input>
           </el-form-item>
-          <el-form-item label="Amount">
-            <el-input v-model="transfer_form_amount" style="width:200px;"> </el-input>
+          <el-form-item
+            label-width="150px"
+            label-position="right"
+            label="Amount">
+            <el-input
+              v-model="transfer_form_amount"
+              style="width:200px;"></el-input>
+          </el-form-item>
+          <el-form-item
+            v-if="transfer_form_fees > 0"
+            label-width="150px"
+            label-position="right"
+            label="Total Fees">
+            <el-input
+              readonly
+              v-model="transfer_form_fees"
+              style="width:200px;"></el-input>
           </el-form-item>
         </el-form>
 
 
       <span slot="footer" class="dialog-footer">
-        <el-button @click="TransferDialogVisible = false">Cancel</el-button>
-        <el-button type="primary" @click="transfer()">Transfer</el-button>
+        <el-button @click="cancel">Cancel</el-button>
+        <el-button
+          v-if="transfer_form_state === 'pending_fees'"
+          type="primary"
+          @click="get_fees()">Check fees</el-button>
+        <el-button
+          v-if="transfer_form_state === 'loading'"
+          type="primary"
+          loading>Loading</el-button>
+        <el-button
+          v-if="transfer_form_state === 'ready'"
+          type="primary"
+          @click="transfer()">Transfer</el-button>
       </span>
     </el-dialog>
 
@@ -156,7 +191,7 @@ export const shared = {
       share.payment_addresses = msg.addresses;
     },
     'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-payments/0.1/transfer-complete': (share, msg) => {
-      share.payment_transfer_complete_notify(msg.from_address, msg.to_address, msg.amount);
+      share.payment_transfer_complete_notify(msg.from_address, msg.to_address, msg.amount, msg.method);
       share.fetch_payment_addresses()
     }
   },
@@ -184,7 +219,11 @@ export default {
     message_bus({events: {
       'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-payments/0.1/address': (v, msg) => {
         v.fetch_payment_addresses()
-      }
+      },
+      'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-payments/0.1/fees': (v, msg) => {
+        v.transfer_form_fees = msg.total;
+        v.transfer_form_state = 'ready';
+      },
     }}),
     share({
       use: ['payment_addresses'],
@@ -197,12 +236,14 @@ export default {
   data () {
     return {
       expanded_items: [],
-      CreateDialogVisible: false,
-      TransferDialogVisible: false,
+      create_dialog_visible: false,
+      transfer_dialog_visible: false,
       transfer_form_method: "",
       transfer_form_from: "",
       transfer_form_to: "",
       transfer_form_amount: 0,
+      transfer_form_fees: 0,
+      transfer_form_state: 'pending_fees',
       create_form_seed: "",
       create_form_method: "sov",
     }
@@ -220,7 +261,15 @@ export default {
       };
       this.create_form_seed = "";
       this.send_message(query_msg);
-      this.CreateDialogVisible = false;
+      this.create_dialog_visible = false;
+    },
+    get_fees: async function() {
+      this.send_message({
+        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-payments/0.1/get-fees",
+        "method": this.transfer_form_method,
+        "amount": this.transfer_form_amount
+      })
+      this.transfer_form_state = 'loading';
     },
     transfer: async function() {
       this.send_message({
@@ -234,13 +283,15 @@ export default {
       this.transfer_form_from = "";
       this.transfer_form_to = "";
       this.transfer_form_amount = 0;
-      this.TransferDialogVisible = false;
+      this.transfer_form_fees = 0;
+      this.transfer_dialog_visible = false;
+      this.transfer_form_state = 'pending_fees';
     },
     create_dialog: function(){
-      this.CreateDialogVisible = true;
+      this.create_dialog_visible = true;
     },
     transfer_dialog: function(){
-      this.TransferDialogVisible = true;
+      this.transfer_dialog_visible = true;
     },
     address_title: function(address) {
       return (text => {
@@ -265,6 +316,15 @@ export default {
       });
       event.stopPropagation();
     },
+    cancel: function(event) {
+      this.transfer_dialog_visible = false;
+      this.transfer_form_method = "sov";
+      this.transfer_form_from = "";
+      this.transfer_form_to = "";
+      this.transfer_form_amount = 0;
+      this.transfer_form_fees = 0;
+      this.transfer_form_state = 'pending_fees';
+    }
   }
 }
 </script>
