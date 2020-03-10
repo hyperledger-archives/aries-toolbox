@@ -22,23 +22,6 @@
   </el-dialog>
 </template>
 
-<style>
-.taa-dialog {
-  word-break: break-word;
-}
-.taa-text {
-  word-break: break-word;
-  height: 500px;
-  overflow-y: scroll;
-}
-.taa-text h2 {
- font-size: 1.25rem;
-}
-.taa-form {
-  margin-top: 1em;
-}
-</style>
-
 <script>
 import message_bus from '@/message_bus.js';
 import share from '@/share.js';
@@ -111,3 +94,20 @@ export default {
 }
 
 </script>
+
+<style>
+.taa-dialog {
+  word-break: break-word;
+}
+.taa-text {
+  word-break: break-word;
+  height: 500px;
+  overflow-y: scroll;
+}
+.taa-text h2 {
+ font-size: 1.25rem;
+}
+.taa-form {
+  margin-top: 1em;
+}
+</style>

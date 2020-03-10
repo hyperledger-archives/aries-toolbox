@@ -24,25 +24,6 @@
   </el-row>
 </template>
 
-<style>
-.agent-card:first-of-type {
-  margin-top: .5em;
-}
-.agent-card, #new_agent_connection {
-  margin: .5em 1em;
-  border: 1px solid rgba(0, 0, 0, 0.125);
-}
-.agent-card .el-card__header,
-#new_agent_connection .el-card__header {
-  padding: .75rem 1.25rem;
-  background-color: rgba(0, 0, 0, 0.03);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.125);
-}
-.agent-card .el-card__body {
-  padding: 0 1em;
-}
-</style>
-
 <script>
 const electron = require('electron');
 const bs58 = require('bs58');
@@ -283,3 +264,22 @@ export default {
   }
 }
 </script>
+
+<style>
+.agent-card:first-of-type {
+  margin-top: .5em;
+}
+.agent-card, #new_agent_connection {
+  margin: .5em 1em;
+  border: 1px solid rgba(0, 0, 0, 0.125);
+}
+.agent-card .el-card__header,
+#new_agent_connection .el-card__header {
+  padding: .75rem 1.25rem;
+  background-color: rgba(0, 0, 0, 0.03);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+.agent-card .el-card__body {
+  padding: 0 1em;
+}
+</style>
