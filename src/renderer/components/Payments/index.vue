@@ -89,6 +89,7 @@
           <el-row :key="a.address">
             <p>Balance: {{a.balance}}</p>
             <p>Method: {{a.method}}</p>
+            <el-button type="primary" @click="copy(a.address)">Copy Address</el-button>
             <div>
               <vue-json-pretty
                 :deep=1
@@ -212,7 +213,16 @@ export default {
           }
           return text;
         })(address.address);
-    }
+    },
+    copy: function(value){
+      clipboard.writeText(value);
+      this.$notify({
+          type: 'success',
+          title: 'Copied',
+          message: "\"" + value + "\" copied to clipboard.",
+          duration: 2000
+        });
+    },
   }
 }
 </script>
