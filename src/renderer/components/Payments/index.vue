@@ -84,12 +84,24 @@
             style="width: 100%;"
             slot="title">
             <span>{{address_title(a)}}</span>
-            <span style="float: right; margin-right: 1em;">{{a.balance}}</span>
+            <div style="float: right; margin-right: 1em;">
+              <span>
+                {{a.balance}}
+              </span>
+              <el-button
+                title="Copy Address"
+                style="margin-left: 1em;"
+                type="primary"
+                icon="el-icon-copy-document"
+                @click="copy(a.address, $event)"
+                size="mini"
+                plain
+                circle></el-button>
+            </div>
           </div>
           <el-row :key="a.address">
-            <p>Balance: {{a.balance}}</p>
-            <p>Method: {{a.method}}</p>
-            <el-button type="primary" @click="copy(a.address)">Copy Address</el-button>
+            <p><strong>Balance:</strong> {{a.balance}}</p>
+            <p><strong>Method:</strong> {{a.method}}</p>
             <div>
               <vue-json-pretty
                 :deep=1
@@ -208,20 +220,26 @@ export default {
     },
     address_title: function(address) {
       return (text => {
-          if (text.length > 30) {
-            return text.slice(0, 30).trim() + '...';
+          if (text.length > 100) {
+            return text.slice(0, 100).trim() + '...';
           }
           return text;
         })(address.address);
     },
-    copy: function(value){
+    copy: function(value, event){
       clipboard.writeText(value);
       this.$notify({
-          type: 'success',
-          title: 'Copied',
-          message: "\"" + value + "\" copied to clipboard.",
-          duration: 2000
-        });
+        type: 'success',
+        title: 'Copied',
+        message: "\"" + (text => {
+          if (text.length > 30) {
+            return text.slice(0, 30).trim() + '...';
+          }
+          return text;
+        })(value) + "\" copied to clipboard.",
+        duration: 3000
+      });
+      event.stopPropagation();
     },
   }
 }
