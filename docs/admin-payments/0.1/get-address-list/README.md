@@ -1,0 +1,1 @@
+See [get-address-list](/docs/admin-payments/0.1/README.md#get-address-list).
