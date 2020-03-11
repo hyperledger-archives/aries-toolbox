@@ -1,0 +1,1 @@
+See [transfer](/docs/admin-payments/0.1/README.md#transfer).
