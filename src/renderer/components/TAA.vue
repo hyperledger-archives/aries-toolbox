@@ -1,9 +1,23 @@
 <template>
+  <div>
+  <el-dialog
+    title="Transaction Author Agreement"
+    class="taa-dialog"
+    :visible.sync="phase_one">
+    <p>Using this module requires signing the Transaction Author Agreement.</p>
+    <el-form class="taa-form">
+      <el-button
+        @click="redirect">Cancel</el-button>
+      <el-button
+        type="primary"
+        @click="phase = 2">Continue</el-button>
+    </el-form>
+  </el-dialog>
   <el-dialog
     title="Transaction Author Agreement"
     width="75%"
     class="taa-dialog"
-    :visible.sync="viewing">
+    :visible.sync="phase_two">
     <p>In order to write to the currently connected ledger, please review the
     Transaction Author Agreement V{{version}} and mark your acceptance
     below.</p>
@@ -13,13 +27,14 @@
         I accept the terms of the Transaction Author Agreement V{{version}}
       </el-checkbox>
       <el-button
-        @click="viewing=false">Cancel</el-button>
+        @click="redirect">Cancel</el-button>
       <el-button
         type="primary"
         :disabled="!accepted"
-        @click="accept(); viewing = false">Submit</el-button>
+        @click="accept(); phase = 0">Submit</el-button>
     </el-form>
   </el-dialog>
+  </div>
 </template>
 
 <script>
@@ -38,7 +53,7 @@ export default {
           vm.text = msg.text;
           vm.version = msg.version;
           if (msg.needed) {
-            vm.viewing = true;
+            vm.phase = 1;
           }
         },
         [protocol + '/acceptance']: (vm, msg) => {
@@ -46,6 +61,11 @@ export default {
             vm.get();
           }
         },
+        'entered_taa_required_module': (vm, msg) => {
+          if (vm.has_admin_taa_protocol) {
+            vm.get_acceptance();
+          }
+        }
       }
     }),
     share({
@@ -54,7 +74,7 @@ export default {
   ],
   data: function() {
     return {
-      viewing: false,
+      phase: 0,
       accepted: false,
       text: '',
       version: '',
@@ -63,13 +83,15 @@ export default {
   computed: {
     cleaned: function() {
       return dompurify.sanitize(marked(this.text.substring(this.text.indexOf('\n'))));
-    }
-  },
-  watch: {
-    protocols: function() {
-      if (this.protocols.find(item => item.pid === protocol)) {
-        this.get_acceptance();
-      }
+    },
+    has_admin_taa_protocol: function() {
+      return this.protocols && this.protocols.find(item => item.pid === protocol)
+    },
+    phase_one: function() {
+      return this.phase === 1
+    },
+    phase_two: function() {
+      return this.phase === 2
     }
   },
   methods: {
@@ -89,6 +111,10 @@ export default {
         text: this.text,
         version: this.version
       });
+    },
+    redirect: function() {
+      this.phase = 0;
+      this.$message_bus.$emit('redirect', 'feature-discovery');
     }
   }
 }

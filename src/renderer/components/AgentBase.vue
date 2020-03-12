@@ -1,13 +1,14 @@
 <template>
   <el-container>
     <el-menu
+      ref="menu"
       style="-webkit-user-select:none;"
       mode="vertical"
       id="side-menu"
       background-color="#545c64"
       text-color="#fff"
       active-text-color="#ffd04b"
-      :router="true">
+      router>
       <el-menu-item-group :index="group" v-for="(group_modules, group) in matching_modules_grouped" v-bind:key="group">
         <span class="menu-title" slot="title">{{group}}</span>
         <el-menu-item :index="m.path" v-for="m in group_modules" v-bind:key="m.path" :route="{name: m.path}">
@@ -85,6 +86,9 @@ export default {
   name: 'agent-base',
   mixins: [
     message_bus({ events: {
+      'redirect': (vm, route) => {
+        vm.redirect(route);
+      },
       'send-message': (v, msg, return_route) => {
         v.send_connection_message(msg, return_route);
       },
@@ -98,7 +102,7 @@ export default {
             }
             return text;
           })(msg['explain-ltxt']),
-          onClick: () => vm.$router.push({name: 'message-history'}),
+          onClick: () => vm.redirect('message-history'),
           duration: 4000,
           customClass: 'problem-report-notification'
         })
@@ -177,6 +181,10 @@ export default {
         }
       };
       this.send_message(msg);
+    },
+    redirect: function(route) {
+      this.$router.push({name: route});
+      this.$refs.menu.updateActiveIndex(route);
     }
   },
   created: async function() {

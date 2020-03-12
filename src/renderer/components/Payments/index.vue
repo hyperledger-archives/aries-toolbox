@@ -251,6 +251,7 @@ export default {
   created: async function() {
     await this.ready();
     this.fetch_payment_addresses();
+    this.$message_bus.$emit('entered_taa_required_module');
   },
   methods: {
     async create_payment_address(){
