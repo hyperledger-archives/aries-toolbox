@@ -125,6 +125,7 @@ export default {
     await this.ready();
     this.fetch_dids();
     this.fetch_active_did();
+    this.$message_bus.$emit('entered_taa_required_module');
   },
   methods: {
     async createDid(){

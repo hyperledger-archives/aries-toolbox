@@ -123,6 +123,7 @@ export default {
     IssuedCredList
   },
   created: async function() {
+    this.$message_bus.$emit('entered_taa_required_module');
     await this.ready()
     this.fetch_schemas();
     // CredDefList will fetch
