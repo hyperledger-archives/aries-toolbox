@@ -22,7 +22,7 @@ steps:
   inputs:
     versionSpec: '8.x'
 
-- script: ./.ci/install-prereqs.sh
+- script: ./ci/install-prereqs.sh
   displayName: 'install pre-reqs'
 
 - script: yarn && yarn run build
