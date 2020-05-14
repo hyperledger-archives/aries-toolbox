@@ -44,7 +44,7 @@
             <el-option
               v-for="connection in connections"
               :key="connection.connection_id"
-              :label="connection.their_label"
+              :label="connection.label"
               :value="connection.connection_id">
             </el-option>
           </el-select>
@@ -289,7 +289,7 @@ export default {
     presentations: function() {
         return this.list.map((item) => {
           if (item.connection_id in this.id_to_connection) {
-            item.connection_their_label = this.id_to_connection[item.connection_id].their_label;
+            item.connection_their_label = this.id_to_connection[item.connection_id].label;
           } else {
             item.connection_their_label = "deleted connetion"
           }

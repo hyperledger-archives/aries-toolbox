@@ -107,7 +107,7 @@
             <el-option
               v-for="connection in connections"
               :key="connection.connection_id"
-              :label="connection.their_label"
+              :label="connection.label"
               :value="connection.connection_id">
             </el-option>
           </el-select>

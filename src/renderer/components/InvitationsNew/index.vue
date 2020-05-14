@@ -86,7 +86,7 @@ import share from '@/share.js';
 
 export const metadata = {
   menu: {
-    label: 'Invitations New',
+    label: 'Invitations',
     icon: 'el-icon-plus',
     group: 'Agent to Agent',
     priority: 10,
@@ -103,7 +103,7 @@ export const shared = {
   listeners: {
     'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/list': (share, msg) => {
       share.invitations_v1 = msg.results;
-    } 
+    }
   },
   methods: {
     fetch_invitations_v1: ({send}) => {

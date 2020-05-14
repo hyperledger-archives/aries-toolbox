@@ -70,7 +70,7 @@
             <el-option
               v-for="connection in connections"
               :key="connection.connection_id"
-              :label="connection.their_label"
+              :label="connection.label"
               :value="connection.connection_id">
             </el-option>
           </el-select>
@@ -191,7 +191,7 @@ export default {
       if (!cred.connection) {
         connection_name = '[deleted]';
       } else {
-        connection_name = cred.connection.their_label;
+        connection_name = cred.connection.label;
       }
       return `${split[2]} v${split[3]} received from ${connection_name}`;
     }
