@@ -14,10 +14,10 @@
     <el-collapse v-model="expanded_items">
       <ul class="list">
         <el-collapse-item
-          v-for="credential in receivedStateCredentials"
+          v-for="credential in credentials"
           v-bind:title="credential_title(credential)"
-          :name="credential.credential_exchange_id"
-          :key="credential.credential_exchange_id">
+          :name="credential.cred_def_id"
+          :key="credential.cred_def_id">
           <el-row>
             <div>
               <vue-json-pretty
