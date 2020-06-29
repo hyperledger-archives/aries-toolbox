@@ -2,6 +2,7 @@
   <el-row>
     <div style="margin-bottom: 1em;">
         <p>Routes</p>
+      <p>Show interface to </p>
         <el-collapse v-model="expanded_items">
           <ul class="list">
             <el-collapse-item
@@ -21,7 +22,45 @@
           </ul>
         </el-collapse>
     </div>
+    <el-form :model="updaterouteform">
+      <el-form-item label="Connection:" :label-width="formLabelWidth">
+        <el-select
+          v-model="updaterouteform.connection_id"
+          filterable
+          placeholder="Connection">
+          <el-option
+            v-for="connection in active_connections"
+            :key="connection.connection_id"
+            :label="connection.label"
+            :value="connection.connection_id">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="DID:" :label-width="formLabelWidth">
+        <el-select
+          v-model="updaterouteform.did"
+          filterable
+          placeholder="DID">
+          <el-option
+            v-for="did in dids"
+            :key="did.did"
+            :label="did_get_name(did)"
+            :value="did">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="Action:" :label-width="formLabelWidth">
+        <el-select
+          v-model="updaterouteform.action">
+          <el-option value="create"></el-option>
+          <el-option value="delete"></el-option>
+        </el-select>
+      </el-form-item>
 
+
+
+      <el-button @click="send_update">Go</el-button>
+    </el-form>
 
   </el-row>
 </template>
@@ -58,9 +97,9 @@ import share from '@/share.js';
 export const metadata = {
   menu: {
     label: 'Routing',
-    icon: 'el-icon-chat-line-square',
-    group: 'Toolbox to Agent',
-    priority: 50,
+    icon: 'el-icon-location-outline',
+    group: 'Agent to Agent',
+    priority: 55,
     required_protocols: [
       'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-routing/0.1'
     ]
@@ -72,7 +111,7 @@ export const shared = {
     routes: {},
   },
   listeners: {
-    'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-routing/0.1/routes_list': (share, msg) => {
+    'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-routing/0.1/something': (share, msg) => {
       share.routes = msg.results;
     }
   }
@@ -88,12 +127,22 @@ export default {
   mixins: [
     message_bus(),
     share({
-      use: ['routes']
+      use: [
+        'routes',
+        'active_connections',
+        'dids',
+      ]
     })
   ],
   data: function() {
     return {
       expanded_items:[],
+      updaterouteform: {
+        connection_id: null,
+        did: null,
+        action: 'create',
+      },
+      formLabelWidth: '100px',
     }
   },
   created: async function() {
@@ -101,12 +150,28 @@ export default {
     this.load();
   },
   methods: {
-    load: function() {
+    did_get_name: function(did) {
+      if('metadata'in did && 'label' in did.metadata) {
+        return 'did: ' + did.metadata.label;
+      }
+      return 'did: ' + did.did + ', vk: ' + did.verkey;
+    },
+    send_update: function(){
+
       let msg = {
-        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-routing/0.1/routes_list_get",
+        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-routing/0.1/send_update",
+        "connection_id": this.updaterouteform.connection_id,
+        "verkey": this.updaterouteform.did.verkey,
+        "action": this.updaterouteform.action,
       };
       this.send_message(msg);
-      this.content = '';
+    },
+    load: function() {
+      /*let msg = {
+        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-routing/0.1/somethingelse",
+      };
+      this.send_message(msg);
+      this.content = '';*/
     }
   }
 }
