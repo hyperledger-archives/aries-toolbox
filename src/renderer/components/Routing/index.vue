@@ -2,7 +2,17 @@
   <el-row>
     <div style="margin-bottom: 1em;">
         <p>Routes</p>
-      <p>Show interface to </p>
+      <el-select
+          v-model="updaterouteform.connection_id"
+          filterable
+          placeholder="Mediator Connection">
+          <el-option
+            v-for="connection in active_connections"
+            :key="connection.connection_id"
+            :label="connection.label"
+            :value="connection.connection_id">
+          </el-option>
+        </el-select>
         <el-collapse v-model="expanded_items">
           <ul class="list">
             <el-collapse-item
@@ -23,6 +33,7 @@
         </el-collapse>
     </div>
     <el-form :model="updaterouteform">
+      <p>Add Route to connected mediator</p>
       <el-form-item label="Connection:" :label-width="formLabelWidth">
         <el-select
           v-model="updaterouteform.connection_id"
@@ -39,11 +50,12 @@
       <el-form-item label="DID:" :label-width="formLabelWidth">
         <el-select
           v-model="updaterouteform.did"
+          value-key="did"
           filterable
           placeholder="DID">
           <el-option
             v-for="did in dids"
-            :key="did.did"
+            :key="did"
             :label="did_get_name(did)"
             :value="did">
           </el-option>
@@ -128,7 +140,6 @@ export default {
     message_bus(),
     share({
       use: [
-        'routes',
         'active_connections',
         'dids',
       ]
@@ -137,6 +148,7 @@ export default {
   data: function() {
     return {
       expanded_items:[],
+      routes: [],
       updaterouteform: {
         connection_id: null,
         did: null,
@@ -167,11 +179,12 @@ export default {
       this.send_message(msg);
     },
     load: function() {
-      /*let msg = {
-        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-routing/0.1/somethingelse",
+      let msg = {
+        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-routing/0.1/query",
+        "connection_id": this.updaterouteform.connection_id
       };
       this.send_message(msg);
-      this.content = '';*/
+      this.routes = [];
     }
   }
 }

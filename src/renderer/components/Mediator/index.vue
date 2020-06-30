@@ -1,12 +1,12 @@
 <template>
   <el-row>
     <div style="margin-bottom: 1em;">
-        <p>Routes</p>
+        <p>Mediator Routes</p>
         <el-collapse v-model="expanded_items">
           <ul class="list">
             <el-collapse-item
-              v-for="r in routes"
-              v-bind:title="r.recipient_key"
+              v-for="r in mediator_routes"
+              v-bind:title="route_name(r)"
               :name="r.recipient_key"
               :key="r.connection_id">
               <el-row :key="r.connection_id">
@@ -86,7 +86,7 @@ export default {
   mixins: [
     message_bus(),
     share({
-      use: ['mediator_routes']
+      use: ['mediator_routes', 'active_connections']
     })
   ],
   data: function() {
@@ -99,12 +99,22 @@ export default {
     this.load();
   },
   methods: {
+    route_name: function(r){
+      let connection_label = 'Unknown';
+      let matched_connection = this.active_connections.filter(function(c){
+        return c.connection_id == r.connection_id;
+      });
+      if(matched_connection.length == 1){
+        connection_label = matched_connection[0].label;
+      }
+
+      return connection_label + ': ' + r.recipient_key;
+    },
     load: function() {
       let msg = {
         "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-mediator/0.1/routes_list_get",
       };
       this.send_message(msg);
-      this.content = '';
     }
   }
 }
