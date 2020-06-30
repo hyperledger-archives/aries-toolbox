@@ -2,17 +2,6 @@
   <el-row>
     <div style="margin-bottom: 1em;">
         <p>Routes</p>
-      <el-select
-          v-model="updaterouteform.connection_id"
-          filterable
-          placeholder="Mediator Connection">
-          <el-option
-            v-for="connection in active_connections"
-            :key="connection.connection_id"
-            :label="connection.label"
-            :value="connection.connection_id">
-          </el-option>
-        </el-select>
         <el-collapse v-model="expanded_items">
           <ul class="list">
             <el-collapse-item
@@ -179,12 +168,13 @@ export default {
       this.send_message(msg);
     },
     load: function() {
-      let msg = {
+      /*let msg = {
         "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-routing/0.1/query",
         "connection_id": this.updaterouteform.connection_id
       };
       this.send_message(msg);
       this.routes = [];
+      */
     }
   }
 }
