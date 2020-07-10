@@ -47,7 +47,7 @@ export default {
       const modalPath = process.env.NODE_ENV === 'development'
         ? 'http://localhost:9080/#/agent/'+a.id
         : `file://${__dirname}/index.html#agent/`+a.id;
-      let win = new electron.remote.BrowserWindow({ width: 1000, height: 600, webPreferences: {webSecurity: false} })
+      let win = new electron.remote.BrowserWindow({ width: 1000, height: 600, webPreferences: {webSecurity: false, nodeIntegration: true} })
       win.on('close', function () { win = null });
       win.loadURL(modalPath)
 
