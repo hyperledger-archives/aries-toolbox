@@ -55,6 +55,8 @@
 </template>
 
 <script>
+const fs = require("fs");
+
 const bs58 = require('bs58');
 const rp = require('request-promise');
 
@@ -65,6 +67,21 @@ import message_bus from '@/message_bus.js';
 import share, {share_source} from '@/share.js';
 import components, {shared} from './components.js';
 import Taa from './TAA.vue';
+
+
+//handle crashes and kill events
+process.on('uncaughtException', function(err) {
+  //log the message and stack trace
+  fs.writeFileSync('crash.log', err + "\n" + err.stack);
+
+  //do any cleanup like shutting down servers, etc
+
+  //relaunch the app (if you want)
+  //app.relaunch({args: []});
+  //app.exit(0);
+});
+
+
 
 // The (. && .. && ...) || 'default' syntax provides defaults for modules that lack any level of the metadata
 //  definition. It would be useful if javascript had an Elvis Operator, but it does not.
