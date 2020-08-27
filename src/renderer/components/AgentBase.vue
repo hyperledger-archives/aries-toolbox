@@ -72,7 +72,8 @@ import Taa from './TAA.vue';
 //handle crashes and kill events
 process.on('uncaughtException', function(err) {
   //log the message and stack trace
-  fs.writeFileSync('crash.log', err + "\n" + err.stack);
+  let datestring = new Date().toISOString();
+  fs.writeFileSync('crash.log', datestring +"\n"+ err + "\n" + err.stack + "\n", {flag:'a+'});
 
   //do any cleanup like shutting down servers, etc
 
@@ -177,6 +178,9 @@ export default {
       await this.connection_loaded;
       this.connection.send_message(msg);
     },
+    get_connection(){
+      return this.connection;
+    },
     async processInbound(msg){
       // RFC 0348 Step 1: modify prefix (if present) to old standard
       let OLD = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/";
@@ -202,6 +206,11 @@ export default {
     redirect: function(route) {
       this.$router.push({name: route});
       this.$refs.menu.updateActiveIndex(route);
+    }
+  },
+  provide: function () {
+    return {
+      get_connection: this.get_connection
     }
   },
   created: async function() {

@@ -3,7 +3,7 @@ const bs58 = require('bs58');
 const rp = require('request-promise');
 const uuidv4 = require('uuid/v4');
 const WebSocketAsPromised = require('websocket-as-promised');
-
+const WebSocket = require('ws');
 
 class ConnectionDetail {
     constructor(id, label, did_doc, my_key, inbound_processor = null) {
@@ -25,11 +25,14 @@ class ConnectionDetail {
         }
         function servicePrioritySort(a, b){
             if(protocol(a.serviceEndpoint) === protocol(b.serviceEndpoint)){
-                return 0; //same
+                return 0; //same protocol
             }
-            if(protocol(a.serviceEndpoint) === "ws"){
+            if(protocol(a.serviceEndpoint) === "ws") {
                 return -1; //higher priority
-            } else { //b is ws
+            }
+            if(protocol(a.serviceEndpoint) === "wss"){
+                return -1; //higher priority
+            } else { //b's protocol might be ws
                 return 1;
             }
         }
@@ -37,18 +40,25 @@ class ConnectionDetail {
 
         this.service = this.service_list[0]; //use the first in the list
         this.service_transport_protocol = protocol(this.service.serviceEndpoint);
-
+        console.log("Service to use", this.service);
         if (this.service_transport_protocol === "ws" ||
             this.service_transport_protocol === "wss") {
 
             this.socket = new WebSocketAsPromised(this.service.serviceEndpoint, {
+                createWebSocket: url => new WebSocket(url),
+                extractMessageData: event => event, // <- this is important
                 // WebSocket specific pack steps
                 packMessage: data => {
                     return new Buffer.from(data, 'ascii');
                 },
                 unpackMessage: async data => {
+
                     if (data instanceof Blob) {
                         data = await blobToStr(data);
+                    } else if (data instanceof Buffer){
+                        data = data.toString('ascii');
+                    } else {
+                        console.log("data type", data);
                     }
                     return data;
                 }
@@ -57,6 +67,16 @@ class ConnectionDetail {
             // Listen for messages
             this.socket.onUnpackedMessage.addListener(async event => {
                 this.process_inbound(await this.unpackMessage(await event));
+            });
+            // error handling
+            this.socket.onError.addListener(event => {
+                console.error(event)
+                let datestring = new Date().toISOString();
+                fs.writeFileSync('crash.log', datestring +"\n"+ err + "\n" + err.stack + "\n", {flag:'a+'});
+            });
+            // close handling
+            this.socket.onClose.addListener(event => {
+                console.log(`websocket connection closed: ${event.reason}`)
             });
         }
     }
