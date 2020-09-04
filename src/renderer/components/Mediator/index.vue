@@ -1,5 +1,8 @@
 <template>
   <el-row>
+    <div style="">
+      <el-button v-on:click="enable_as_mediator()" type="primary">Use As Mediator</el-button>
+    </div>
     <div style="margin-bottom: 1em;">
         <p>Mediator Routes</p>
         <el-collapse v-model="expanded_items">
@@ -52,6 +55,7 @@
 <script>
 import message_bus from '@/message_bus.js';
 import share from '@/share.js';
+import { mapActions } from "vuex"
 
 export const metadata = {
   menu: {
@@ -83,6 +87,7 @@ export default {
   components: {
     VueJsonPretty,
   },
+  inject: ['get_connection'],
   mixins: [
     message_bus(),
     share({
@@ -99,6 +104,8 @@ export default {
     this.load();
   },
   methods: {
+    ...mapActions("Agents", ["update_agent"]),
+
     route_name: function(r){
       let connection_label = 'Unknown';
       let matched_connection = this.active_connections.filter(function(c){
@@ -109,6 +116,13 @@ export default {
       }
 
       return connection_label + ': ' + r.recipient_key;
+    },
+    enable_as_mediator: function(){
+      //get connection detail, mark as a mediator, use bus to tell agentlist about it
+      let conn = this.get_connection();
+      conn.active_as_mediator = true;
+      this.update_agent(conn.to_store());
+      console.log("connection to mediate through", conn);
     },
     load: function() {
       let msg = {

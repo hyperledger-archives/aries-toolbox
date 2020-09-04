@@ -61,7 +61,7 @@ const bs58 = require('bs58');
 const rp = require('request-promise');
 
 import Vue from 'vue';
-import { mapState, mapActions } from "vuex";
+import { mapState, mapActions, mapGetters } from "vuex";
 import { from_store } from '../connection_detail.js';
 import message_bus from '@/message_bus.js';
 import share, {share_source} from '@/share.js';
@@ -173,7 +173,7 @@ export default {
 
   },
   methods: {
-    ...mapActions("Agents", ["get_agent"]),
+    ...mapGetters("Agents", ["get_agent"]),
     async send_connection_message(msg){
       await this.connection_loaded;
       this.connection.send_message(msg);
@@ -214,8 +214,10 @@ export default {
     }
   },
   created: async function() {
+    let vm = this; //hold reference
     this.connection_loaded = (async () => {
-      this.connection = from_store(await this.get_agent(this.agentid), this.processInbound);
+      let agent_info = await vm.get_agent(vm.agentid)(vm.agentid);
+      this.connection = from_store(agent_info, vm.processInbound);
     })();
     await this.connection_loaded;
     this.fetch_protocols();

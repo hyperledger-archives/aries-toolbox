@@ -7,6 +7,7 @@
     <el-card shadow="never" class="agent-card" v-for="a in agent_list" v-bind:key="a.id">
       <span slot="header"><strong>{{a.label}}</strong></span>
       <div>
+        <div v-show="a.active_as_mediator" class="mediator">Mediator</div>
         <el-button type="text" @click="openConnection(a)">Open</el-button>
         <el-button type="text" @click="deleteConnection(a)">Delete</el-button>
       </div>
@@ -20,6 +21,27 @@
           <el-button type="primary" @click="new_agent_invitation_process">Connect</el-button>
         </el-form>
       </div>
+      <el-alert v-show="invitation_error != ''"
+        title="Invitation Error"
+        type="error"
+        :description="invitation_error"
+        show-icon>
+      </el-alert>
+    </el-card>
+    <el-card shadow="never" id="new_agent_invitation" v-show="hasMediator">
+      <span slot="header">New Agent Invitation</span>
+      <div>
+        <el-form :inline="true">
+          <el-input v-model="new_agent_invitation" placeholder="Paste agent invitation"></el-input>
+          <el-button type="primary" @click="new_agent_invitation_process">Connect</el-button>
+        </el-form>
+      </div>
+      <el-alert v-show="invitation_error != ''"
+        title="Invitation Error"
+        type="error"
+        :description="invitation_error"
+        show-icon>
+      </el-alert>
     </el-card>
   </el-row>
 </template>
@@ -39,6 +61,9 @@ export default {
   components: {  },
   computed: {
     ...mapState("Agents", ["agent_list"]),
+    hasMediator: function(){
+      return this.agent_list.find(a => a.active_as_mediator === true);
+    }
   },
   methods: {
     ...mapActions("Agents", ["add_agent", "delete_agent"]),
@@ -59,6 +84,7 @@ export default {
       //process invite, prepare request
       var vm = this; //hang on to view model reference
       console.log("invite", this.new_agent_invitation);
+      this.invitation_error = "";
       //extract c_i param
       function getUrlVars(url) {
         var vars = {};
@@ -253,12 +279,14 @@ export default {
         .catch(function (err) {
           // POST failed...
           console.log("request post err", err);
+          this.invitation_error = err.message;
         });
     }
   },
   data() {
     return {
-      new_agent_invitation: ""
+      new_agent_invitation: "",
+      invitation_error: ""
     }
 
   }
@@ -282,4 +310,11 @@ export default {
 .agent-card .el-card__body {
   padding: 0 1em;
 }
+  .mediator {
+    font-size: .9em;
+    font-style: italic;
+    text-align: right;
+    float:right;
+    margin-top: 10px;
+  }
 </style>

@@ -6,11 +6,13 @@ const WebSocketAsPromised = require('websocket-as-promised');
 const WebSocket = require('ws');
 
 class ConnectionDetail {
-    constructor(id, label, did_doc, my_key, inbound_processor = null) {
-        this.id = id;
-        this.label = label;
-        this.did_doc = did_doc;
-        this.my_key = my_key;
+    constructor(input, inbound_processor = null) {
+        this.id = input.id;
+        this.label = input.label;
+        this.did_doc = input.did_doc;
+        this.my_key = input.my_key;
+
+        this.active_as_mediator = input.active_as_mediator || false;
 
         this.inbound_processor = inbound_processor;
 
@@ -162,6 +164,7 @@ class ConnectionDetail {
             id: this.id,
             label: this.label,
             did_doc: this.did_doc,
+            active_as_mediator: this.active_as_mediator,
             my_key_b58: {
                 privateKey: this.my_key.privateKey_b58,
                 publicKey: this.my_key.publicKey_b58
@@ -182,11 +185,12 @@ async function blobToStr(blob) {
 
 
 function new_connection(label, did_doc, my_key, inbound_processor) {
-    return new ConnectionDetail(
-        (uuidv4().toString()),
-        label,
-        did_doc,
-        my_key,
+    return new ConnectionDetail({
+            id: (uuidv4().toString()),
+            label: label,
+            did_doc: did_doc,
+            my_key: my_key,
+        },
         inbound_processor
     );
 }
@@ -195,14 +199,16 @@ function from_store(obj, inbound_processor) {
     let my_key = {
         privateKey: bs58.decode(obj.my_key_b58.privateKey),
         publicKey: bs58.decode(obj.my_key_b58.publicKey),
-        publicKey_b58: obj.my_key_b58.publicKey_b58,
-        privateKey_b58: obj.my_key_b58.privateKey_b58
+        privateKey_b58: obj.my_key_b58.privateKey,
+        publicKey_b58: obj.my_key_b58.publicKey,
     };
-    return new ConnectionDetail(
-        obj.id,
-        obj.label,
-        obj.did_doc,
-        my_key,
+    return new ConnectionDetail({
+            id: obj.id,
+            label: obj.label,
+            did_doc: obj.did_doc,
+            my_key: my_key,
+            active_as_mediator: obj.active_as_mediator,
+        },
         inbound_processor
     );
 }
