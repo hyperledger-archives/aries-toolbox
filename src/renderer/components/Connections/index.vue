@@ -57,11 +57,11 @@ export const metadata = {
 
 export const shared = {
   data: {
-    connections: []
+    connections_old: []
   },
   computed: {
-    active_connections: function() {
-        return Object.values(this.connections).filter(
+    active_connections_old: function() {
+        return Object.values(this.connections_old).filter(
           conn => {
             if (!("state" in conn)) {
               return false;
@@ -72,7 +72,7 @@ export const shared = {
     },
     id_to_connection: function(connection_id) {
       let map = {};
-      this.connections.forEach((connection) => {
+      this.connections_old.forEach((connection) => {
         map[connection.connection_id] = connection;
       })
       console.log(map);
@@ -81,7 +81,7 @@ export const shared = {
   },
   listeners: {
     "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/connection-list":
-    (share, msg) => share.connections = msg.results,
+    (share, msg) => share.connections_old = msg.results,
     "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/connection":
     (share, msg) => share.fetch_connections(),
     "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/ack":
@@ -104,7 +104,7 @@ export default {
   mixins: [
     message_bus(),
     share({
-      use: ['connections', 'active_connections'],
+      use: ['connections_old', 'active_connections_old'],
       actions: ['fetch_connections']
     })
   ],
@@ -119,7 +119,7 @@ export default {
   },
   computed: {
     pending_connections: function() {
-      return Object.values(this.connections).filter(
+      return Object.values(this.connections_old).filter(
         conn => "state" in conn &&
         conn.state !== "active" &&
         conn.state !== "invitation" &&
@@ -127,7 +127,7 @@ export default {
       );
     },
     failed_connections: function() {
-      return Object.values(this.connections).filter(
+      return Object.values(this.connections_old).filter(
         conn => "state" in conn && conn.state === "error"
       );
     }

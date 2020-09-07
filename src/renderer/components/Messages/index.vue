@@ -10,7 +10,7 @@
           <el-option
             v-for="connection in active_connections"
             :key="connection.connection_id"
-            :label="connection.their_label"
+            :label="connection.label"
             :value="connection.connection_id">
           </el-option>
         </el-select>
@@ -155,7 +155,7 @@ export const shared = {
     new_message_notify: function({share}, connection_id, msg) {
       let label = '[Unknown]';
       if (connection_id in share.id_to_connection) {
-        label = share.id_to_connection[connection_id].their_label;
+        label = share.id_to_connection[connection_id].label;
       }
 
       share.$notify({
