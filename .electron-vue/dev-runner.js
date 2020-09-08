@@ -116,7 +116,8 @@ function startMain () {
 function startElectron () {
   var args = [
     '--inspect=5858',
-    path.join(__dirname, '../dist/electron/main.js')
+    path.join(__dirname, '../dist/electron/main.js'),
+    '--host-rules MAP docker.for.win.localhost 127.0.0.1'
   ]
 
   // detect yarn or npm and process commandline args accordingly
@@ -127,7 +128,7 @@ function startElectron () {
   }
 
   electronProcess = spawn(electron, args)
-  
+
   electronProcess.stdout.on('data', data => {
     electronLog(data, 'blue')
   })

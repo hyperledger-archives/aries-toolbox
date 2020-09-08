@@ -1,5 +1,8 @@
 <template>
   <el-row>
+    <div>
+      Endpoint: {{get_connection().service.serviceEndpoint}}
+    </div>
     <el-button type="secondary" @click="clear_history">Clear</el-button>
     <div class="message-display" v-for="m in message_history.slice().reverse()" :key="m.msg['@id']">
       <i>{{m.direction}}</i>
@@ -43,6 +46,7 @@ export const shared = {
 
 export default {
   name: 'message-history',
+  inject: ['get_connection'],
   mixins: [
     message_bus(),
     share({

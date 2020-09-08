@@ -4,7 +4,7 @@
       <a class="navbar-brand" href="#">Aries Toolbox</a>
     </nav>
 
-    <el-card shadow="never" class="agent-card" v-for="a in agent_list">
+    <el-card shadow="never" class="agent-card" v-for="a in agent_list" v-bind:key="a.id">
       <span slot="header"><strong>{{a.label}}</strong></span>
       <div>
         <el-button type="text" @click="openConnection(a)">Open</el-button>
