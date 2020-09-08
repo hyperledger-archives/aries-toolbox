@@ -53,9 +53,6 @@ export default {
       use: ['message_history']
     })
   ],
-  computed: {
-
-  },
   methods: {
     clear_history: function(){
       this.message_history.length = 0;
