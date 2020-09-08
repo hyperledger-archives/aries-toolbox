@@ -13,7 +13,7 @@
       </div>
     </el-card>
 
-    <el-card shadow="never" id="new_agent_connection">
+    <el-card shadow="never" class="function_card" id="new_agent_connection">
       <span slot="header">New Agent Connection</span>
       <div>
         <el-form :inline="true">
@@ -28,12 +28,12 @@
         show-icon>
       </el-alert>
     </el-card>
-    <el-card shadow="never" id="new_agent_invitation" v-show="hasMediator">
+    <el-card shadow="never" class="function_card" id="new_agent_invitation" v-show="hasMediator">
       <span slot="header">New Agent Invitation</span>
       <div>
         <el-form :inline="true">
-          <el-input v-model="new_agent_invitation" placeholder="Paste agent invitation"></el-input>
-          <el-button type="primary" @click="new_agent_invitation_process">Connect</el-button>
+          <el-input v-model="new_invitation_label" placeholder="Label"></el-input>
+          <el-button type="primary" @click="generate_invitation">Generate</el-button>
         </el-form>
       </div>
       <el-alert v-show="invitation_error != ''"
@@ -297,12 +297,12 @@ export default {
 .agent-card:first-of-type {
   margin-top: .5em;
 }
-.agent-card, #new_agent_connection {
+.agent-card, .function_card {
   margin: .5em 1em;
   border: 1px solid rgba(0, 0, 0, 0.125);
 }
 .agent-card .el-card__header,
-#new_agent_connection .el-card__header {
+.function_card .el-card__header {
   padding: .75rem 1.25rem;
   background-color: rgba(0, 0, 0, 0.03);
   border-bottom: 1px solid rgba(0, 0, 0, 0.125);
