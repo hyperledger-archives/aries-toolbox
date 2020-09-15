@@ -1,6 +1,12 @@
 import Vue from 'vue';
 import message_bus from '@/message_bus.js';
 
+/**
+ * Create a new Share. This shamelessly takes advantage of Vue (as in an actual
+ * Vue instance) to get all the fancy observer stuff Vue does (computed values
+ * from data, auto-updating UIs).
+ * @constructor
+ */
 export function Share(vm, data = {}, computed = {}, methods = {}) {
     return new Vue({
         data: function() {
@@ -19,6 +25,14 @@ export function Share(vm, data = {}, computed = {}, methods = {}) {
     });
 }
 
+/**
+ * Vue Component Mixin for marking the component as a source for some shared
+ * resource.
+ *
+ * @param {object} modules - Object containing data, computed, methods, and
+ * listeners attributes. See components' shared exports for examples.
+ * @returns {object} - Mixin object.
+ */
 export function share_source(modules) {
     let data = {};
     let computed = {};
@@ -73,6 +87,10 @@ export function share_source(modules) {
     }
 }
 
+/**
+ * Vue Component Mixin for "importing" shared resources into the component.
+ * @param {object} options - See component's share mixin call for examples.
+ */
 export default function(options = {use: [], use_mut: [], actions: []}) {
     let properties = [];
     let actions = [];
@@ -134,6 +152,14 @@ export default function(options = {use: [], use_mut: [], actions: []}) {
     };
 }
 
+/**
+ * Return computed property getter/setter object used to "subscribe" to a
+ * shared resource. Used by default function to make shared objects accessible
+ * in Vue Components.
+ * @param {string} subject - The name of the shared resource to subscribe to.
+ * @param {boolean} mutable - Whether the imported resource should be
+ * considered mutable by the subscribing entity.
+ */
 export function subscribe(subject, mutable = true) {
     return {
         get: function() {
