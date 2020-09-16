@@ -47,7 +47,7 @@ p {
             if (!quiet) print target " already exists; skipping..."
             next
         }
-        if (!quiet) print "Generating " target_dir "..."
+        if (!quiet) print "Generating " target_dir
         system("mkdir -p " target_dir)
         if (!quiet) printf("See [%s](/docs/%s%s).", name, FILE, link) > target
     }

@@ -7,9 +7,18 @@ readmes := $(shell $\
 	-path scripts -prune -o $\
 	-type f -name 'README.md' $\
 )
+generated := $(shell ./scripts/list_files_to_generate.sh $(readmes))
 
 help:
 	@echo "Usage: make docs"
 
-docs: $(readmes)
+docs: $(generated)
+
+clean:
+	rm -r $(dir $(generated))
+
+$(generated): $(readmes)
 	@./scripts/generate_doc_folders.sh $(readmes)
+
+
+.PHONY: help docs

@@ -54,7 +54,7 @@ $ make docs
 
 To overwrite old docs, use:
 ```
-$ make docs CLOBBER=1
+$ make clean docs
 ```
 
 If testing or for whatever reason you'd like to explicitly trigger generation
