@@ -8,10 +8,6 @@ readmes := $(shell $\
 	-type f -name 'README.md' $\
 )
 
-define generate =
-@echo scripts/generate_from_readme.awk -v clobber="$(CLOBBER)" "$@"
-endef
-
 help:
 	@echo "Usage: make docs"
 
