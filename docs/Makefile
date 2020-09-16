@@ -10,7 +10,11 @@ readmes := $(shell $\
 generated := $(shell ./scripts/list_files_to_generate.sh $(readmes))
 
 help:
-	@echo "Usage: make docs"
+	@echo "Usage: make [TARGET TARGET...]"
+	@echo "Targets: help clean docs"
+	@echo -e "  make docs\t\tGenerate docs from central readmes"
+	@echo -e "  make clean\t\tRemove all generated docs"
+	@echo -e "  make clean docs\tRegenerate all docs"
 
 docs: $(generated)
 
@@ -21,4 +25,4 @@ $(generated): $(readmes)
 	@./scripts/generate_doc_folders.sh $(readmes)
 
 
-.PHONY: help docs
+.PHONY: help docs clean
