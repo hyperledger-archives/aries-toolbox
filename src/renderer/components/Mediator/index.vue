@@ -28,28 +28,7 @@
 </template>
 
 <style>
-.message-display {
-  margin-bottom: 1em;
-  border-bottom: 1px solid lightgrey;
-  padding-bottom: 1em;
-}
-.basicmessage-Sent {
-  background-color: white;
-  margin-right: 4em;
-  margin-bottom: 1em;
-  padding: 1em;
-  border: 1px solid lightgrey;
-  border-radius: 4px;
-}
-.basicmessage-Received {
-  background-color: lightblue;
-  margin-left: 4em;
-  margin-bottom: 1em;
-  padding: 1em;
-  text-align: right;
-  border: 1px solid lightgrey;
-  border-radius: 4px;
-}
+
 </style>
 
 <script>
