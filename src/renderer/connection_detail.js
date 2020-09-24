@@ -18,6 +18,9 @@ class ConnectionDetail {
 
         this.didcomm = new DIDComm.DIDComm();
 
+        this.use_return_route = true;
+        this.unpacked_processor = null;
+
         // evaluate DID Document to pick transport
         // filter for IndyAgent / DIDComm
         let supported_types = ["IndyAgent", "did-communication"];
@@ -68,7 +71,11 @@ class ConnectionDetail {
 
             // Listen for messages
             this.socket.onUnpackedMessage.addListener(async event => {
-                this.process_inbound(await this.unpackMessage(await event));
+                if(this.unpacked_processor){
+                    this.unpacked_processor(await event);
+                } else {
+                    this.process_inbound(await this.unpackMessage(await event));
+                }
             });
             // error handling
             this.socket.onError.addListener(event => {
@@ -83,18 +90,27 @@ class ConnectionDetail {
         }
     }
 
+    enable_return_route(){
+        this.use_return_route = true;
+    }
+    disable_return_route(){
+        this.use_return_route = false;
+    }
+
     needs_return_route_poll() {
         return this.service_transport_protocol === "http" || this.service_transport_protocol === "https";
     }
 
-    async send_message(msg, set_return_route = true) {
+    async send_message(msg) {
         console.log("Sending message:", msg);
 
         if (!('@id' in msg)) { // Ensure @id is populated
             msg['@id'] = uuidv4().toString();
         }
 
-        if (set_return_route) {
+        // don't use return_route if this is the active mediator
+        // messages will arrive via the main agentlist
+        if (this.use_return_route) {
             if (!("~transport" in msg)) {
                 msg["~transport"] = {}
             }
@@ -147,8 +163,22 @@ class ConnectionDetail {
         );
     }
 
+    async extract_packed_message_recipients(encMsg){
+        let wrapper
+        if (typeof encMsg === 'string') {
+            wrapper = JSON.parse(encMsg)
+        } else {
+            wrapper = encMsg
+        }
+        const recipsJson = this.didcomm.strB64dec(wrapper.protected);
+        const recipsOuter = JSON.parse(recipsJson);
+        const keys = recipsOuter.recipients.map(r => r.header.kid);
+        return keys;
+    }
+
     async unpackMessage(packed_msg) {
         await this.didcomm.Ready;
+        // this will only work if the key matches. If it doesn't match, it'll fail.
         const unpackedResponse = await this.didcomm.unpackMessage(packed_msg, this.my_key);
         //console.log("unpacked", unpackedResponse);
         return JSON.parse(unpackedResponse.message);

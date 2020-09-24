@@ -220,6 +220,10 @@ export default {
       this.connection = from_store(agent_info, vm.processInbound);
     })();
     await this.connection_loaded;
+    // don't use return route in the agent window if this connection is configured as a mediator connection.
+    if(this.connection.active_as_mediator){
+      this.connection.disable_return_route();
+    }
     this.fetch_protocols();
     this.fetch_dids();
     this.fetch_active_did();
@@ -229,6 +233,12 @@ export default {
     if(this.connection.needs_return_route_poll()){
       this.return_route_poll_timer = setInterval(this.return_route_poll, 10000);
     }
+  },
+  mounted () {
+    this.$electron.ipcRenderer.on('inbound_message', async (event, data) => {
+      console.log("inbound-message", data);
+      this.connection.process_inbound(await this.connection.unpackMessage(data.msg));
+    });
   },
   beforeDestroy: function() {
     if(this.connection.needs_return_route_poll()) {

@@ -1,8 +1,16 @@
 <template>
   <el-row>
-    <div style="">
+    <div v-if="get_connection().active_as_mediator == true">
+      <el-alert
+        title="This connection is set as the toolbox mediator."
+        type="success"
+        :closable="false">
+      </el-alert>
+    </div>
+    <div style="" v-else>
       <el-button v-on:click="enable_as_mediator()" type="primary">Use As Mediator</el-button>
     </div>
+
     <div style="margin-bottom: 1em;">
         <p>Mediator Routes</p>
         <el-collapse v-model="expanded_items">
