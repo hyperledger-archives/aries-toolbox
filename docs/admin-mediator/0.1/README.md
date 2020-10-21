@@ -49,7 +49,10 @@ Example:
   "requests": [
     {
       "state": "requested",
-      "connection_id": "a1e85f35-eaf6-4e5f-8c9f-a3e97f18bebe"
+      "connection_id": "a1e85f35-eaf6-4e5f-8c9f-a3e97f18bebe",
+      "mediation_id": "df7bed06-0a0c-4b1a-b45b-278de432429b",
+      "mediator_terms": [],
+      "recipient_terms": []
     },
     ...
   ]
@@ -66,6 +69,12 @@ Example:
 `state`: (Required) See [`mediation-requests-get`](#mediation-requests-get)
 
 `connection_id`: Connection ID associated with this request.
+
+`mediation_id`: ID of Mediation request.
+
+`mediator_terms`: Terms required by mediator.
+
+`recipient_terms`: Terms required by recipient.
 
 ### keylists-get
 Retrieve keylists (routing tables) managed by the mediator.
