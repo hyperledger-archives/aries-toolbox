@@ -27,7 +27,7 @@ Retrieve mediation requests received by agent.
 Example:
 ```jsonc
 {
-	"@type": "...admin-mediator/0.1/mediation-requests-get",
+  "@type": "...admin-mediator/0.1/mediation-requests-get",
   "state": "requested",
   "connection_id": "ee3fdc82-4a49-4b31-b84b-44031ca78c1b"
 }
@@ -44,8 +44,8 @@ Response to `mediation-requests-get`
 Example:
 ```jsonc
 {
-	"@type": "...admin-mediator/0.1/mediation-requests",
-	"~thread": {"thid": "<send msg id>"},
+  "@type": "...admin-mediator/0.1/mediation-requests",
+  "~thread": {"thid": "<send msg id>"},
   "requests": [
     {
       "state": "requested",
