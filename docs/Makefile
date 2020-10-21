@@ -6,6 +6,7 @@ readmes := $(shell $\
 	-maxdepth 3 $\
 	-path scripts -prune -o $\
 	-type f -name 'README.md' $\
+	-printf "%P " $\
 )
 generated := $(shell ./scripts/list_files_to_generate.sh $(readmes))
 

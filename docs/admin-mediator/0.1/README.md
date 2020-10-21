@@ -1,5 +1,5 @@
 Mediator Admin Protocol
-==========================
+=======================
 
 ## Overview
 
@@ -11,6 +11,10 @@ routing tables of in service mediation clients.
 ### Protocol Messages
 - [mediation-requests-get](#mediation-requests-get)
 - [mediation-requests](#mediation-requests)
+- [mediation-grant-send](#mediation-grant-send)
+- [mediation-grant-sent](#mediation-grant-sent)
+- [mediation-deny-send](#mediation-deny-send)
+- [mediation-deny-sent](#mediation-deny-sent)
 - [keylists-get](#keylists-get)
 - [keylists](#keylists)
 
@@ -75,6 +79,58 @@ Example:
 `mediator_terms`: Terms required by mediator.
 
 `recipient_terms`: Terms required by recipient.
+
+### mediation-grant-send
+Grant a mediation request.
+
+Example:
+```jsonc
+{
+  "@type": "...admin-mediator/0.1/mediation-grant",
+  "mediation_id": "ba4a50a8-b9ab-4333-b48c-fb7663b768d3"
+}
+```
+
+`mediation_id`: ID of mediation request to grant.
+
+### mediation-grant-sent
+Notification of mediation grant send.
+
+Example:
+```jsonc
+{
+  "@type": "...admin-mediator/0.1/mediation-grant",
+  "mediation_id": "ba4a50a8-b9ab-4333-b48c-fb7663b768d3"
+}
+```
+
+`mediation_id`: ID of granted mediation request.
+
+### mediation-deny-send
+Deny a mediation request.
+
+Example:
+```jsonc
+{
+  "@type": "...admin-mediator/0.1/mediation-deny",
+  "mediation_id": "ba4a50a8-b9ab-4333-b48c-fb7663b768d3"
+}
+```
+
+`mediation_id`: ID of mediation request to deny.
+
+### mediation-deny-sent
+Notification of mediation deny send.
+
+Example:
+```jsonc
+{
+  "@type": "...admin-mediator/0.1/mediation-deny",
+  "mediation_id": "ba4a50a8-b9ab-4333-b48c-fb7663b768d3"
+}
+```
+
+`mediation_id`: ID of denied mediation request.
 
 ### keylists-get
 Retrieve keylists (routing tables) managed by the mediator.
