@@ -32,6 +32,6 @@ function die {
 # If not in docs directory, fail
 [[ "$(basename "${PWD}")" == "docs" ]] || die "Must be run from docs"
 
-for README in **/**/README.md; do
-    ./generate_from_readme.awk -v clobber="${CLOBBER:-0}" "${README}"
+for readme in "$@"; do
+    ./scripts/generate_from_readme.awk -v clobber="${CLOBBER:-0}" "${readme}"
 done

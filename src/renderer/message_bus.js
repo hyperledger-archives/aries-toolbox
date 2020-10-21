@@ -10,9 +10,22 @@
 
 import Vue from 'vue';
 
+/**
+ * Vue Component Mixin for adding a message bus, accessed through
+ * "$message_bus", a send_message method for trigger a new DIDComm message to
+ * be sent, and a listen method for subscribing to an event through the message
+ * bus.
+ * @param {object} options - Object with nested events object where the key is
+ * an event to subscribe to and the value is the function to run when that
+ * event is triggered. Event functions are passed the current Vue object
+ * (this), and any data emitted with the event.
+ */
 export default function(options = {}) {
     return {
         beforeCreate: function() {
+            /**
+             * Look in this components Vue heirarchy for a defined message bus.
+             */
             function derive(component) {
                 if (component.$message_bus) {
                     console.log('Found message bus on component:', component);
@@ -21,6 +34,7 @@ export default function(options = {}) {
                 if (component.$parent) {
                     return derive(component.$parent);
                 }
+                console.log('Creating new message bus.');
                 return new Vue();
             }
             this.$message_bus = derive(this);

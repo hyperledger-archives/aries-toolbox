@@ -7,11 +7,17 @@
 #
 # VARS:
 # - clobber: When set to a truthy, README files will be overwritten
+# - quiet: When truthy, do not output diagnostics
+# - list: When truthy, do not generate files, just print what files would be generated
+#         Implies quiet
 
 # Get filename and directory of readme in process
 BEGIN {
     FILE = ARGV[1]
     "dirname " FILE | getline DIR
+    if (list) {
+        quiet = 1
+    }
 }
 
 # Match our start pattern
@@ -29,16 +35,20 @@ p {
     name = matches[1]
     link = matches[2]
     if (!name || !link) {
-        print "Error: Line does not match expected pattern; skipping:\n    " $0
+        if (!quiet) print "Error: Line does not match expected pattern; skipping:\n    " $0
         next
     }
     target_dir = DIR "/" name
     target = target_dir "/README.md"
-    if (!system("test -f " target) && !clobber) {
-        print target " already exists; skipping..."
-        next
+    if (list) {
+        print target
+    } else {
+        if (!system("test -f " target) && !clobber) {
+            if (!quiet) print target " already exists; skipping..."
+            next
+        }
+        if (!quiet) print "Generating " target_dir
+        system("mkdir -p " target_dir)
+        if (!quiet) printf("See [%s](/docs/%s%s).", name, FILE, link) > target
     }
-    print "Generating " target_dir "..."
-    system("mkdir -p " target_dir)
-    printf("See [%s](/docs/%s%s).", name, FILE, link) > target
 }
