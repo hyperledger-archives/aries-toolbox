@@ -41,6 +41,7 @@ Example:
 ```json
 {
   "@type": "...admin-routing/0.1/mediation-request-sent",
+  "~thread": {"thid": "<id of send>"},
   "connection_id": "fdbcdfe3-43c9-4f7b-8a77-c242dda6c645"
 }
 ```
@@ -65,6 +66,7 @@ Example:
 ```json
 {
   "@type": "...admin-routing/0.1/keylist-update-sent",
+  "~thread": {"thid": "<id of send>"},
   "connection_id": "19af130b-c4f7-405f-b2a4-38deda144a68",
   "verkey": "FXmyHENFwyuq3QeoaVd4aq...",
   "action": "add"
@@ -90,6 +92,7 @@ Example:
 ```json
 {
   "@type": "...admin-routing/0.1/keylists",
+  "~thread": {"thid": "<id of get>"},
   "keylists": [
     {
       "connection_id": "0241ea55-9549-4f67-a257-60bbded93d51",

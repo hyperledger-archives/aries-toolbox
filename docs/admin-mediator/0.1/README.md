@@ -11,10 +11,10 @@ routing tables of in service mediation clients.
 ### Protocol Messages
 - [mediation-requests-get](#mediation-requests-get)
 - [mediation-requests](#mediation-requests)
-- [mediation-grant-send](#mediation-grant-send)
-- [mediation-grant-sent](#mediation-grant-sent)
-- [mediation-deny-send](#mediation-deny-send)
-- [mediation-deny-sent](#mediation-deny-sent)
+- [mediation-grant](#mediation-grant)
+- [mediation-granted](#mediation-granted)
+- [mediation-deny](#mediation-deny)
+- [mediation-denied](#mediation-denied)
 - [keylists-get](#keylists-get)
 - [keylists](#keylists)
 
@@ -80,7 +80,7 @@ Example:
 
 `recipient_terms`: Terms required by recipient.
 
-### mediation-grant-send
+### mediation-grant
 Grant a mediation request.
 
 Example:
@@ -93,7 +93,7 @@ Example:
 
 `mediation_id`: ID of mediation request to grant.
 
-### mediation-grant-sent
+### mediation-granted
 Notification of mediation grant send.
 
 Example:
@@ -106,7 +106,7 @@ Example:
 
 `mediation_id`: ID of granted mediation request.
 
-### mediation-deny-send
+### mediation-deny
 Deny a mediation request.
 
 Example:
@@ -119,7 +119,7 @@ Example:
 
 `mediation_id`: ID of mediation request to deny.
 
-### mediation-deny-sent
+### mediation-denied
 Notification of mediation deny send.
 
 Example:
