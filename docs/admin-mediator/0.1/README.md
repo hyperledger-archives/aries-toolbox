@@ -15,8 +15,8 @@ routing tables of in service mediation clients.
 - [mediation-granted](#mediation-granted)
 - [mediation-deny](#mediation-deny)
 - [mediation-denied](#mediation-denied)
-- [keylists-get](#keylists-get)
-- [keylists](#keylists)
+- [routes-get](#routes-get)
+- [routes](#routes)
 
 ## Message Definitions
 
@@ -132,42 +132,40 @@ Example:
 
 `mediation_id`: ID of denied mediation request.
 
-### keylists-get
-Retrieve keylists (routing tables) managed by the mediator.
+### routes-get
+Retrieve routes managed by the mediator.
 
 Example:
 ```jsonc
 {
-  "@type": "...admin-mediator/0.1/keylists-get",
+  "@type": "...admin-mediator/0.1/routes-get",
   "connection_id": "2fc59239-7def-4a00-abe5-b01046bc991b"
 }
 ```
 
 `connection_id`: (Optional) Retrieve routing tables for connection ID.
 
-### keylists
-Response to `keylists-get` message.
+### routes
+Response to `routes-get` message.
 
 Example:
 ```jsonc
 {
-  "@type": "...admin-mediator/0.1/keylists",
-  "keylists": [
+  "@type": "...admin-mediator/0.1/routes",
+  "routes": [
     {
       "connection_id": "2fc59239-7def-4a00-abe5-b01046bc991b",
-      "keylist": [
-        "G5GEUNKYdZjQbjyAZi294U...",
-        ...
-      ]
-    }
+      "recipient_key": "G5GEUNKYdZjQbjyAZi294U...",
+    },
+    ...
   ]
 }
 ```
 
-`keylists`: List of connection ID to key list mappings.
+`routes`: List of connection ID to key list mappings.
 
-#### Keylist (list item)
+#### Route (list item)
 
 `connection_id`: Connection ID associated with keys
 
-`keylist`: List of recipient keys routed to this connection.
+`recipient_key`: Key routed to this connection.

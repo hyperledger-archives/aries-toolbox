@@ -13,8 +13,8 @@ update routing tables being serviced by this agent's mediators.
 - [mediation-request-sent](#mediation-request-sent)
 - [keylist-update-send](#keylist-update-send)
 - [keylist-update-sent](#keylist-update-sent)
-- [keylists-get](#keylists-get)
-- [keylists](#keylists)
+- [routes-get](#routes-get)
+- [routes](#routes)
 
 ## Message Definitions
 
@@ -73,35 +73,32 @@ Example:
 }
 ```
 
-### keylists-get
+### routes-get
 Query agent for its active routes meaning the keys it has requested a mediator
 to forward.
 
 Example:
 ```json
 {
-  "@type": "...admin-routing/0.1/keylists-get",
+  "@type": "...admin-routing/0.1/routes-get",
   "connection_id": "0241ea55-9549-4f67-a257-60bbded93d51"
 }
 ```
 
-### keylists
-Response to `keylists-get`, result of active routes query.
+### routes
+Response to `routes-get`, result of active routes query.
 
 Example:
-```json
+```jsonc
 {
-  "@type": "...admin-routing/0.1/keylists",
+  "@type": "...admin-routing/0.1/routes",
   "~thread": {"thid": "<id of get>"},
-  "keylists": [
+  "routes": [
     {
       "connection_id": "0241ea55-9549-4f67-a257-60bbded93d51",
-      "keys": [
-        "TL1WEBPGcN8Die6V1ck82...",
-        "..."
-      ]
+      "recipient_key": "URBr2gG3Zfbh93LMtkLL5D..."
     },
-    "..."
+    ...
   ]
 }
 ```

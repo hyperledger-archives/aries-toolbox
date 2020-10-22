@@ -1,0 +1,1 @@
+See [routes](/docs/admin-mediator/0.1/README.md#routes).
