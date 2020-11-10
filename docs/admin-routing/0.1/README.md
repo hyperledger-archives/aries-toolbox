@@ -9,6 +9,8 @@ The routing admin protocol is used to make mediation requests and view and
 update routing tables being serviced by this agent's mediators.
 
 ### Protocol Messages
+- [mediation-requests-get](#mediation-requests-get)
+- [mediation-requests](#mediation-requests)
 - [mediation-request-send](#mediation-request-send)
 - [mediation-request-sent](#mediation-request-sent)
 - [keylist-update-send](#keylist-update-send)
@@ -22,6 +24,61 @@ update routing tables being serviced by this agent's mediators.
 > section, such as the `@id` and `@type` attributes. The omission is for brevity
 > and clarity of the example and it should be assumed that each example message
 > contains all attributes required to be processed by the receiving agent.
+
+### mediation-requests-get
+Retrieve mediation requests made by agent.
+
+Example:
+```jsonc
+{
+  "@type": "...admin-routing/0.1/mediation-requests-get",
+  "state": "requested",
+  "connection_id": "ee3fdc82-4a49-4b31-b84b-44031ca78c1b"
+}
+```
+
+`state:`: (Optional) One of `requested`, `granted`, or `denied`, corresponding
+to the different possible states of mediation requests.
+
+`connection_id`: (Optional) Retrieve Mediation Requests from connection ID.
+
+### mediation-requests
+Response to `mediation-requests-get`.
+
+Example:
+```jsonc
+{
+  "@type": "...admin-routing/0.1/mediation-requests",
+  "~thread": {"thid": "<send msg id>"},
+  "requests": [
+    {
+      "state": "requested",
+      "connection_id": "a1e85f35-eaf6-4e5f-8c9f-a3e97f18bebe",
+      "mediation_id": "df7bed06-0a0c-4b1a-b45b-278de432429b",
+      "mediator_terms": [],
+      "recipient_terms": []
+    },
+    ...
+  ]
+}
+```
+
+`~thread`: Thread ID will match the message ID of the corresponding
+`mediation-requests-get` message.
+
+`requests`: List of retrieved requests
+
+#### Request (list item)
+
+`state`: (Required) See [`mediation-requests-get`](#mediation-requests-get)
+
+`connection_id`: Connection ID associated with this request.
+
+`mediation_id`: ID of Mediation request.
+
+`mediator_terms`: Terms required by mediator.
+
+`recipient_terms`: Terms required by recipient.
 
 ### mediation-request-send
 Send mediation request to connection.
