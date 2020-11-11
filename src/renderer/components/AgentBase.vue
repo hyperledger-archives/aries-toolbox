@@ -124,6 +124,12 @@ export default {
           duration: 4000,
           customClass: 'problem-report-notification'
         })
+      },
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/coordinate-mediation/1.0/mediate-grant': (vm, msg) => {
+        vm.enable_as_mediator();
+      },
+      'https://didcomm.org/coordinate-mediation/1.0/mediate-grant': (vm, msg) => {
+        vm.enable_as_mediator();
       }
     }}),
     share_source(shared),
@@ -173,7 +179,7 @@ export default {
 
   },
   methods: {
-    ...mapGetters("Agents", ["get_agent"]),
+    ...mapGetters("Agents", ["get_agent", "update_agent"]),
     async send_connection_message(msg){
       await this.connection_loaded;
       this.connection.send_message(msg);
@@ -206,6 +212,12 @@ export default {
     redirect: function(route) {
       this.$router.push({name: route});
       this.$refs.menu.updateActiveIndex(route);
+    },
+    enable_as_mediator: function() {
+      let conn = this.get_connection();
+      conn.active_as_mediator = true;
+      this.update_agent(conn.to_store());
+      console.log("connection to mediate through", conn);
     }
   },
   provide: function () {
