@@ -179,7 +179,8 @@ export default {
 
   },
   methods: {
-    ...mapGetters("Agents", ["get_agent", "update_agent"]),
+    ...mapGetters("Agents", ["get_agent"]),
+    ...mapActions("Agents", ["update_agent"]),
     async send_connection_message(msg){
       await this.connection_loaded;
       this.connection.send_message(msg);
