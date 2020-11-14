@@ -110,6 +110,14 @@ export default {
       'send-message': (v, msg, return_route) => {
         v.send_connection_message(msg, return_route);
       },
+      'toolbox-mediator-change': (vm) => {
+        let mediator_agent = vm.agent_list.find(a => a.active_as_mediator === true);
+        if(mediator_agent != null && mediator_agent.active_as_mediator){
+          vm.connection.disable_return_route();
+        } else {
+          vm.connection.enable_return_route();
+        }
+      },
       'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/notification/1.0/problem-report':
       (vm, msg) => {
         vm.$notify.error({
@@ -126,10 +134,10 @@ export default {
         })
       },
       'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/coordinate-mediation/1.0/mediate-grant': (vm, msg) => {
-        vm.enable_as_mediator();
+        vm.enable_as_mediator(msg);
       },
       'https://didcomm.org/coordinate-mediation/1.0/mediate-grant': (vm, msg) => {
-        vm.enable_as_mediator();
+        vm.enable_as_mediator(msg);
       }
     }}),
     share_source(shared),
@@ -154,6 +162,7 @@ export default {
     }
   },
   computed: {
+    ...mapState("Agents", ["agent_list"]),
     active_did: {
       get () {
         return this.public_did || "";
@@ -214,11 +223,15 @@ export default {
       this.$router.push({name: route});
       this.$refs.menu.updateActiveIndex(route);
     },
-    enable_as_mediator: function() {
+    enable_as_mediator: function(grant_msg) {
       let conn = this.get_connection();
       conn.active_as_mediator = true;
+      conn.mediator_info = {
+        endpoint: grant_msg.endpoint,
+        routing_keys: grant_msg.routing
+      };
       this.update_agent(conn.to_store());
-      console.log("connection to mediate through", conn);
+      console.log("connection to mediate through", conn, conn.mediator_info);
     }
   },
   provide: function () {
@@ -233,8 +246,10 @@ export default {
       this.connection = from_store(agent_info, vm.processInbound);
     })();
     await this.connection_loaded;
-    // don't use return route in the agent window if this connection is configured as a mediator connection.
-    if(this.connection.active_as_mediator){
+    // don't use return route in the agent window if any connection is configured as a mediator connection.
+
+    let mediator_agent = this.agent_list.find(a => a.active_as_mediator === true);
+    if(mediator_agent != null && mediator_agent.active_as_mediator){
       this.connection.disable_return_route();
     }
     this.fetch_protocols();

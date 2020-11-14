@@ -28,7 +28,7 @@
         show-icon>
       </el-alert>
     </el-card>
-    <el-card shadow="never" class="function_card" id="new_agent_invitation" v-show="hasMediator">
+    <el-card shadow="never" class="function_card" id="new_agent_invitation" v-show="hasMediator && false">
       <span slot="header">New Agent Invitation</span>
       <div>
         <el-form :inline="true">
@@ -54,6 +54,7 @@ const DIDComm = require('encryption-envelope-js');
 //import DIDComm from 'didcomm-js';
 import { mapState, mapActions, mapGetters } from "vuex"
 import { new_connection } from '../connection_detail.js';
+import message_bus from '@/message_bus.js';
 import { base64_decode, base64_encode } from '../base64.js';
 import { from_store } from '../connection_detail.js';
 const uuidv4 = require('uuid/v4');
@@ -61,6 +62,9 @@ const uuidv4 = require('uuid/v4');
 export default {
   name: 'agent-list',
   components: {  },
+  mixins: [
+    message_bus()
+  ],
   computed: {
     ...mapState("Agents", ["agent_list"]),
     ...mapGetters("Agents", ["get_agent"]),
@@ -76,6 +80,11 @@ export default {
       let mediator_agent = newValue.find(a => a.active_as_mediator === true);
       if (mediator_agent) {
         this.mediatorConnect();
+        this.$message_bus.$emit('toolbox-mediator-change');
+      } else {
+        //mediator was deleted
+        this.mediatorCleanup();
+        this.$message_bus.$emit('toolbox-mediator-change');
       }
     },
   },
@@ -139,16 +148,31 @@ export default {
       // send message
       let window_key = recipients[0];
       // TODO: detect lack of open window.
-      this.agent_windows[window_key].webContents.send("inbound_message", {
-        id: message_uuid,
-        recipient: recipients[0],
-        msg: packed_msg
-      })
+      let window = this.agent_windows[window_key];
+      let msg_bundle = {
+          id: message_uuid,
+          recipient: recipients[0],
+          msg: packed_msg
+        };
+      if(window !== undefined){
+        window.webContents.send("inbound_message", msg_bundle);
+        console.log("delivered", msg_bundle);
+      } else {
+        // Queue message for when window opens
+        if(!(window_key in this.window_message_queue)){
+          this.window_message_queue[window_key] = [];
+        }
+        this.window_message_queue[window_key].push(msg_bundle);
+        console.log("queued", msg_bundle);
+      }
+      //TODO: deliver queued message after window opens.
+
     },
     mediatorCleanup: function(){
-      if(this.mediator_connection.needs_return_route_poll()) {
+      if(this.mediator_connection && this.mediator_connection.needs_return_route_poll()) {
         clearInterval(this.return_route_poll_timer)
       }
+      this.mediator_connection = null;
     },
     generate_invitation: function(){
 
@@ -184,6 +208,24 @@ export default {
       toolbox_did.privateKey_b58 = bs58.encode(Buffer.from(toolbox_did.privateKey));
       console.log("new pair", toolbox_did);
 
+      let service_endpoint_block = {
+        "id": toolbox_did.did + ";indy",
+        "type": "IndyAgent",
+        "recipientKeys": [toolbox_did.publicKey_b58],
+        //"routingKeys": ["<example-agency-verkey>"], // TODO: Use routing keys and endpoint if mediator configured.
+        "serviceEndpoint": ""
+      };
+
+
+
+      if(this.mediator_connection && this.mediator_connection.active_as_mediator){
+        let mediator_agent = this.agent_list.find(a => a.active_as_mediator === true);
+        if(mediator_agent != null) {
+          service_endpoint_block["routingKeys"] = mediator_agent.mediator_info.routing_keys || [];
+          service_endpoint_block["serviceEndpoint"] = mediator_agent.mediator_info.endpoint;
+        }
+      }
+
       var req = {
         "@id":  (uuidv4().toString()),
         "~transport": {
@@ -202,13 +244,7 @@ export default {
               "controller": toolbox_did.did,
               "publicKeyBase58": toolbox_did.publicKey_b58
             }],
-            "service": [{
-              "id": toolbox_did.did + ";indy",
-              "type": "IndyAgent",
-              "recipientKeys": [toolbox_did.publicKey_b58],
-              //"routingKeys": ["<example-agency-verkey>"], // TODO: Use routing keys and endpoint if mediator configured.
-              "serviceEndpoint": ""
-            }]
+            "service": [service_endpoint_block]
           }
         }
       };
@@ -267,6 +303,8 @@ export default {
       invitation_error: "",
       new_invitation_label: "",
       agent_windows: {},
+      mediator_connection: {},
+      window_message_queue: {},
     }
 
   }

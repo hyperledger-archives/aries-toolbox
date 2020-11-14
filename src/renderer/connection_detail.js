@@ -13,6 +13,7 @@ class ConnectionDetail {
         this.my_key = input.my_key;
 
         this.active_as_mediator = input.active_as_mediator || false;
+        this.mediator_info = input.mediator_info || null;
 
         this.inbound_processor = inbound_processor;
 
@@ -195,6 +196,7 @@ class ConnectionDetail {
             label: this.label,
             did_doc: this.did_doc,
             active_as_mediator: this.active_as_mediator,
+            mediator_info: this.mediator_info,
             my_key_b58: {
                 privateKey: this.my_key.privateKey_b58,
                 publicKey: this.my_key.publicKey_b58
