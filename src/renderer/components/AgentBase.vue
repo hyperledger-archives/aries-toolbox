@@ -228,7 +228,7 @@ export default {
       conn.active_as_mediator = true;
       conn.mediator_info = {
         endpoint: grant_msg.endpoint,
-        routing_keys: grant_msg.routing
+        routing_keys: grant_msg.routing_keys
       };
       this.update_agent(conn.to_store());
       console.log("connection to mediate through", conn, conn.mediator_info);

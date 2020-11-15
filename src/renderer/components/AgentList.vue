@@ -58,6 +58,8 @@ import message_bus from '@/message_bus.js';
 import { base64_decode, base64_encode } from '../base64.js';
 import { from_store } from '../connection_detail.js';
 const uuidv4 = require('uuid/v4');
+const coordinate_mediation =
+  (type) => `did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/coordinate-mediation/1.0/${type}`;
 
 export default {
   name: 'agent-list',
@@ -140,6 +142,17 @@ export default {
     mediatorInbound: async function(packed_msg){
       console.log("mediator inbound message", packed_msg);
       let recipients = await this.mediator_connection.extract_packed_message_recipients(packed_msg);
+      // Allow the AgentList to obtain a message from the mediator through the
+      // message_bus
+      let found = recipients.find(
+        r => r === this.mediator_connection.my_key.publicKey_b58
+      );
+      if(found != null) {
+        console.log('Unpacking and notifying on the message bus');
+        let msg = await this.mediator_connection.unpackMessage(packed_msg);
+        this.$message_bus.$emit(msg['@type'], msg);
+        console.log('Got message from mediator for toolbox:', msg);
+      }
       console.log("inbound message recipients", recipients);
       // TODO: get inbound message to proper agent window. this needs to happen even if window not open.
       // store message
@@ -177,6 +190,31 @@ export default {
     generate_invitation: function(){
 
     },
+    /**
+     * Inform the mediator of a new key to route to this agent.
+     * @param {string} verkey Key to add to mediator routes.
+     */
+    async add_route_to_mediator(verkey) {
+      // prepare message
+      let msg = {
+        "@type": coordinate_mediation('keylist-update'),
+        updates: [
+          {
+            recipient_key: verkey,
+            action: "add"
+          }
+        ]
+      };
+      this.mediator_connection.send_message(msg);
+      let response = await this.message_of_type(
+        coordinate_mediation('keylist-update-response')
+      );
+      for (let update of response.updated) {
+        console.log(`${update.action}(${update.recipient_key}): ${update.result}`);
+        // TODO do something with errors
+      }
+    },
+
     async new_agent_invitation_process(){
       //process invite, prepare request
       var vm = this; //hang on to view model reference
@@ -224,6 +262,8 @@ export default {
           service_endpoint_block["routingKeys"] = mediator_agent.mediator_info.routing_keys || [];
           service_endpoint_block["serviceEndpoint"] = mediator_agent.mediator_info.endpoint;
         }
+        console.log('Informing mediator about new key to route...');
+        await this.add_route_to_mediator(toolbox_did.publicKey_b58);
       }
 
       var req = {
