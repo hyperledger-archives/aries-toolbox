@@ -185,7 +185,7 @@ class ConnectionDetail {
         return JSON.parse(unpackedResponse.message);
     }
 
-    process_inbound(msg) {
+    async process_inbound(msg) {
         console.log('Received Message:', msg);
         this.inbound_processor(msg);
     }
@@ -206,7 +206,7 @@ class ConnectionDetail {
 }
 
 async function blobToStr(blob) {
-    return await new Promise((resolve, reject) => {
+    return await new Promise((resolve, _reject) => {
         let reader = new FileReader();
         reader.addEventListener("loadend", async function(){
             resolve(reader.result);
