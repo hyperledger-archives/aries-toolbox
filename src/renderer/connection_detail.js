@@ -22,6 +22,8 @@ class ConnectionDetail {
         this.use_return_route = true;
         this.unpacked_processor = null;
 
+        this.on_disconnect = null;
+
         // evaluate DID Document to pick transport
         // filter for IndyAgent / DIDComm
         let supported_types = ["IndyAgent", "did-communication"];
@@ -78,6 +80,9 @@ class ConnectionDetail {
                     this.process_inbound(await this.unpackMessage(await event));
                 }
             });
+
+            this.socket.onSend.addListener(data => console.log('Socket message sent', data));
+
             // error handling
             this.socket.onError.addListener(event => {
                 console.error(event)
@@ -85,8 +90,14 @@ class ConnectionDetail {
                 fs.writeFileSync('crash.log', datestring +"\n"+ err + "\n" + err.stack + "\n", {flag:'a+'});
             });
             // close handling
-            this.socket.onClose.addListener(event => {
+            this.socket.onClose.addListener(async event => {
                 console.log(`websocket connection closed: ${event.reason}`)
+
+                // reopen, then send message.
+                if(this.on_disconnect){
+                    this.on_disconnect();
+                }
+
             });
         }
     }
@@ -99,7 +110,12 @@ class ConnectionDetail {
     }
 
     needs_return_route_poll() {
+        //return true;
         return this.service_transport_protocol === "http" || this.service_transport_protocol === "https";
+    }
+
+    set_reconnect_message_provider(f){
+        this.packed_reconnect_message = f;
     }
 
     async send_message(msg) {

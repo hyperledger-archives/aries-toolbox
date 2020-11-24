@@ -117,6 +117,7 @@ export default {
         } else {
           vm.connection.enable_return_route();
         }
+        console.log("mediator change!", mediator_agent);
       },
       'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/notification/1.0/problem-report':
       (vm, msg) => {
@@ -264,8 +265,11 @@ export default {
   },
   mounted () {
     this.$electron.ipcRenderer.on('inbound_message', async (event, data) => {
-      console.log("inbound-message", data);
+      console.log("inbound mediated message", data);
       this.connection.process_inbound(await this.connection.unpackMessage(data.msg));
+    });
+    this.$electron.ipcRenderer.on('toolbox-mediator-change', async (event, data) => {
+      this.$message_bus.$emit('toolbox-mediator-change');
     });
   },
   beforeDestroy: function() {

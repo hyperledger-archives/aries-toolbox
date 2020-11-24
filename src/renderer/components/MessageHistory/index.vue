@@ -1,7 +1,9 @@
 <template>
   <el-row>
     <div>
-      Endpoint: {{get_connection().service.serviceEndpoint}}
+      Endpoint: {{get_connection().service.serviceEndpoint}}<br/>
+      Use Return Route: {{get_connection().use_return_route}}
+
     </div>
     <el-button type="secondary" @click="clear_history">Clear</el-button>
     <div class="message-display" v-for="m in message_history.slice().reverse()" :key="m.msg['@id']">

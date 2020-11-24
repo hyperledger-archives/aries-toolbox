@@ -65,7 +65,14 @@ export default {
   name: 'agent-list',
   components: {  },
   mixins: [
-    message_bus()
+    message_bus({ events: {
+      'toolbox-mediator-change': (vm) => {
+        // broadcast via ipc to all the other windows
+        for(const [key, window] of Object.entries(vm.agent_windows)){
+          window.webContents.send("toolbox-mediator-change", {});
+        }
+      }
+    }})
   ],
   computed: {
     ...mapState("Agents", ["agent_list"]),
@@ -76,18 +83,17 @@ export default {
   },
   watch: {
     agent_list(newValue, oldValue) {
-      console.log(`Updating from ${oldValue} to ${newValue}`);
+      console.log(`Updating agentlist`, oldValue, newValue);
 
       // Do whatever makes sense now
       let mediator_agent = newValue.find(a => a.active_as_mediator === true);
       if (mediator_agent) {
         this.mediatorConnect();
-        this.$message_bus.$emit('toolbox-mediator-change');
       } else {
         //mediator was deleted
         this.mediatorCleanup();
-        this.$message_bus.$emit('toolbox-mediator-change');
       }
+      this.$message_bus.$emit('toolbox-mediator-change');
     },
   },
   methods: {
@@ -132,6 +138,12 @@ export default {
         this.return_route_poll_timer = setInterval(this.return_route_poll, 10000);
       }
       //TODO: open connection?
+      this.mediator_connection.on_disconnect = function(){
+        vm.mediator_connection.send_message({
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping",
+          "response_requested": false
+        });
+      };
       this.mediator_connection.send_message({
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping",
         "response_requested": false
@@ -182,7 +194,7 @@ export default {
 
     },
     mediatorCleanup: function(){
-      if(this.mediator_connection && this.mediator_connection.needs_return_route_poll()) {
+      if(this.mediator_connection && this.mediator_connection.needs_return_route_poll && this.mediator_connection.needs_return_route_poll()) {
         clearInterval(this.return_route_poll_timer)
       }
       this.mediator_connection = null;
