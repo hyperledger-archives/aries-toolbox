@@ -104,9 +104,18 @@ class ConnectionDetail {
 
     enable_return_route(){
         this.use_return_route = true;
+        // reset socket if in use
+        this.socket_reset();
     }
     disable_return_route(){
         this.use_return_route = false;
+        // reset socket if in use
+        this.socket_reset();
+    }
+    socket_reset() {
+        if(this.socket){
+            this.socket.close();
+        }
     }
 
     needs_return_route_poll() {
