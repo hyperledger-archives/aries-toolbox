@@ -61,7 +61,7 @@ const bs58 = require('bs58');
 const rp = require('request-promise');
 
 import Vue from 'vue';
-import { mapState, mapActions } from "vuex";
+import { mapState, mapActions, mapGetters } from "vuex";
 import { from_store } from '../connection_detail.js';
 import message_bus from '@/message_bus.js';
 import share, {share_source} from '@/share.js';
@@ -110,6 +110,15 @@ export default {
       'send-message': (v, msg, return_route) => {
         v.send_connection_message(msg, return_route);
       },
+      'toolbox-mediator-change': (vm) => {
+        let mediator_agent = vm.agent_list.find(a => a.active_as_mediator === true);
+        if(mediator_agent != null && mediator_agent.active_as_mediator){
+          vm.connection.disable_return_route();
+        } else {
+          vm.connection.enable_return_route();
+        }
+        console.log("mediator change!", mediator_agent);
+      },
       'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/notification/1.0/problem-report':
       (vm, msg) => {
         vm.$notify.error({
@@ -124,6 +133,12 @@ export default {
           duration: 4000,
           customClass: 'problem-report-notification'
         })
+      },
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/coordinate-mediation/1.0/mediate-grant': (vm, msg) => {
+        vm.enable_as_mediator(msg);
+      },
+      'https://didcomm.org/coordinate-mediation/1.0/mediate-grant': (vm, msg) => {
+        vm.enable_as_mediator(msg);
       }
     }}),
     share_source(shared),
@@ -148,6 +163,7 @@ export default {
     }
   },
   computed: {
+    ...mapState("Agents", ["agent_list"]),
     active_did: {
       get () {
         return this.public_did || "";
@@ -173,7 +189,8 @@ export default {
 
   },
   methods: {
-    ...mapActions("Agents", ["get_agent"]),
+    ...mapGetters("Agents", ["get_agent"]),
+    ...mapActions("Agents", ["update_agent"]),
     async send_connection_message(msg){
       await this.connection_loaded;
       this.connection.send_message(msg);
@@ -206,6 +223,16 @@ export default {
     redirect: function(route) {
       this.$router.push({name: route});
       this.$refs.menu.updateActiveIndex(route);
+    },
+    enable_as_mediator: function(grant_msg) {
+      let conn = this.get_connection();
+      conn.active_as_mediator = true;
+      conn.mediator_info = {
+        endpoint: grant_msg.endpoint,
+        routing_keys: grant_msg.routing_keys
+      };
+      this.update_agent(conn.to_store());
+      console.log("connection to mediate through", conn, conn.mediator_info);
     }
   },
   provide: function () {
@@ -214,10 +241,18 @@ export default {
     }
   },
   created: async function() {
+    let vm = this; //hold reference
     this.connection_loaded = (async () => {
-      this.connection = from_store(await this.get_agent(this.agentid), this.processInbound);
+      let agent_info = await vm.get_agent(vm.agentid)(vm.agentid);
+      this.connection = from_store(agent_info, vm.processInbound);
     })();
     await this.connection_loaded;
+    // don't use return route in the agent window if any connection is configured as a mediator connection.
+
+    let mediator_agent = this.agent_list.find(a => a.active_as_mediator === true);
+    if(mediator_agent != null && mediator_agent.active_as_mediator){
+      this.connection.disable_return_route();
+    }
     this.fetch_protocols();
     this.fetch_dids();
     this.fetch_active_did();
@@ -227,6 +262,15 @@ export default {
     if(this.connection.needs_return_route_poll()){
       this.return_route_poll_timer = setInterval(this.return_route_poll, 10000);
     }
+  },
+  mounted () {
+    this.$electron.ipcRenderer.on('inbound_message', async (event, data) => {
+      console.log("inbound mediated message", data);
+      this.connection.process_inbound(await this.connection.unpackMessage(data.msg));
+    });
+    this.$electron.ipcRenderer.on('toolbox-mediator-change', async (event, data) => {
+      this.$message_bus.$emit('toolbox-mediator-change');
+    });
   },
   beforeDestroy: function() {
     if(this.connection.needs_return_route_poll()) {

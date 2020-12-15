@@ -1,0 +1,1 @@
+See [routes-get](/docs/admin-routing/0.1/README.md#routes-get).

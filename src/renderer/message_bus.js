@@ -21,42 +21,48 @@ import Vue from 'vue';
  * (this), and any data emitted with the event.
  */
 export default function(options = {}) {
-    return {
-        beforeCreate: function() {
-            /**
-             * Look in this components Vue heirarchy for a defined message bus.
-             */
-            function derive(component) {
-                if (component.$message_bus) {
-                    console.log('Found message bus on component:', component);
-                    return component.$message_bus;
-                }
-                if (component.$parent) {
-                    return derive(component.$parent);
-                }
-                console.log('Creating new message bus.');
-                return new Vue();
-            }
-            this.$message_bus = derive(this);
-        },
-        created: function() {
-            if (options && options.events) {
-                Object.keys(options.events).forEach((event) => {
-                    this.$message_bus.$on(event, (...data) => {
-                        options.events[event](this, ...data);
-                    });
-                });
-            }
-        },
-        methods: {
-            send_message: function(message) {
-                this.$message_bus.$emit('send-message', message);
-            },
-            listen: function(event, listener) {
-                this.$message_bus.$on(event, (data) => {
-                    listener(this, data);
-                });
-            }
+  return {
+    beforeCreate: function() {
+      /**
+       * Look in this components Vue heirarchy for a defined message bus.
+       */
+      function derive(component) {
+        if (component.$message_bus) {
+          console.log('Found message bus on component:', component);
+          return component.$message_bus;
         }
-    };
+        if (component.$parent) {
+          return derive(component.$parent);
+        }
+        console.log('Creating new message bus.');
+        return new Vue();
+      }
+      this.$message_bus = derive(this);
+    },
+    created: function() {
+      if (options && options.events) {
+        Object.keys(options.events).forEach((event) => {
+          this.$message_bus.$on(event, (...data) => {
+            options.events[event](this, ...data);
+          });
+        });
+      }
+    },
+    methods: {
+      send_message: function(message) {
+        this.$message_bus.$emit('send-message', message);
+      },
+      listen: function(event, listener) {
+        this.$message_bus.$on(event, (data) => {
+          listener(this, data);
+        });
+      },
+      message_of_type: async function(type) {
+        const promise = new Promise((resolve, _reject) => {
+          this.$message_bus.$once(type, (msg) => {resolve(msg)});
+        });
+        return await promise;
+      }
+    }
+  };
 }

@@ -6,15 +6,23 @@ const WebSocketAsPromised = require('websocket-as-promised');
 const WebSocket = require('ws');
 
 class ConnectionDetail {
-    constructor(id, label, did_doc, my_key, inbound_processor = null) {
-        this.id = id;
-        this.label = label;
-        this.did_doc = did_doc;
-        this.my_key = my_key;
+    constructor(input, inbound_processor = null) {
+        this.id = input.id;
+        this.label = input.label;
+        this.did_doc = input.did_doc;
+        this.my_key = input.my_key;
+
+        this.active_as_mediator = input.active_as_mediator || false;
+        this.mediator_info = input.mediator_info || null;
 
         this.inbound_processor = inbound_processor;
 
         this.didcomm = new DIDComm.DIDComm();
+
+        this.use_return_route = true;
+        this.unpacked_processor = null;
+
+        this.on_disconnect = null;
 
         // evaluate DID Document to pick transport
         // filter for IndyAgent / DIDComm
@@ -66,8 +74,15 @@ class ConnectionDetail {
 
             // Listen for messages
             this.socket.onUnpackedMessage.addListener(async event => {
-                this.process_inbound(await this.unpackMessage(await event));
+                if(this.unpacked_processor){
+                    this.unpacked_processor(await event);
+                } else {
+                    this.process_inbound(await this.unpackMessage(await event));
+                }
             });
+
+            this.socket.onSend.addListener(data => console.log('Socket message sent', data));
+
             // error handling
             this.socket.onError.addListener(event => {
                 console.error(event)
@@ -75,24 +90,53 @@ class ConnectionDetail {
                 fs.writeFileSync('crash.log', datestring +"\n"+ err + "\n" + err.stack + "\n", {flag:'a+'});
             });
             // close handling
-            this.socket.onClose.addListener(event => {
+            this.socket.onClose.addListener(async event => {
                 console.log(`websocket connection closed: ${event.reason}`)
+
+                // reopen, then send message.
+                if(this.on_disconnect){
+                    this.on_disconnect();
+                }
+
             });
         }
     }
 
+    enable_return_route(){
+        this.use_return_route = true;
+        // reset socket if in use
+        this.socket_reset();
+    }
+    disable_return_route(){
+        this.use_return_route = false;
+        // reset socket if in use
+        this.socket_reset();
+    }
+    socket_reset() {
+        if(this.socket){
+            this.socket.close();
+        }
+    }
+
     needs_return_route_poll() {
+        //return true;
         return this.service_transport_protocol === "http" || this.service_transport_protocol === "https";
     }
 
-    async send_message(msg, set_return_route = true) {
+    set_reconnect_message_provider(f){
+        this.packed_reconnect_message = f;
+    }
+
+    async send_message(msg) {
         console.log("Sending message:", msg);
 
         if (!('@id' in msg)) { // Ensure @id is populated
             msg['@id'] = uuidv4().toString();
         }
 
-        if (set_return_route) {
+        // don't use return_route if this is the active mediator
+        // messages will arrive via the main agentlist
+        if (this.use_return_route) {
             if (!("~transport" in msg)) {
                 msg["~transport"] = {}
             }
@@ -145,14 +189,28 @@ class ConnectionDetail {
         );
     }
 
+    async extract_packed_message_recipients(encMsg){
+        let wrapper
+        if (typeof encMsg === 'string') {
+            wrapper = JSON.parse(encMsg)
+        } else {
+            wrapper = encMsg
+        }
+        const recipsJson = this.didcomm.strB64dec(wrapper.protected);
+        const recipsOuter = JSON.parse(recipsJson);
+        const keys = recipsOuter.recipients.map(r => r.header.kid);
+        return keys;
+    }
+
     async unpackMessage(packed_msg) {
         await this.didcomm.Ready;
+        // this will only work if the key matches. If it doesn't match, it'll fail.
         const unpackedResponse = await this.didcomm.unpackMessage(packed_msg, this.my_key);
         //console.log("unpacked", unpackedResponse);
         return JSON.parse(unpackedResponse.message);
     }
 
-    process_inbound(msg) {
+    async process_inbound(msg) {
         console.log('Received Message:', msg);
         this.inbound_processor(msg);
     }
@@ -162,6 +220,8 @@ class ConnectionDetail {
             id: this.id,
             label: this.label,
             did_doc: this.did_doc,
+            active_as_mediator: this.active_as_mediator,
+            mediator_info: this.mediator_info,
             my_key_b58: {
                 privateKey: this.my_key.privateKey_b58,
                 publicKey: this.my_key.publicKey_b58
@@ -171,7 +231,7 @@ class ConnectionDetail {
 }
 
 async function blobToStr(blob) {
-    return await new Promise((resolve, reject) => {
+    return await new Promise((resolve, _reject) => {
         let reader = new FileReader();
         reader.addEventListener("loadend", async function(){
             resolve(reader.result);
@@ -182,11 +242,12 @@ async function blobToStr(blob) {
 
 
 function new_connection(label, did_doc, my_key, inbound_processor) {
-    return new ConnectionDetail(
-        (uuidv4().toString()),
-        label,
-        did_doc,
-        my_key,
+    return new ConnectionDetail({
+            id: (uuidv4().toString()),
+            label: label,
+            did_doc: did_doc,
+            my_key: my_key,
+        },
         inbound_processor
     );
 }
@@ -195,14 +256,16 @@ function from_store(obj, inbound_processor) {
     let my_key = {
         privateKey: bs58.decode(obj.my_key_b58.privateKey),
         publicKey: bs58.decode(obj.my_key_b58.publicKey),
-        publicKey_b58: obj.my_key_b58.publicKey_b58,
-        privateKey_b58: obj.my_key_b58.privateKey_b58
+        privateKey_b58: obj.my_key_b58.privateKey,
+        publicKey_b58: obj.my_key_b58.publicKey,
     };
-    return new ConnectionDetail(
-        obj.id,
-        obj.label,
-        obj.did_doc,
-        my_key,
+    return new ConnectionDetail({
+            id: obj.id,
+            label: obj.label,
+            did_doc: obj.did_doc,
+            my_key: my_key,
+            active_as_mediator: obj.active_as_mediator,
+        },
         inbound_processor
     );
 }

@@ -7,12 +7,13 @@
     <el-card shadow="never" class="agent-card" v-for="a in agent_list" v-bind:key="a.id">
       <span slot="header"><strong>{{a.label}}</strong></span>
       <div>
+        <div v-show="a.active_as_mediator" class="mediator">Mediator</div>
         <el-button type="text" @click="openConnection(a)">Open</el-button>
         <el-button type="text" @click="deleteConnection(a)">Delete</el-button>
       </div>
     </el-card>
 
-    <el-card shadow="never" id="new_agent_connection">
+    <el-card shadow="never" class="function_card" id="new_agent_connection">
       <span slot="header">New Agent Connection</span>
       <div>
         <el-form :inline="true">
@@ -20,6 +21,27 @@
           <el-button type="primary" @click="new_agent_invitation_process">Connect</el-button>
         </el-form>
       </div>
+      <el-alert v-show="invitation_error != ''"
+        title="Invitation Error"
+        type="error"
+        :description="invitation_error"
+        show-icon>
+      </el-alert>
+    </el-card>
+    <el-card shadow="never" class="function_card" id="new_agent_invitation" v-show="hasMediator && false">
+      <span slot="header">New Agent Invitation</span>
+      <div>
+        <el-form :inline="true">
+          <el-input v-model="new_invitation_label" placeholder="Label"></el-input>
+          <el-button type="primary" @click="generate_invitation">Generate</el-button>
+        </el-form>
+      </div>
+      <el-alert v-show="invitation_error != ''"
+        title="Invitation Error"
+        type="error"
+        :description="invitation_error"
+        show-icon>
+      </el-alert>
     </el-card>
   </el-row>
 </template>
@@ -30,15 +52,49 @@ const bs58 = require('bs58');
 const rp = require('request-promise');
 const DIDComm = require('encryption-envelope-js');
 //import DIDComm from 'didcomm-js';
-import { mapState, mapActions } from "vuex"
+import { mapState, mapActions, mapGetters } from "vuex"
 import { new_connection } from '../connection_detail.js';
+import message_bus from '@/message_bus.js';
+import { base64_decode, base64_encode } from '../base64.js';
+import { from_store } from '../connection_detail.js';
 const uuidv4 = require('uuid/v4');
+const coordinate_mediation =
+  (type) => `did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/coordinate-mediation/1.0/${type}`;
 
 export default {
   name: 'agent-list',
   components: {  },
+  mixins: [
+    message_bus({ events: {
+      'toolbox-mediator-change': (vm) => {
+        // broadcast via ipc to all the other windows
+        for(const [key, window] of Object.entries(vm.agent_windows)){
+          window.webContents.send("toolbox-mediator-change", {});
+        }
+      }
+    }})
+  ],
   computed: {
     ...mapState("Agents", ["agent_list"]),
+    ...mapGetters("Agents", ["get_agent"]),
+    hasMediator: function(){
+      return this.agent_list.find(a => a.active_as_mediator === true);
+    }
+  },
+  watch: {
+    agent_list(newValue, oldValue) {
+      console.log(`Updating agentlist`, oldValue, newValue);
+
+      // Do whatever makes sense now
+      let mediator_agent = newValue.find(a => a.active_as_mediator === true);
+      if (mediator_agent) {
+        this.mediatorConnect();
+      } else {
+        //mediator was deleted
+        this.mediatorCleanup();
+      }
+      this.$message_bus.$emit('toolbox-mediator-change');
+    },
   },
   methods: {
     ...mapActions("Agents", ["add_agent", "delete_agent"]),
@@ -48,17 +104,134 @@ export default {
         ? 'http://localhost:9080/#/agent/'+a.id
         : `file://${__dirname}/index.html#agent/`+a.id;
       let win = new electron.remote.BrowserWindow({ width: 1000, height: 600, webPreferences: {webSecurity: false, nodeIntegration: true} })
-      win.on('close', function () { win = null });
-      win.loadURL(modalPath)
+      // TODO: Get the close handler to work to keep track of open windows only
+      win.on('close', function () {
+        win = null;
+        delete this.agent_windows[a.id];
+      });
+      win.loadURL(modalPath);
+      let window_key = a.my_key_b58.publicKey;
+      this.agent_windows[window_key] = win;
 
     },
     deleteConnection: async function(a){
       this.delete_agent(a);
     },
+    mediatorConnect: async function(){
+      let vm = this; //hold reference
+
+      let mediator_agent = this.agent_list.find(a => a.active_as_mediator === true);
+      if(mediator_agent == null) {
+        return; //no connection needed
+      }
+      let mediator_agent_id = mediator_agent.id;
+
+      //this.mediator_connection_loaded = (async () => {
+        let agent_info = await this.get_agent(mediator_agent_id);//(mediator_agent_id);
+        this.mediator_connection = from_store(agent_info);
+      //})();
+      //await this.mediator_connection_loaded;
+      this.mediator_connection.enable_return_route();
+      this.mediator_connection.unpacked_processor = this.mediatorInbound;
+      //start poll timer
+      if(this.mediator_connection.needs_return_route_poll()){
+        this.return_route_poll_timer = setInterval(this.return_route_poll, 10000);
+      }
+      //TODO: open connection?
+      this.mediator_connection.on_disconnect = function(){
+        vm.mediator_connection.send_message({
+          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping",
+          "response_requested": false
+        });
+      };
+      this.mediator_connection.send_message({
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping",
+        "response_requested": false
+      });
+      console.log("mediator connected", this.mediator_connection);
+
+    },
+    mediatorInbound: async function(packed_msg){
+      console.log("mediator inbound message", packed_msg);
+      let recipients = await this.mediator_connection.extract_packed_message_recipients(packed_msg);
+      // Allow the AgentList to obtain a message from the mediator through the
+      // message_bus
+      let found = recipients.find(
+        r => r === this.mediator_connection.my_key.publicKey_b58
+      );
+      if(found != null) {
+        console.log('Unpacking and notifying on the message bus');
+        let msg = await this.mediator_connection.unpackMessage(packed_msg);
+        this.$message_bus.$emit(msg['@type'], msg);
+        console.log('Got message from mediator for toolbox:', msg);
+      }
+      console.log("inbound message recipients", recipients);
+      // TODO: get inbound message to proper agent window. this needs to happen even if window not open.
+      // store message
+      let message_uuid = uuidv4();
+
+      // send message
+      let window_key = recipients[0];
+      // TODO: detect lack of open window.
+      let window = this.agent_windows[window_key];
+      let msg_bundle = {
+          id: message_uuid,
+          recipient: recipients[0],
+          msg: packed_msg
+        };
+      if(window !== undefined){
+        window.webContents.send("inbound_message", msg_bundle);
+        console.log("delivered", msg_bundle);
+      } else {
+        // Queue message for when window opens
+        if(!(window_key in this.window_message_queue)){
+          this.window_message_queue[window_key] = [];
+        }
+        this.window_message_queue[window_key].push(msg_bundle);
+        console.log("queued", msg_bundle);
+      }
+      //TODO: deliver queued message after window opens.
+
+    },
+    mediatorCleanup: function(){
+      if(this.mediator_connection && this.mediator_connection.needs_return_route_poll && this.mediator_connection.needs_return_route_poll()) {
+        clearInterval(this.return_route_poll_timer)
+      }
+      this.mediator_connection = null;
+    },
+    generate_invitation: function(){
+
+    },
+    /**
+     * Inform the mediator of a new key to route to this agent.
+     * @param {string} verkey Key to add to mediator routes.
+     */
+    async add_route_to_mediator(verkey) {
+      // prepare message
+      let msg = {
+        "@type": coordinate_mediation('keylist-update'),
+        updates: [
+          {
+            recipient_key: verkey,
+            action: "add"
+          }
+        ]
+      };
+      this.mediator_connection.send_message(msg);
+      let response = await this.message_of_type(
+        coordinate_mediation('keylist-update-response')
+      );
+      for (let update of response.updated) {
+        console.log(`${update.action}(${update.recipient_key}): ${update.result}`);
+        // TODO do something with errors
+      }
+    },
+
     async new_agent_invitation_process(){
       //process invite, prepare request
       var vm = this; //hang on to view model reference
       console.log("invite", this.new_agent_invitation);
+      this.invitation_error = "";
       //extract c_i param
       function getUrlVars(url) {
         var vars = {};
@@ -67,108 +240,7 @@ export default {
         });
         return vars;
       }
-      /*
-       * JavaScript base64 / base64url encoder and decoder
-       */
 
-      var b64c = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"   // base64 dictionary
-      var b64u = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"   // base64url dictionary
-      var b64pad = '='
-      /* base64_encode_data
-       * Internal helper to encode data to base64 using specified dictionary.
-       */
-      function base64_encode_data(data, len, b64x) {
-        var dst = ""
-        var i
-
-        for (i = 0; i <= len - 3; i += 3)
-        {
-          dst += b64x.charAt(data.charCodeAt(i) >>> 2)
-          dst += b64x.charAt(((data.charCodeAt(i) & 3) << 4) | (data.charCodeAt(i+1) >>> 4))
-          dst += b64x.charAt(((data.charCodeAt(i+1) & 15) << 2) | (data.charCodeAt(i+2) >>> 6))
-          dst += b64x.charAt(data.charCodeAt(i+2) & 63)
-        }
-
-        if (len % 3 == 2)
-        {
-          dst += b64x.charAt(data.charCodeAt(i) >>> 2)
-          dst += b64x.charAt(((data.charCodeAt(i) & 3) << 4) | (data.charCodeAt(i+1) >>> 4))
-          dst += b64x.charAt(((data.charCodeAt(i+1) & 15) << 2))
-          dst += b64pad
-        }
-        else if (len % 3 == 1)
-        {
-          dst += b64x.charAt(data.charCodeAt(i) >>> 2)
-          dst += b64x.charAt(((data.charCodeAt(i) & 3) << 4))
-          dst += b64pad
-          dst += b64pad
-        }
-
-        return dst
-      }
-
-      /* base64_encode
-       * Encode a JavaScript string to base64.
-       * Specified string is first converted from JavaScript UCS-2 to UTF-8.
-       */
-      function base64_encode(str) {
-        var utf8str = unescape(encodeURIComponent(str))
-        return base64_encode_data(utf8str, utf8str.length, b64c)
-      }
-
-      /* base64url_encode
-       * Encode a JavaScript string to base64url.
-       * Specified string is first converted from JavaScript UCS-2 to UTF-8.
-       */
-      function base64url_encode(str) {
-        var utf8str = unescape(encodeURIComponent(str))
-        return base64_encode_data(utf8str, utf8str.length, b64u)
-      }
-
-      /* base64_charIndex
-       * Internal helper to translate a base64 character to its integer index.
-       */
-      function base64_charIndex(c) {
-        if (c == "+") return 62
-        if (c == "/") return 63
-        return b64u.indexOf(c)
-      }
-
-      /* base64_decode
-       * Decode a base64 or base64url string to a JavaScript string.
-       * Input is assumed to be a base64/base64url encoded UTF-8 string.
-       * Returned result is a JavaScript (UCS-2) string.
-       */
-      function base64_decode(data) {
-        var dst = ""
-        var i, a, b, c, d, z
-
-        for (i = 0; i < data.length - 3; i += 4) {
-          a = base64_charIndex(data.charAt(i+0))
-          b = base64_charIndex(data.charAt(i+1))
-          c = base64_charIndex(data.charAt(i+2))
-          d = base64_charIndex(data.charAt(i+3))
-
-          dst += String.fromCharCode((a << 2) | (b >>> 4))
-          if (data.charAt(i+2) != b64pad)
-            dst += String.fromCharCode(((b << 4) & 0xF0) | ((c >>> 2) & 0x0F))
-          if (data.charAt(i+3) != b64pad)
-            dst += String.fromCharCode(((c << 6) & 0xC0) | d)
-        }
-
-        dst = decodeURIComponent(escape(dst))
-        return dst
-      }
-
-      /* base64url_sniff
-       * Check whether specified base64 string contains base64url specific characters.
-       * Return true if specified string is base64url encoded, false otherwise.
-       */
-      function base64url_sniff(base64) {
-        if (base64.indexOf("-") >= 0) return true
-        if (base64.indexOf("_") >= 0) return true
-        return false
-      }
       var invite_b64 = getUrlVars(this.new_agent_invitation)["c_i"];
       console.log("invite b64", invite_b64);
       //base 64 decode
@@ -185,6 +257,26 @@ export default {
       toolbox_did.publicKey_b58 = bs58.encode(Buffer.from(toolbox_did.publicKey));
       toolbox_did.privateKey_b58 = bs58.encode(Buffer.from(toolbox_did.privateKey));
       console.log("new pair", toolbox_did);
+
+      let service_endpoint_block = {
+        "id": toolbox_did.did + ";indy",
+        "type": "IndyAgent",
+        "recipientKeys": [toolbox_did.publicKey_b58],
+        //"routingKeys": ["<example-agency-verkey>"], // TODO: Use routing keys and endpoint if mediator configured.
+        "serviceEndpoint": ""
+      };
+
+
+
+      if(this.mediator_connection && this.mediator_connection.active_as_mediator){
+        let mediator_agent = this.agent_list.find(a => a.active_as_mediator === true);
+        if(mediator_agent != null) {
+          service_endpoint_block["routingKeys"] = mediator_agent.mediator_info.routing_keys || [];
+          service_endpoint_block["serviceEndpoint"] = mediator_agent.mediator_info.endpoint;
+        }
+        console.log('Informing mediator about new key to route...');
+        await this.add_route_to_mediator(toolbox_did.publicKey_b58);
+      }
 
       var req = {
         "@id":  (uuidv4().toString()),
@@ -204,13 +296,7 @@ export default {
               "controller": toolbox_did.did,
               "publicKeyBase58": toolbox_did.publicKey_b58
             }],
-            "service": [{
-              "id": toolbox_did.did + ";indy",
-              "type": "IndyAgent",
-              "recipientKeys": [toolbox_did.publicKey_b58],
-              //"routingKeys": ["<example-agency-verkey>"],
-              "serviceEndpoint": ""
-            }]
+            "service": [service_endpoint_block]
           }
         }
       };
@@ -227,6 +313,7 @@ export default {
         body: packedMsg,
       };
 
+      // this code assumes that the response comes via return-route on the post.
       rp(options)
         .then(async function (parsedBody) {
           // POST succeeded...
@@ -243,22 +330,33 @@ export default {
           response.connection = JSON.parse(text.substring(8));
           console.log("response message", response);
           //TODO: record endpoint and recipient key in connection record, along with my keypair. use invitation label
-          // TODO: Clear invite box fter new add.
           let connection_detail = new_connection(invite.label, response.connection.DIDDoc, toolbox_did);
           console.log("connection detail", connection_detail);
-          ///this.$store.Connections.commit("ADD_CONNECTION", connection_detail);
           vm.add_agent(connection_detail.to_store());
           vm.new_agent_invitation = ""; //clear input for next round
         })
         .catch(function (err) {
           // POST failed...
           console.log("request post err", err);
+          this.invitation_error = err.message;
         });
-    }
+    },
+
+  },
+  created: async function(){
+    this.mediatorConnect();
+  },
+  beforeDestory: function(){
+    this.mediatorCleanup();
   },
   data() {
     return {
-      new_agent_invitation: ""
+      new_agent_invitation: "",
+      invitation_error: "",
+      new_invitation_label: "",
+      agent_windows: {},
+      mediator_connection: {},
+      window_message_queue: {},
     }
 
   }
@@ -269,12 +367,12 @@ export default {
 .agent-card:first-of-type {
   margin-top: .5em;
 }
-.agent-card, #new_agent_connection {
+.agent-card, .function_card {
   margin: .5em 1em;
   border: 1px solid rgba(0, 0, 0, 0.125);
 }
 .agent-card .el-card__header,
-#new_agent_connection .el-card__header {
+.function_card .el-card__header {
   padding: .75rem 1.25rem;
   background-color: rgba(0, 0, 0, 0.03);
   border-bottom: 1px solid rgba(0, 0, 0, 0.125);
@@ -282,4 +380,11 @@ export default {
 .agent-card .el-card__body {
   padding: 0 1em;
 }
+  .mediator {
+    font-size: .9em;
+    font-style: italic;
+    text-align: right;
+    float:right;
+    margin-top: 10px;
+  }
 </style>
