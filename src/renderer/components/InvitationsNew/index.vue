@@ -29,7 +29,6 @@
           :key="i.id">
           <el-row :key="i.id">
             <p>Auto Accept: {{i.auto_accept}}</p>
-            <p>Role: {{i.role}}</p>
             <p>Multi-use: {{i.multi_use}}</p>
             <p>Created: {{i.created_date}}</p>
             <el-button type="primary" @click="copyURL(i.invitation_url)">Copy URL</el-button>
@@ -57,9 +56,9 @@
       <el-input v-model="invite_label_form" style="width:200px;"> </el-input>
       <i>The label is presented in the invitation to the recipient.</i>
     </el-form-item>
-    <el-form-item label="Role:">
-      <el-input v-model="invite_role_form" style="width:200px;"> </el-input>
-      <i>The role assigned to new connections that use this invitation</i>
+    <el-form-item label="Group:">
+      <el-input v-model="invite_group_form" style="width:200px;"> </el-input>
+      <i>The group assigned to new connections that use this invitation</i>
     </el-form-item>
     <el-form-item label="Auto Accept:">
       <el-switch v-model="invite_auto_accept_form"></el-switch>
@@ -138,7 +137,7 @@ export default {
       QRDialogURL: '',
       invite_label_form:"",
       invite_alias_form:"",
-      invite_role_form:"",
+      invite_group_form:"",
       invite_auto_accept_form:true,
       invite_multi_use_form:false,
     }
@@ -153,13 +152,13 @@ export default {
         "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/create",
         "label": this.invite_label_form,
         "alias": this.invite_alias_form,
-        "role": this.invite_role_form,
+        "group": this.invite_group_form,
         "auto_accept": this.invite_auto_accept_form,
         "multi_use": this.invite_multi_use_form,
       };
       this.invite_label_form = "";
       this.invite_alias_form = "";
-      this.invite_role_form = "";
+      this.invite_group_form = "";
       this.invite_autoaccept_form = false;
       this.invite_multi_use_form = false;
       this.send_message(query_msg);
