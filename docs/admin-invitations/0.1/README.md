@@ -34,12 +34,11 @@ The following attributes are common across all messages in this protocol. Each t
 
 `label`: The label presented inside the invitation as a suggestion of what to name the connection.
 
-`role`: The name of the role that resulting connection(s) should receive.
+`group`: The name of the group that resulting connection(s) should receive.
 
 `auto_accept`: True if connections from this invitaiton should be automatically accepted.
 
 `multi_use`: True of this invitation is expected to be used multiple times.
-
 
 --------------------------------------------------------------------------------
 
@@ -52,11 +51,14 @@ Example:
 	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/create-invitation",
 	"alias": "Invitation I sent to Alice",
 	"label": "Bob"
-	"role": "admin",
+	"group": "admin",
 	"auto_accept": true,
-	"multi_use": true
+	"multi_use": true,
+	"mediation_id": "42a1f1c9-b463-4f59-8385-2e2f7b70466a"
 }
 ```
+
+`mediation_id`: Identifier for mediator to use in accepting the invitation.
 
 See [Common Attributes](#common-attributes)
 
@@ -71,7 +73,7 @@ Example:
 	"~thread": {"thid": "<send msg id>"},
 	"alias": "Invitation I sent to Alice",
 	"label": "Bob"
-	"role": "myrole",
+	"group": "my_group",
 	"auto_accept": true,
 	"multi_use": true
 }
@@ -109,7 +111,7 @@ List of invitations as requested by a `invitation-get-list` message.
             "id": "00ed9110-444b-455d-aab4-8575b299565c",
             "alias": "Invitation I sent to Alice",
             "label": "Bob",
-            "role": "myrole",
+            "group": "my_group",
             "auto_accept": true,
             "multi_use": true
             "invitation_url": "http://cc086c23.ngrok.io?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiNzVmNjZmYmQtZDdiNS00Zjg0LWI4YjMtMjBmYzUxZTc1Njc0IiwgInJlY2lwaWVudEtleXMiOiBbIjdZVm0zQks3NHBROHhKU2h5QVJSZ29COTMxZFVtUmN5U2JTUGZIZFpqREsyIl0sICJzZXJ2aWNlRW5kcG9pbnQiOiAiaHR0cDovL2NjMDg2YzIzLm5ncm9rLmlvIiwgImxhYmVsIjogImxsbGxsIn0=",

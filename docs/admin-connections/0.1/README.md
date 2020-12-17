@@ -152,7 +152,8 @@ Create a new connection by receiving an invitation.
 {
   "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/receive-invitation",
   "invitation": "https://example.com?c_i=..."
-  "auto_accept": true
+  "auto_accept": true,
+  "mediation_id": "cbf76a1c-aba9-4675-af64-a65ef116f359"
 }
 ```
 
@@ -160,3 +161,6 @@ Create a new connection by receiving an invitation.
 
 `auto_accept` (Optional): Whether the agent should automatically accept the
 given invitation or not.
+
+`mediation_id` (Optional): Identifier for mediator to use when accepting this
+invitation.
