@@ -17,8 +17,8 @@
             :key="client.mediation_id">
             <el-row :key="client.mediation_id">
               <p>Status: {{client.state}}</p>
-              <el-button v-if="client.state == 'requested'" type="primary" @click="grant(client)">Grant</el-button>
-              <el-button v-if="client.state == 'requested'" type="danger" @click="deny(client)">Deny</el-button>
+              <el-button v-if="client.state == 'request'" type="primary" @click="grant(client)">Grant</el-button>
+              <el-button v-if="client.state == 'request'" type="danger" @click="deny(client)">Deny</el-button>
               <div>
                 <vue-json-pretty
                   :deep=1
@@ -83,7 +83,7 @@ import share from '@/share.js';
 import { mapActions } from "vuex"
 
 const PROTOCOL = 'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-mediator/0.1';
-const COORDINATE_MEDIATION = 'https://didcomm.org/coordinate-mediation/1.0';
+export const COORDINATE_MEDIATION = 'https://didcomm.org/coordinate-mediation/1.0';
 
 export const metadata = {
   menu: {

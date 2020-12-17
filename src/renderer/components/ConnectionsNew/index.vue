@@ -20,19 +20,33 @@
       @connection-editted="update_connection"
       @connection-deleted="delete_connection"></connection-list>
 
-    <p>Add connection from invitation:</p>
-    <el-form @submit.native.prevent>
+    <p style="margin-top: 1em;">Add connection from invitation:</p>
+    <el-form @submit.native.prevent label-width="120px">
       <el-form-item
         label="Invitation URL:">
         <el-input
           style="width: 300px;"
-          v-model="invitation">
+          v-model="invite_form.invitation">
           <el-button
             slot="append"
             type="primary"
             icon="el-icon-plus"
             @click="recieve_invitation">Add</el-button>
         </el-input>
+      </el-form-item>
+      <el-form-item v-if="supports_mediation" label="Mediator:">
+        <el-select style="width: 300px;"
+          v-model="invite_form.mediation_id"
+          filterable
+          placeholder="Mediator">
+          <el-option
+            v-for="mediator in mediators"
+            :key="mediator.mediation_id"
+            :label="mediator_name(mediator)"
+            :value="mediator.mediation_id">
+          </el-option>
+        </el-select>
+        <i>Optionally select a mediator for this invitation.</i>
       </el-form-item>
     </el-form>
   </el-row>
@@ -42,6 +56,7 @@
 import ConnectionList from './ConnectionList.vue';
 import share from '@/share.js';
 import message_bus from '@/message_bus.js';
+import { COORDINATE_MEDIATION } from '../Mediator';
 
 export const protocol = 'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1';
 export const metadata = {
@@ -113,18 +128,25 @@ export default {
   mixins: [
     message_bus(),
     share({
-      use: ['connections', 'active_connections'],
-      actions: ['fetch_connections']
+      use: ['connections', 'active_connections', 'mediators', 'protocols'],
+      actions: ['fetch_connections', 'fetch_mediators']
     })
   ],
   data: function() {
     return {
-      'invitation': '',
+      invite_form: {
+        invitation: '',
+        mediation_id: '',
+        auto_accept: true
+      }
     }
   },
   created: async function() {
     await this.ready();
     this.fetch_connections();
+    if (this.supports_mediation) {
+      this.fetch_mediators();
+    }
   },
   computed: {
     pending_connections: function() {
@@ -136,6 +158,10 @@ export default {
       return Object.values(this.connections).filter(
         conn => "state" in conn && conn.state === "error"
       );
+    },
+    supports_mediation: function() {
+      let list = this.protocols.map(p => p.pid);
+      return list.includes(COORDINATE_MEDIATION)
     }
   },
   methods: {
@@ -158,14 +184,24 @@ export default {
     recieve_invitation: function() {
       let receive_invite_msg = {
         "@type": metadata.types.receive_invitation,
-        "invitation": this.invitation,
-        "auto_accept": true
+        ...this.invite_form
       };
       this.send_message(receive_invite_msg);
-      this.invitation = "";
+      this.invite_form.invitation = "";
+      this.invite_form.mediation_id = "";
       setTimeout(() => {
         return this.fetch_connections();
       }, 4000);
+    },
+    mediator_name: function(mediator) {
+      let connection_label = 'Unknown';
+      let matched_connection = this.active_connections.filter(
+        c => c.connection_id == mediator.connection_id
+      );
+      if(matched_connection.length == 1){
+        connection_label = matched_connection[0].label;
+      }
+      return connection_label;
     },
   },
 }
