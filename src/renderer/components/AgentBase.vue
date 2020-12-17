@@ -2,7 +2,7 @@
   <el-container>
     <el-menu
       ref="menu"
-      style="-webkit-user-select:none;"
+      style="-webkit-user-select:none; overflow: auto;"
       mode="vertical"
       id="side-menu"
       background-color="#545c64"
