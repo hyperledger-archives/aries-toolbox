@@ -262,7 +262,6 @@ export default {
         "id": toolbox_did.did + ";indy",
         "type": "IndyAgent",
         "recipientKeys": [toolbox_did.publicKey_b58],
-        //"routingKeys": ["<example-agency-verkey>"], // TODO: Use routing keys and endpoint if mediator configured.
         "serviceEndpoint": ""
       };
 

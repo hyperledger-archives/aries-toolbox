@@ -29,7 +29,6 @@
           :key="i.id">
           <el-row :key="i.id">
             <p>Auto Accept: {{i.auto_accept}}</p>
-            <p>Role: {{i.role}}</p>
             <p>Multi-use: {{i.multi_use}}</p>
             <p>Created: {{i.created_date}}</p>
             <el-button type="primary" @click="copyURL(i.invitation_url)">Copy URL</el-button>
@@ -50,23 +49,37 @@
   <p>Create Invitations:</p>
   <el-form :inline="false" label-width="120px">
     <el-form-item label="Alias:">
-      <el-input v-model="invite_alias_form" style="width:200px;"> </el-input>
+      <el-input v-model="invite_form.alias" style="width:200px;"> </el-input>
       <i>Alias used in your list of invitations.</i>
     </el-form-item>
     <el-form-item label="Label:">
-      <el-input v-model="invite_label_form" style="width:200px;"> </el-input>
+      <el-input v-model="invite_form.label" style="width:200px;"> </el-input>
       <i>The label is presented in the invitation to the recipient.</i>
     </el-form-item>
-    <el-form-item label="Role:">
-      <el-input v-model="invite_role_form" style="width:200px;"> </el-input>
-      <i>The role assigned to new connections that use this invitation</i>
+    <el-form-item label="Group:">
+      <el-input v-model="invite_form.group" style="width:200px;"> </el-input>
+      <i>The group assigned to new connections that use this invitation</i>
+    </el-form-item>
+    <el-form-item v-if="supports_mediation" label="Mediator:">
+        <el-select style="width: 200px;"
+          v-model="invite_form.mediation_id"
+          filterable
+          placeholder="Mediator">
+          <el-option
+            v-for="mediator in mediators"
+            :key="mediator.mediation_id"
+            :label="mediator_name(mediator)"
+            :value="mediator.mediation_id">
+          </el-option>
+        </el-select>
+      <i>Optionally select a mediator for this invitation.</i>
     </el-form-item>
     <el-form-item label="Auto Accept:">
-      <el-switch v-model="invite_auto_accept_form"></el-switch>
+      <el-switch v-model="invite_form.auto_accept"></el-switch>
       <i>Auto accepted invitations will automatically respond to connection requests.</i>
     </el-form-item>
     <el-form-item label="Multi Use:">
-      <el-switch v-model="invite_multi_use_form"></el-switch>
+      <el-switch v-model="invite_form.multi_use"></el-switch>
       <i>Multi-use invitations can be used more than onece. </i>
     </el-form-item>
     <el-form-item>
@@ -83,6 +96,7 @@ const { clipboard } = require('electron');
 import VueQrcode from '@chenfengyuan/vue-qrcode';
 import message_bus from '@/message_bus.js';
 import share from '@/share.js';
+import { COORDINATE_MEDIATION } from '../Mediator';
 
 export const metadata = {
   menu: {
@@ -123,8 +137,8 @@ export default {
       }
     }}),
     share({
-      use: ['invitations_v1'],
-      actions: ['fetch_invitations_v1']
+      use: ['invitations_v1', 'protocols', 'mediators', 'active_connections'],
+      actions: ['fetch_invitations_v1', 'fetch_mediators', 'fetch_connections']
     })
   ],
   components: {
@@ -136,32 +150,42 @@ export default {
       expanded_items: [],
       QRDialogVisible: false,
       QRDialogURL: '',
-      invite_label_form:"",
-      invite_alias_form:"",
-      invite_role_form:"",
-      invite_auto_accept_form:true,
-      invite_multi_use_form:false,
+      invite_form: {
+        label: "",
+        alias: "",
+        group: "",
+        mediation_id: "",
+        auto_accept: true,
+        multi_use: false,
+      }
+    }
+  },
+  computed: {
+    supports_mediation: function() {
+      let list = this.protocols.map(p => p.pid);
+      return list.includes(COORDINATE_MEDIATION)
     }
   },
   created: async function() {
     await this.ready();
     this.fetch_invitations_v1();
+    if (this.supports_mediation) {
+      this.fetch_connections();
+      this.fetch_mediators();
+    }
   },
   methods: {
     async fetchNewInvite(){
       let query_msg = {
         "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/create",
-        "label": this.invite_label_form,
-        "alias": this.invite_alias_form,
-        "role": this.invite_role_form,
-        "auto_accept": this.invite_auto_accept_form,
-        "multi_use": this.invite_multi_use_form,
+        ...this.invite_form
       };
-      this.invite_label_form = "";
-      this.invite_alias_form = "";
-      this.invite_role_form = "";
-      this.invite_autoaccept_form = false;
-      this.invite_multi_use_form = false;
+      this.invite_form.label = "";
+      this.invite_form.alias = "";
+      this.invite_form.group = "";
+      this.invite_form.mediation_id = "";
+      this.invite_form.auto_accept = false;
+      this.invite_form.multi_use = false;
       this.send_message(query_msg);
     },
     get_name: function(i) {
@@ -182,6 +206,16 @@ export default {
     presentQR: function(url){
       this.QRDialogURL = url;
       this.QRDialogVisible = true;
+    },
+    mediator_name: function(mediator) {
+      let connection_label = 'Unknown';
+      let matched_connection = this.active_connections.filter(
+        c => c.connection_id == mediator.connection_id
+      );
+      if(matched_connection.length == 1){
+        connection_label = matched_connection[0].label;
+      }
+      return connection_label;
     },
   }
 }
