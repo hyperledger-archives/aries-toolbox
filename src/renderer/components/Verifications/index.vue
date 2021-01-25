@@ -106,7 +106,7 @@ export default {
             let transmuted_pred = {
               name: predicate.name,
               p_type: predicate.p_type,
-              p_value: predicate.threshold,
+              p_value: parseInt(predicate.threshold),
               restrictions: []
             };
             if (predicate.restrictions.cred_def || predicate.restrictions.trusted_issuer) {
