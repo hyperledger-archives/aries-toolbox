@@ -368,13 +368,6 @@ export default {
       const packedMsg = await didcomm.packMessage(JSON.stringify(req), [bs58.decode(invite.recipientKeys[0])], toolbox_did, true);
       console.log("Packed Exchange Request", packedMsg);
 
-      //send request
-      var options = {
-        method: 'POST',
-        uri: invite.serviceEndpoint,
-        body: packedMsg,
-      };
-
       // this code assumes that the response comes via return-route on the post.
       const res = await rp({
         method: 'POST',
