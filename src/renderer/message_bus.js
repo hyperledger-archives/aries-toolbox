@@ -10,6 +10,14 @@
 
 import Vue from 'vue';
 
+const wait_for = (prom, time) => {
+	let timer;
+	return Promise.race([
+		prom,
+		new Promise((_r, rej) => timer = setTimeout(rej, time))
+	]).finally(() => clearTimeout(timer));
+}
+
 /**
  * Vue Component Mixin for adding a message bus, accessed through
  * "$message_bus", a send_message method for trigger a new DIDComm message to
@@ -57,11 +65,17 @@ export default function(options = {}) {
           listener(this, data);
         });
       },
-      message_of_type: async function(type) {
+      message_of_type: function(type, timeout) {
         const promise = new Promise((resolve, _reject) => {
-          this.$message_bus.$once(type, (msg) => {resolve(msg)});
+          this.$message_bus.$once(type, (msg) => {
+            resolve(msg);
+          });
         });
-        return await promise;
+        if (timeout != null) {
+          return wait_for(promise, timeout);
+        } else {
+          return promise;
+        }
       }
     }
   };
