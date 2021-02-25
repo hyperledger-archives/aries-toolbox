@@ -7,16 +7,26 @@ Pagination Decorators
 
 **Decorator:** `~paginate`, `~page`
 
-The pagination decorators defines elements common to messages querying for and
-returning a list of results where paging is desirable.
+The pagination decorators define elements common to messages querying for and
+returning a list of results where paging is desirable. These decorators use a
+cursor style paging mechanism for flexibility; for simple collections where
+offsets are sufficient, offset based pagination can be implemented using cursor
+values such as `offset:10` while more complex collections accessed from a
+database or other sources can use cursors representing rows in a table with
+unique identifiers.
+
+Using arbitrary cursor strings means that at the protocol level, there is no
+prescription of underlying pagination mechanism. For more details into the
+reasoning for this style, [read this post from Slack about
+pagination][slack-post].
 
 ## Decorator Definition
 
 ### `~paginate`
 
-The `~paginate` decorator is used in messages querying for a list of results. If
-more than one element in the response message can be paginated, `~paginate` can
-be used as a suffix to indicate to which element it refers, i.e.
+The `~paginate` decorator is used in messages expecting a returned list of
+results. If more than one element in the response message can be paginated,
+`~paginate` can be used as a suffix to indicate to which element it refers, i.e.
 `results~paginate`. This usage is outlined by message type definitions as
 required.
 
@@ -26,16 +36,19 @@ Example:
 {
     "...",
     "~paginate": {
-        "@type": ".../decorators/pagination/paginate",
+		"cursor": "<cursor string>",
         "limit": 10,
-        "offset": 10
     }
 }
 ```
 
-`limit`: return at most `n` messages.
+`cursor` (optional): Cursor representing where the next page of results begins.
+If omitted, results are returned from the beginning of the collection. Cursor
+corresponds to the returned `next_cursor` of the `~page` decorator denoting page
+information from a paginated collection. The exact value of these cursors is
+defined by the implementing messages and protocols.
 
-`offset` (optional; default `0`): offset the returned results by `m`.
+`limit`: return at most `n` items.
 
 ### `~page`
 
@@ -54,17 +67,19 @@ Example:
 {
     "...",
     "~page": {
-        "@type": ".../decorators/pagination/page",
-        "count": 10,
-        "offset": 10
+		"next_cursor": "<cursor string>"
         "remaining": 230
     }
 }
 ```
 
-`count`: The number of items returned.
+`next_cursor`: Arbitrary string value representing the start of the next page of
+results.
 
-`offset`: The offset of the returned items.
+`remaining` (optional): The number of items beyond the next cursor. Some
+collections may not support calculating remaining items, may be very inefficient
+in counting remaining items, or else change so frequently that reporting how
+many items remain is meaningless. If possible and useful, messages and protocols
+may use this as needed.
 
-`remaining` (required as dictated by utilizing message type, may be absent): The
-number of items beyond the offset and returned items.
+[slack-post]: https://slack.engineering/evolving-api-pagination-at-slack/#:~:text=Offsets,to%20return%20results%20for%2C%20page
