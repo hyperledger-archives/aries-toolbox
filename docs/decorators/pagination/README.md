@@ -46,7 +46,9 @@ Example:
 If omitted, results are returned from the beginning of the collection. Cursor
 corresponds to the returned `next_cursor` of the `~page` decorator denoting page
 information from a paginated collection. The exact value of these cursors is
-defined by the implementing messages and protocols.
+completely opaque to the receiver and have meaning only in specifying the
+starting point for the next page. These values should therefore NOT be
+manipulated by the querying party.
 
 `limit`: return at most `n` items.
 
@@ -74,7 +76,8 @@ Example:
 ```
 
 `next_cursor`: Arbitrary string value representing the start of the next page of
-results.
+results. As noted above, these values are completely opaque to the querying
+party and should not be modified.
 
 `remaining` (optional): The number of items beyond the next cursor. Some
 collections may not support calculating remaining items, may be very inefficient
