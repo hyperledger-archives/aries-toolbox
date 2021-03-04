@@ -47,7 +47,9 @@ Example:
 
 `@id` (String; Optional): Message identifier
 
-`~paginate` (Nested; Optional): Fields of paginate decorator.### credentials-list
+`~paginate` (Nested; Optional): Fields of paginate decorator.
+
+### credentials-list
 
 Credential list message.
 
@@ -74,7 +76,9 @@ Example:
 
 `results` (List; Optional): 
 
-`~page` (Nested; Optional): Fields of page decorator.### credential-offer-accept
+`~page` (Nested; Optional): Fields of page decorator.
+
+### credential-offer-accept
 
 Credential offer accept message.
 
@@ -94,7 +98,9 @@ Example:
 
 `@id` (String; Optional): Message identifier
 
-`credential_exchange_id` (String): ### credential-offer-received
+`credential_exchange_id` (String): 
+
+### credential-offer-received
 
 Credential offer received message.
 
@@ -189,7 +195,9 @@ Example:
 
 `revoc_reg_id` (String; Optional): Revocation registry identifier
 
-`revocation_id` (String; Optional): Credential identifier within revocation registry### credential-request-sent
+`revocation_id` (String; Optional): Credential identifier within revocation registry
+
+### credential-request-sent
 
 Credential offer acceptance received and credential request sent.
 
@@ -284,7 +292,9 @@ Example:
 
 `revoc_reg_id` (String; Optional): Revocation registry identifier
 
-`revocation_id` (String; Optional): Credential identifier within revocation registry### credential-received
+`revocation_id` (String; Optional): Credential identifier within revocation registry
+
+### credential-received
 
 Credential received notification message.
 
@@ -379,7 +389,9 @@ Example:
 
 `revoc_reg_id` (String; Optional): Revocation registry identifier
 
-`revocation_id` (String; Optional): Credential identifier within revocation registry### send-credential-proposal
+`revocation_id` (String; Optional): Credential identifier within revocation registry
+
+### send-credential-proposal
 
 Send Credential Proposal Message.
 
@@ -436,7 +448,9 @@ Example:
 
 `comment` (String; Optional): Human-readable comment
 
-`credential_proposal` (Nested): Credential preview schema.### credential-exchange
+`credential_proposal` (Nested): Credential preview schema.
+
+### credential-exchange
 
 Credential exchange message.
 
@@ -531,7 +545,9 @@ Example:
 
 `revoc_reg_id` (String; Optional): Revocation registry identifier
 
-`revocation_id` (String; Optional): Credential identifier within revocation registry### presentations-get-list
+`revocation_id` (String; Optional): Credential identifier within revocation registry
+
+### presentations-get-list
 
 Presentation get list message.
 
@@ -560,7 +576,9 @@ Example:
 
 `verified` (String; Optional): 
 
-`~paginate` (Nested; Optional): Fields of paginate decorator.### presentations-list
+`~paginate` (Nested; Optional): Fields of paginate decorator.
+
+### presentations-list
 
 Presentation get list response message.
 
@@ -587,7 +605,9 @@ Example:
 
 `results` (List; Optional): 
 
-`~page` (Nested; Optional): Fields of page decorator.### presentation-request-approve
+`~page` (Nested; Optional): Fields of page decorator.
+
+### presentation-request-approve
 
 Approve presentation request.
 
@@ -607,7 +627,9 @@ Example:
 
 `@id` (String; Optional): Message identifier
 
-`presentation_exchange_id` (String): ### send-presentation-proposal
+`presentation_exchange_id` (String): 
+
+### send-presentation-proposal
 
 Presentation proposal message.
 
@@ -654,7 +676,9 @@ Example:
 
 `presentation_proposal` (Nested): Presentation preview schema.
 
-`auto_present` (Boolean; Optional): Whether to respond automatically to presentation requests, building and presenting requested proof### presentation-exchange
+`auto_present` (Boolean; Optional): Whether to respond automatically to presentation requests, building and presenting requested proof
+
+### presentation-exchange
 
 Presentation Exchange message.
 
