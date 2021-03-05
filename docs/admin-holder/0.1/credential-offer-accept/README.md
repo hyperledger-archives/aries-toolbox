@@ -1,0 +1,1 @@
+See [credential-offer-accept](/docs/admin-holder/0.1/README.md#credential-offer-accept).
