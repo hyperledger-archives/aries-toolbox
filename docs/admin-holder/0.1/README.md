@@ -35,8 +35,8 @@ Example:
   "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credentials-get-list",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "~paginate": {
-    "limit": null,
-    "offset": null
+    "limit": 10,
+    "offset": 20
   }
 }
 ```
@@ -47,7 +47,7 @@ Example:
 
 `@id` (String; Optional): Message identifier
 
-`~paginate` (Nested; Optional): Fields of paginate decorator.
+`~paginate` (Nested; Optional): Paginate decorator for messages querying for a paginated object.
 
 ### credentials-list
 
@@ -76,7 +76,7 @@ Example:
 
 `results` (List; Optional): 
 
-`~page` (Nested; Optional): Fields of page decorator.
+`~page` (Nested; Optional): Page decorator for messages containing a paginated object.
 
 ### credential-offer-accept
 
@@ -111,8 +111,8 @@ Example:
   "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-offer-received",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "state": "credential_acked",
-  "created_at": "2021-03-04 22:59:34Z",
-  "updated_at": "2021-03-04 22:59:34Z",
+  "created_at": "2021-03-05 02:02:17Z",
+  "updated_at": "2021-03-05 02:02:17Z",
   "trace": null,
   "credential_exchange_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "connection_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
@@ -208,8 +208,8 @@ Example:
   "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-request-sent",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "state": "credential_acked",
-  "created_at": "2021-03-04 22:59:34Z",
-  "updated_at": "2021-03-04 22:59:34Z",
+  "created_at": "2021-03-05 02:02:17Z",
+  "updated_at": "2021-03-05 02:02:17Z",
   "trace": null,
   "credential_exchange_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "connection_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
@@ -305,8 +305,8 @@ Example:
   "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-received",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "state": "credential_acked",
-  "created_at": "2021-03-04 22:59:34Z",
-  "updated_at": "2021-03-04 22:59:34Z",
+  "created_at": "2021-03-05 02:02:17Z",
+  "updated_at": "2021-03-05 02:02:17Z",
   "trace": null,
   "credential_exchange_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "connection_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
@@ -448,7 +448,7 @@ Example:
 
 `comment` (String; Optional): Human-readable comment
 
-`credential_proposal` (Nested): Credential preview schema.
+`credential_proposal` (Nested): Class representing a credential preview inner object.
 
 ### credential-exchange
 
@@ -461,8 +461,8 @@ Example:
   "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-exchange",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "state": "credential_acked",
-  "created_at": "2021-03-04 22:59:34Z",
-  "updated_at": "2021-03-04 22:59:34Z",
+  "created_at": "2021-03-05 02:02:17Z",
+  "updated_at": "2021-03-05 02:02:17Z",
   "trace": null,
   "credential_exchange_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "connection_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
@@ -560,8 +560,8 @@ Example:
   "connection_id": null,
   "verified": null,
   "~paginate": {
-    "limit": null,
-    "offset": null
+    "limit": 10,
+    "offset": 20
   }
 }
 ```
@@ -576,7 +576,7 @@ Example:
 
 `verified` (String; Optional): 
 
-`~paginate` (Nested; Optional): Fields of paginate decorator.
+`~paginate` (Nested; Optional): Paginate decorator for messages querying for a paginated object.
 
 ### presentations-list
 
@@ -605,7 +605,7 @@ Example:
 
 `results` (List; Optional): 
 
-`~page` (Nested; Optional): Fields of page decorator.
+`~page` (Nested; Optional): Page decorator for messages containing a paginated object.
 
 ### presentation-request-approve
 
@@ -674,7 +674,7 @@ Example:
 
 `comment` (String; Optional): Human-readable comment
 
-`presentation_proposal` (Nested): Presentation preview schema.
+`presentation_proposal` (Nested): Class representing presentation preview.
 
 `auto_present` (Boolean; Optional): Whether to respond automatically to presentation requests, building and presenting requested proof
 
@@ -689,8 +689,8 @@ Example:
   "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentation-exchange",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "state": "verified",
-  "created_at": "2021-03-04 22:59:34Z",
-  "updated_at": "2021-03-04 22:59:34Z",
+  "created_at": "2021-03-05 02:02:17Z",
+  "updated_at": "2021-03-05 02:02:17Z",
   "trace": null,
   "presentation_exchange_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "connection_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",

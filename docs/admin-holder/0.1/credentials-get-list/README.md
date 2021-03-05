@@ -1,0 +1,1 @@
+See [credentials-get-list](/docs/admin-holder/0.1/README.md#credentials-get-list).

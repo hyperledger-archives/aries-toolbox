@@ -20,7 +20,7 @@ help:
 docs: $(generated)
 
 clean:
-	rm -r $(dir $(generated))
+	-rm -r $(dir $(generated))
 
 $(generated): $(readmes)
 	@./scripts/generate_doc_folders.sh $(readmes)
