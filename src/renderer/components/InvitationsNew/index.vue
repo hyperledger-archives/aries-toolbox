@@ -24,8 +24,8 @@
       <ul class="list">
         <el-collapse-item
           v-for="i in invitations_v1"
-          v-bind:title="i.alias"
-          :name="i.alias"
+          v-bind:title="get_name(i)"
+          :name="get_name(i)"
           :key="i.id">
           <el-row :key="i.id">
             <p>Auto Accept: {{i.auto_accept}}</p>
@@ -164,7 +164,7 @@ export default {
     supports_mediation: function() {
       let list = this.protocols.map(p => p.pid);
       return list.includes(COORDINATE_MEDIATION)
-    }
+    },
   },
   created: async function() {
     await this.ready();
@@ -192,7 +192,7 @@ export default {
       if(i.alias){
         return i.alias;
       }
-      return "no alias"; //i.invitation_mode +" / "+ i.role +" / "+ i.connection.created_at ;
+      return `${i.multi_use ? "Multi-use: " : ""}${i.label}, created ${i.raw_repr.connection.created_at}`;
     },
     copyURL: function(url){
       clipboard.writeText(url);
