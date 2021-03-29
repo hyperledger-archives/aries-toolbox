@@ -57,7 +57,7 @@ export const shared = {
         item => 'metadata' in item && 'public' in item.metadata && item.metadata.public
       );
       if (public_did) {
-        share.public_did = public_did;
+        share.public_did = public_did.did;
       }
     },
     'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1/did': (share, msg) => {
