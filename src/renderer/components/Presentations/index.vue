@@ -102,7 +102,7 @@ export default {
               name: predicate.name,
               cred_def_id: predicate.cred_def.cred_def_id,
               predicate: predicate.predicate,
-              threshold: predicate.threshold
+              threshold: parseInt(predicate.threshold)
             };
           })
         },
