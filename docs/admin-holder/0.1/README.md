@@ -18,6 +18,7 @@ Define messages for credential holder admin protocols.
 - [presentations-get-list](#presentations-get-list)
 - [presentations-list](#presentations-list)
 - [presentation-request-approve](#presentation-request-approve)
+- [presentation-request-received](#presentation-request-received)
 - [send-presentation-proposal](#send-presentation-proposal)
 - [presentation-exchange](#presentation-exchange)
 
@@ -37,7 +38,10 @@ Example:
   "~paginate": {
     "limit": 10,
     "offset": 20
-  }
+  },
+  "states": [
+    "offer_received"
+  ]
 }
 ```
 
@@ -49,6 +53,8 @@ Example:
 
 `~paginate` (Nested; Optional): Paginate decorator for messages querying for a paginated object.
 
+`states` (List; Optional): Filter listed credentials by state.
+
 ### credentials-list
 
 Credential list message.
@@ -59,11 +65,11 @@ Example:
 {
   "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credentials-list",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "results": null,
+  "results": [],
   "~page": {
-    "count": null,
-    "offset": null,
-    "remaining": null
+    "count": 10,
+    "offset": 20,
+    "remaining": 15
   }
 }
 ```
@@ -74,7 +80,7 @@ Example:
 
 `@id` (String; Optional): Message identifier
 
-`results` (List; Optional): 
+`results` (List): List of requested credentials
 
 `~page` (Nested; Optional): Page decorator for messages containing a paginated object.
 
@@ -88,7 +94,7 @@ Example:
 {
   "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-offer-accept",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "credential_exchange_id": null
+  "credential_exchange_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
 }
 ```
 
@@ -98,7 +104,7 @@ Example:
 
 `@id` (String; Optional): Message identifier
 
-`credential_exchange_id` (String): 
+`credential_exchange_id` (String): ID of the credential exchange to accept
 
 ### credential-offer-received
 
@@ -111,8 +117,8 @@ Example:
   "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-offer-received",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "state": "credential_acked",
-  "created_at": "2021-03-05 02:02:17Z",
-  "updated_at": "2021-03-05 02:02:17Z",
+  "created_at": "2021-04-13 14:55:53Z",
+  "updated_at": "2021-04-13 14:55:53Z",
   "trace": null,
   "credential_exchange_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "connection_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
@@ -208,8 +214,8 @@ Example:
   "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-request-sent",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "state": "credential_acked",
-  "created_at": "2021-03-05 02:02:17Z",
-  "updated_at": "2021-03-05 02:02:17Z",
+  "created_at": "2021-04-13 14:55:53Z",
+  "updated_at": "2021-04-13 14:55:53Z",
   "trace": null,
   "credential_exchange_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "connection_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
@@ -305,8 +311,8 @@ Example:
   "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-received",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "state": "credential_acked",
-  "created_at": "2021-03-05 02:02:17Z",
-  "updated_at": "2021-03-05 02:02:17Z",
+  "created_at": "2021-04-13 14:55:53Z",
+  "updated_at": "2021-04-13 14:55:53Z",
   "trace": null,
   "credential_exchange_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "connection_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
@@ -461,8 +467,8 @@ Example:
   "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-exchange",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "state": "credential_acked",
-  "created_at": "2021-03-05 02:02:17Z",
-  "updated_at": "2021-03-05 02:02:17Z",
+  "created_at": "2021-04-13 14:55:53Z",
+  "updated_at": "2021-04-13 14:55:53Z",
   "trace": null,
   "credential_exchange_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "connection_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
@@ -590,9 +596,9 @@ Example:
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "results": null,
   "~page": {
-    "count": null,
-    "offset": null,
-    "remaining": null
+    "count": 10,
+    "offset": 20,
+    "remaining": 15
   }
 }
 ```
@@ -617,7 +623,11 @@ Example:
 {
   "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentation-request-approve",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "presentation_exchange_id": null
+  "presentation_exchange_id": null,
+  "self_attested_attributes": null,
+  "requested_attributes": null,
+  "requested_predicates": null,
+  "comment": null
 }
 ```
 
@@ -628,6 +638,76 @@ Example:
 `@id` (String; Optional): Message identifier
 
 `presentation_exchange_id` (String): 
+
+`self_attested_attributes` (Dict): Self-attested attributes to build into proof
+
+`requested_attributes` (Dict): Nested object mapping proof request attribute referents to requested-attribute specifiers
+
+`requested_predicates` (Dict): Nested object mapping proof request predicate referents to requested-predicate specifiers
+
+`comment` (String; Optional): 
+
+### presentation-request-received
+
+Presentation Request Received.
+
+Example:
+
+```json
+{
+  "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentation-request-received",
+  "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "record": {
+    "state": "verified",
+    "created_at": "2021-04-13 14:55:53Z",
+    "updated_at": "2021-04-13 14:55:53Z",
+    "trace": null,
+    "presentation_exchange_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "connection_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "thread_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "initiator": "self",
+    "role": "prover",
+    "presentation_proposal_dict": null,
+    "presentation_request": null,
+    "presentation_request_dict": null,
+    "presentation": null,
+    "verified": "true",
+    "auto_present": false,
+    "error_msg": "Invalid structure"
+  },
+  "matching_credentials": {
+    "cred_info": {
+      "referent": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "attrs": null
+    },
+    "schema_id": "WgWxqztrNooG92RXvxSTWv:2:schema_name:1.0",
+    "cred_def_id": "WgWxqztrNooG92RXvxSTWv:3:CL:20:tag",
+    "rev_reg_id": "WgWxqztrNooG92RXvxSTWv:4:WgWxqztrNooG92RXvxSTWv:3:CL:20:tag:CL_ACCUM:0",
+    "cred_rev": "12345",
+    "interval": {
+      "to": 1618325753
+    },
+    "presentation_referents": null
+  },
+  "page": {
+    "count": 10,
+    "offset": 20,
+    "remaining": 15
+  }
+}
+```
+
+#### Fields
+
+`@type` (String): Message type
+
+`@id` (String; Optional): Message identifier
+
+`record` (Nested; Optional): Represents an Aries#0037 v1.0 presentation exchange.
+
+`matching_credentials` (Nested; Optional): 
+
+`page` (Nested; Optional): Page decorator for messages containing a paginated object.
 
 ### send-presentation-proposal
 
@@ -689,8 +769,8 @@ Example:
   "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentation-exchange",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "state": "verified",
-  "created_at": "2021-03-05 02:02:17Z",
-  "updated_at": "2021-03-05 02:02:17Z",
+  "created_at": "2021-04-13 14:55:53Z",
+  "updated_at": "2021-04-13 14:55:53Z",
   "trace": null,
   "presentation_exchange_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "connection_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
