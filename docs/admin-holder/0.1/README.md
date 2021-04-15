@@ -18,7 +18,8 @@ Define messages for credential holder admin protocols.
 - [presentations-get-list](#presentations-get-list)
 - [presentations-list](#presentations-list)
 - [presentation-request-approve](#presentation-request-approve)
-- [presentation-request-received](#presentation-request-received)
+- [presentation-get-matching-credentials](#presentation-get-matching-credentials)
+- [presentation-matching-credentials](#presentation-matching-credentials)
 - [send-presentation-proposal](#send-presentation-proposal)
 - [presentation-exchange](#presentation-exchange)
 
@@ -564,7 +565,6 @@ Example:
   "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentations-get-list",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "connection_id": null,
-  "verified": null,
   "~paginate": {
     "limit": 10,
     "offset": 20
@@ -578,11 +578,9 @@ Example:
 
 `@id` (String; Optional): Message identifier
 
-`connection_id` (String; Optional): 
+`connection_id` (String; Optional): Filter presentations by connection_id
 
-`verified` (String; Optional): 
-
-`~paginate` (Nested; Optional): Paginate decorator for messages querying for a paginated object.
+`~paginate` (Nested; Optional): Pagination decorator.
 
 ### presentations-list
 
@@ -609,9 +607,9 @@ Example:
 
 `@id` (String; Optional): Message identifier
 
-`results` (List; Optional): 
+`results` (List; Optional): Retrieved presentations.
 
-`~page` (Nested; Optional): Page decorator for messages containing a paginated object.
+`~page` (Nested; Optional): Pagination decorator.
 
 ### presentation-request-approve
 
@@ -627,7 +625,7 @@ Example:
   "self_attested_attributes": null,
   "requested_attributes": null,
   "requested_predicates": null,
-  "comment": null
+  "comment": "Nothing to see here."
 }
 ```
 
@@ -645,36 +643,47 @@ Example:
 
 `requested_predicates` (Dict): Nested object mapping proof request predicate referents to requested-predicate specifiers
 
-`comment` (String; Optional): 
+`comment` (String; Optional): Optional comment.
 
-### presentation-request-received
+### presentation-get-matching-credentials
 
-Presentation Request Received.
+Retrieve matching credentials for a presentation request.
 
 Example:
 
 ```json
 {
-  "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentation-request-received",
+  "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentation-get-matching-credentials",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "record": {
-    "state": "verified",
-    "created_at": "2021-04-13 14:55:53Z",
-    "updated_at": "2021-04-13 14:55:53Z",
-    "trace": null,
-    "presentation_exchange_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "connection_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "thread_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "initiator": "self",
-    "role": "prover",
-    "presentation_proposal_dict": null,
-    "presentation_request": null,
-    "presentation_request_dict": null,
-    "presentation": null,
-    "verified": "true",
-    "auto_present": false,
-    "error_msg": "Invalid structure"
-  },
+  "presentation_exchange_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "~paginate": {
+    "limit": 10,
+    "offset": 20
+  }
+}
+```
+
+#### Fields
+
+`@type` (String): Message type
+
+`@id` (String; Optional): Message identifier
+
+`presentation_exchange_id` (String): Presentation to match credentials to.
+
+`~paginate` (Nested; Optional): Pagination decorator.
+
+### presentation-matching-credentials
+
+Presentation Matching Credentials
+
+Example:
+
+```json
+{
+  "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentation-matching-credentials",
+  "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "presentation_exchange_id": null,
   "matching_credentials": {
     "cred_info": {
       "referent": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
@@ -685,7 +694,7 @@ Example:
     "rev_reg_id": "WgWxqztrNooG92RXvxSTWv:4:WgWxqztrNooG92RXvxSTWv:3:CL:20:tag:CL_ACCUM:0",
     "cred_rev": "12345",
     "interval": {
-      "to": 1618325753
+      "to": 1618516861
     },
     "presentation_referents": null
   },
@@ -703,11 +712,11 @@ Example:
 
 `@id` (String; Optional): Message identifier
 
-`record` (Nested; Optional): Represents an Aries#0037 v1.0 presentation exchange.
+`presentation_exchange_id` (String): Exchange ID for matched credentials.
 
-`matching_credentials` (Nested; Optional): 
+`matching_credentials` (Nested; Optional): Matched credentials.
 
-`page` (Nested; Optional): Page decorator for messages containing a paginated object.
+`page` (Nested; Optional): Pagination info for matched credentials.
 
 ### send-presentation-proposal
 
