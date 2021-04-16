@@ -14,7 +14,7 @@ a new DID to be provisioned for the invitation.
 - This version lacks a way to filter invitations when listing.
 
 ### Protocol Messages
-- [create-invitation](#create-invitation)
+- [create](#create)
 - [invitation](#invitation)
 - [invitation-get-list](#invitation-get-list)
 - [invitation-list](#invitation-list)
@@ -42,13 +42,13 @@ The following attributes are common across all messages in this protocol. Each t
 
 --------------------------------------------------------------------------------
 
-### create-invitation
+### create
 Instruct the agent to create a new invitation.
 
 Example:
 ```jsonc
 {
-	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/create-invitation",
+	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/create",
 	"alias": "Invitation I sent to Alice",
 	"label": "Bob"
 	"group": "admin",
@@ -64,7 +64,7 @@ See [Common Attributes](#common-attributes)
 
 ### invitation
 
-Details of a new invitation created as requested by a `create_invitation` message.
+Details of a new invitation created as requested by a `create` message.
 
 Example:
 ```jsonc
@@ -79,7 +79,7 @@ Example:
 }
 ```
 
-`~thread`: Thread ID will match the message ID of the corresponding `create_invitation`
+`~thread`: Thread ID will match the message ID of the corresponding `create`
 message.
 
 See [Common Attributes](#common-attributes)
