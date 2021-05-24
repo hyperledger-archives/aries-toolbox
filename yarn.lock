@@ -2810,9 +2810,10 @@ encodeurl@^1.0.2, encodeurl@~1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/encodeurl/-/encodeurl-1.0.2.tgz#ad3ff4c86ec2d029322f5a02c3a9a606c95b3f59"
 
-encryption-envelope-js@1.1.4:
-  version "1.1.4"
-  resolved "https://registry.yarnpkg.com/encryption-envelope-js/-/encryption-envelope-js-1.1.4.tgz#38a8d01d1e33a87b75be64e242087a980283aa98"
+encryption-envelope-js@1.1.6:
+  version "1.1.6"
+  resolved "https://registry.yarnpkg.com/encryption-envelope-js/-/encryption-envelope-js-1.1.6.tgz#de2a42e0ef81b08858a4b6124534d49edf47747a"
+  integrity sha512-Qt6Rw2oYFhaBJErnIlaosIV6oULmEBuiBtBbGWF4OTOiFVy4sBFgHupoQdG90lUL0mdt1dOIgZ3Bc+cA6HCrQw==
   dependencies:
     "@types/libsodium-wrappers" "^0.7.5"
     base-58 "0.0.1"
