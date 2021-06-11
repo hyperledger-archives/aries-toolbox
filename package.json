@@ -61,7 +61,7 @@
     "bootstrap-vue": "^2.1.0",
     "dompurify": "^2.0.8",
     "element-ui": "^2.10.1",
-    "encryption-envelope-js": "1.1.4",
+    "encryption-envelope-js": "1.1.6",
     "marked": "^0.8.0",
     "request": "^2.88.0",
     "request-promise": "^4.2.4",
