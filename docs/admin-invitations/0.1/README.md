@@ -12,6 +12,7 @@ a new DID to be provisioned for the invitation.
 - This version lacks a way to remove or deactivate a DID.
 - This version lacks paging of invitation lists.
 - This version lacks a way to filter invitations when listing.
+- The first example for each protocol message is for general usage; the second example specific to the ACA-Py Plugin Toolbox
 
 ### Protocol Messages
 - [create](#create)
@@ -45,7 +46,7 @@ The following attributes are common across all messages in this protocol. Each t
 ### create
 Instruct the agent to create a new invitation.
 
-Example:
+Example #1:
 ```jsonc
 {
 	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/create",
@@ -60,13 +61,25 @@ Example:
 
 `mediation_id`: Identifier for mediator to use in accepting the invitation.
 
+Example #2 (ACA-Py Plugin Toolbox):
+```jsonc
+{
+	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/create",
+	"alias": "Invitation I sent to Alice",
+	"label": "Bob"
+	"group": "admin",
+	"auto_accept": True,
+	"multi_use": True
+}
+```
+
 See [Common Attributes](#common-attributes)
 
 ### invitation
 
 Details of a new invitation created as requested by a `create` message.
 
-Example:
+Example #1:
 ```jsonc
 {
 	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/invitation",
@@ -79,31 +92,72 @@ Example:
 }
 ```
 
+
+
+Example #2 (ACA-Py Plugin Toolbox):
+```jsonc
+{
+	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/invitation", 
+	"@id": "90e3edaa-cb69-4f75-876a-8d6782429891", 
+	"~thread": {"thid": "<send msg id>"},
+	"raw_repr": {
+		"connection": {
+			"invitation_mode": "multi", 
+			"state": "invitation", 
+			"rfc23_state": "invitation-sent", 
+			"routing_state": "none", 
+			"accept": "auto", 
+			"created_at": "<created timestamp>", 
+			"updated_at": "<updated timestamp>", 
+			"their_role": "invitee", 
+			"connection_id": "07897620-fd2e-430f-8ec1-ebd1f426b973", 
+			"alias": "Invitation I sent to Alice", 
+			"invitation_key": "AAd14qqe8JS4nCtVR3v7ogHmZG2FXtMUBDa8X3hy8QZX"}, 
+		"invitation": {
+			"@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/invitation", 
+			"@id": "5da062e6-2102-4566-a01e-b0d2dc9663cc", 
+			"serviceEndpoint": "http://acapy_plugin_agent:3000", 
+			"recipientKeys": ["AAd14qqe8JS4nCtVR3v7ogHmZG2FXtMUBDa8X3hy8QZX"], 
+			"label": "Bob"}
+			}, 
+	"group": "admin", 
+	"invitation_url": "http://acapy_plugin_agent:3000?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiNWRhMDYyZTYtMjEwMi00NTY2LWEwMWUtYjBkMmRjOTY2M2NjIiwgInNlcnZpY2VFbmRwb2ludCI6ICJodHRwOi8vYWNhcHlfcGx1Z2luX2FnZW50OjMwMDAiLCAicmVjaXBpZW50S2V5cyI6IFsiQUFkMTRxcWU4SlM0bkN0VlIzdjdvZ0htWkcyRlh0TVVCRGE4WDNoeThRWlgiXSwgImxhYmVsIjogIkJvYiJ9", 
+	"multi_use": True, 
+	"auto_accept": True, 
+	"id": "07897620-fd2e-430f-8ec1-ebd1f426b973", 
+	"alias": "Invitation I sent to Alice", 
+	"label": "Bob", 
+	"created_date": "<created timestamp>"
+}
+```
+
 `~thread`: Thread ID will match the message ID of the corresponding `create`
 message.
 
 See [Common Attributes](#common-attributes)
 
 
-### invitation-get-list
-The `invitation-get-list` message is sent to ask for a list of existing
+### get-list
+The `get-list` message is sent to ask for a list of existing
 invitations.
 
-Example:
 ```jsonc
 {
-	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/invitation-get-list"
+	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/get-list"
 }
 ```
 
 
-### invitation-list
+### list
 
-List of invitations as requested by a `invitation-get-list` message.
+List of invitations as requested by a `get-list` message.
+
+Example #1:
+
 
 ```jsonc
 {
-	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/invitation-list"
+	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/list"
     "results": [
         {
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/invitation",
@@ -121,6 +175,46 @@ List of invitations as requested by a `invitation-get-list` message.
 }
 ```
 
+Example #2 (ACA-Py Plugin Toolbox):
+```jsonc
+{
+	"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/list", 
+	"@id": "31874a5b-8e38-4eb4-93a6-000433537aff", 
+	"~thread": {"thid": "56e81139-8382-4dc9-8922-7fa87e03c803"}, 
+	"results": [
+		{
+			"auto_accept": True, 
+			"raw_repr": {
+				"connection": {
+					"state": "invitation", 
+					"routing_state": "none", 
+					"invitation_mode": "multi", 
+					"invitation_key": "DgRxL5egD95vSN4ucKwK5oHTRc5x8cAQTsunnJ69BhBQ",
+					"updated_at": "2021-06-15 16:13:10.558682Z",
+					"their_role": "invitee", 
+					"connection_id": "62f147c3-7695-432b-aaf9-87d5df7a0dcc", 
+					"rfc23_state": "invitation-sent", 
+					"created_at": "2021-06-15 16:13:10.558682Z", 
+					"accept": "auto", 
+					"alias": "Invitation I sent to Alice"},
+			"invitation": {
+				"@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/invitation", 
+				"@id": "5886772e-e3e4-4990-98f1-6939a23e304d", 
+				"recipientKeys": ["DgRxL5egD95vSN4ucKwK5oHTRc5x8cAQTsunnJ69BhBQ"], 
+				"serviceEndpoint": "http://acapy_plugin_agent:3000",
+				"label": "Bob"}
+			}, 
+			"invitation_url": "http://acapy_plugin_agent:3000?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiNTg4Njc3MmUtZTNlNC00OTkwLTk4ZjEtNjkzOWEyM2UzMDRkIiwgInJlY2lwaWVudEtleXMiOiBbIkRnUnhMNWVnRDk1dlNONHVjS3dLNW9IVFJjNXg4Y0FRVHN1bm5KNjlCaEJRIl0sICJzZXJ2aWNlRW5kcG9pbnQiOiAiaHR0cDovL2FjYXB5X3BsdWdpbl9hZ2VudDozMDAwIiwgImxhYmVsIjogIkJvYiJ9", 
+			"multi_use": True, 
+			"alias": "Invitation I sent to Alice", 
+			"id": "62f147c3-7695-432b-aaf9-87d5df7a0dcc", 
+			"created_date": "2021-06-15 16:13:10.558682Z", 
+			"label": "Bob", 
+			"group": "admin"
+		}
+	]
+}
+```
 `results`: A list of invitations.
 
 `id`: The ID of the invitation
