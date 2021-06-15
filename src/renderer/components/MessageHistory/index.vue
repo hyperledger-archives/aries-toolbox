@@ -20,6 +20,7 @@
 import message_bus from '@/message_bus.js';
 import share from '@/share.js';
 import VueJsonPretty from 'vue-json-pretty';
+import 'vue-json-pretty/lib/styles.css';
 
 export const metadata = {
   menu: {
