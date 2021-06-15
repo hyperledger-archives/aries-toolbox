@@ -1,6 +1,6 @@
 <template>
   <el-row>
-    <v-jsoneditor v-model="content"></v-jsoneditor>
+    <v-jsoneditor v-model="content" :options="options"></v-jsoneditor>
     <el-button type="secondary" @click="send">Send</el-button>
   </el-row>
 </template>
@@ -32,6 +32,9 @@ export default {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping",
         "response_requested": true
       },
+      options: {
+        "mode": "code"
+      }
     };
   },
   methods: {
