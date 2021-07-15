@@ -101,14 +101,14 @@ export default {
         name: [
           {
             required: true,
-            message: "Please input schema Name",
+            message: "Please input a valid schema name.",
           },
         ],
         version: [
           {
             required: true,
             pattern: /^((([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)$/,
-            message: "Please input valid schema",
+            message: "Please input a valid schema version.",
             trigger: "blur",
           },
         ],
