@@ -1,25 +1,22 @@
-Credential Definition Admin Protocol
-==========================
+# Credential Definition Admin Protocol
 
 ## Overview
-
 **Protocol URI:** `did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1`
 
 
 #### Protocol Messages
-- [send-credential-definition](#send-credential-definition)
-- [credential-definition-id](#credential-definition-id)
-- [credential-definition-get](#credential-definition-get)
-- [credential-definition](#credential-definition)
-- [credential-definition-get-list](#credential-definition-get-list)
-- [credential-definition-list](#credential-definition-list)
+* [send-credential-definition](#send-credential-definition)
+* [credential-definition-id](#credential-definition-id)
+* [credential-definition-get](#credential-definition-get)
+* [credential-definition](#credential-definition)
+* [credential-definition-get-list](#credential-definition-get-list)
+* [credential-definition-list](#credential-definition-list)
 
 ## Message Definitions
 
 ### send-credential-definition
 Create a credential definition based on a schema.
-
-```jsonc
+```
 {
     "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/send-credential-definition",
     "schema_id": "5P4NvotLsVeeGd9UxUtMp6:2:Alice's Test Schema:1.0",
@@ -33,8 +30,7 @@ Create a credential definition based on a schema.
 
 ### credential-definition-id
 Response to a `send-credential-definition` message.
-
-```jsonc
+```
 {
     "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/credential-definition-id",
     "@id": "795932f4-dd26-4a9c-8b7e-e8c2302c9683",
@@ -49,7 +45,7 @@ Response to a `send-credential-definition` message.
 ### credential-definition-get
 Retrieve a pre-existing credential definition.
 
-```jsonc
+```
 {
     "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/credential-definition-get",
     "cred_def_id": "K6fuxNHhNrR44RfkF5jRp7:3:CL:232915:Alice's Test Schema_1.0",
@@ -88,7 +84,7 @@ Respond message to a `credential-definition-get` message.
 ### credential-definition-get-list
 Retrieve the list of credential definitions.
 
-```jsonc
+```
 {
     "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/credential-definition-get-list",
     "@id": "33d0c436-558e-47b2-9a17-f66be8f869ca",
@@ -101,7 +97,7 @@ Retrieve the list of credential definitions.
 ### credential-definition-list
 Respond to a `credential-definition-get-list` message.
 
-```jsonc
+```
 {
     "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/credential-definition-list",
     "@id": "9d070822-821f-4f5c-821f-c92242dc4818",
