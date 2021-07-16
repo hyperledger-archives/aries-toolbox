@@ -5,8 +5,6 @@ Credential Definition Admin Protocol
 
 **Protocol URI:** `did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1`
 
-### Notes
-- This version lacks a way to delete schemas
 
 #### Protocol Messages
 - [send-credential-definition](#send-credential-definition)
