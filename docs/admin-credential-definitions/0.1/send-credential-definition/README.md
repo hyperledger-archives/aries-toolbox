@@ -1,0 +1,1 @@
+See [send-credential-definition](/docs/admin-credential-definitions/0.1/README.md#send-credential-definition).

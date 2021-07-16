@@ -1,0 +1,1 @@
+See [credential-definition-id](/docs/admin-credential-definitions/0.1/README.md#credential-definition-id).
