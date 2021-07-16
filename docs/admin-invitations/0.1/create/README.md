@@ -1,0 +1,1 @@
+See [create](/docs/admin-invitations/0.1/README.md#create).
