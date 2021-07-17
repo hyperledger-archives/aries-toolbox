@@ -1,0 +1,1 @@
+See [schema-get-list](/docs/admin-schemas/0.1/README.md#schema-get-list).
