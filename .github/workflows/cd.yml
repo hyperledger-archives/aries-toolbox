@@ -2,8 +2,9 @@ name: Continuous Delivery
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   build-toolbox:
@@ -14,13 +15,13 @@ jobs:
         include:
           - os: ubuntu-latest
             plat-name-simple: linux
-            target-path: ./build
+            target-path: ./build/*.AppImage
           - os: macos-latest
             plat-name-simple: macos
-            target-path: ./build/mac
+            target-path: ./build/*.dmg
           - os: windows-latest
             plat-name-simple: windows
-            target-path: ./build
+            target-path: ./build/*.exe
 
     runs-on: ${{ matrix.os }}
 
@@ -52,6 +53,7 @@ jobs:
         run: yarn build
 
       - uses: actions/upload-artifact@v2
+        if: github.event_name == 'push' && github.repository == 'hyperledger/aries-toolbox'
         with:
           name: ${{matrix.plat-name-simple}}
-          path: ${{matrix.target-path}}/*
+          path: ${{matrix.target-path}}
