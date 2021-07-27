@@ -54,4 +54,4 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: ${{matrix.plat-name-simple}}
-          path: ${{matrix.target-path}}/*
+          path: ${{matrix.target-path}}
