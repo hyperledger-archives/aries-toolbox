@@ -107,8 +107,9 @@ export default {
         version: [
           {
             required: true,
-            pattern: /^((([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)$/,
-            message: "Please input a valid schema version.",
+            pattern: /^[0-9]+(?:\.[0-9]+){1,2}$/,
+            message:
+              "Versions must be a number with one or two decimals (1.0 or 1.0.0).",
             trigger: "blur",
           },
         ],
