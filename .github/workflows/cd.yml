@@ -14,13 +14,13 @@ jobs:
         include:
           - os: ubuntu-latest
             plat-name-simple: linux
-            target-path: ./build
+            target-path: ./build/*.AppImage
           - os: macos-latest
             plat-name-simple: macos
-            target-path: ./build/mac
+            target-path: ./build/*.dmg
           - os: windows-latest
             plat-name-simple: windows
-            target-path: ./build
+            target-path: ./build/*.exe
 
     runs-on: ${{ matrix.os }}
 
