@@ -2,13 +2,13 @@ name: Continuous Delivery
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   build-toolbox:
     name: Build Toolbox
-    if: github.repository == 'hyperledger/aries-toolbox'
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
@@ -53,6 +53,7 @@ jobs:
         run: yarn build
 
       - uses: actions/upload-artifact@v2
+        if: github.event_name == 'push' && github.repository == 'hyperledger/aries-toolbox'
         with:
           name: ${{matrix.plat-name-simple}}
           path: ${{matrix.target-path}}
