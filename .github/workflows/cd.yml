@@ -8,6 +8,7 @@ on:
 jobs:
   build-toolbox:
     name: Build Toolbox
+    if: github.repository == 'hyperledger/aries-toolbox'
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
