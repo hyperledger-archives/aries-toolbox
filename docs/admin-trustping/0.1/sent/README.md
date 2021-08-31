@@ -1,0 +1,1 @@
+See [sent](/docs/admin-trustping/0.1/README.md#sent).
