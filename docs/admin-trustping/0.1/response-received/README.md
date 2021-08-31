@@ -1,0 +1,1 @@
+See [response-received](/docs/admin-trustping/0.1/README.md#response-received).
