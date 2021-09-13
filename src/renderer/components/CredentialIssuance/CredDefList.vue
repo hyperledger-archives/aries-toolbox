@@ -63,6 +63,12 @@
             </el-option>
           </el-select>
         </el-form-item>
+        <el-form-item label="Revocable?" :label-width="formLabelWidth">
+          <el-checkbox id="support_revocation" v-model="createForm.support_revocation" />
+        </el-form-item>
+        <el-form-item label="Revocation Registry Size" :label-width="formLabelWidth">
+          <el-input-number id="revocation_registry_size" v-model="createForm.revocation_registry_size" :disabled="!createForm.support_revocation" min=4 max=32769 />
+        </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="deactivate()">Cancel</el-button>
@@ -111,7 +117,9 @@ export default {
       expanded_items:[],
       createFormActive: false,
       createForm: {
-        schema_id: ''
+        schema_id: '',
+        support_revocation: false,
+        revocation_registry_size: 100
       },
       retrieve_cred_def_id: '',
       formLabelWidth: '100px'
@@ -126,10 +134,16 @@ export default {
       let query_msg = {
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/send-credential-definition",
         "schema_id": this.createForm.schema_id,
+        "support_revocation": this.createForm.support_revocation,
       };
+      if (this.createForm.support_revocation) {
+        query_msg["revocation_registry_size"] = this.createForm.revocation_registry_size;
+      }
       this.send_message(query_msg);
       this.createFormActive = false;
       this.createForm.schema_id = '';
+      this.createForm.support_revocation = false;
+      this.createForm.revocation_registry_size = 100;
     },
     get_cred_def: function() {
       let query_msg = {
@@ -147,6 +161,8 @@ export default {
     deactivate: function() {
       this.createFormActive = false;
       this.createForm.schema_id = '';
+      this.createForm.support_revocation = false;
+      this.createForm.revocation_registry_size = 100;
     },
   }
 }
