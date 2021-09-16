@@ -55,7 +55,7 @@ export const metadata = {
     group: 'Toolbox to Agent',
     priority: 20,
     required_protocols: [
-      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0'
+      'https://github.com/hyperledger/aries-toolbox/tree/master/docs/basicmessage/1.0'
     ]
   }
 };
@@ -65,14 +65,14 @@ export const shared = {
     basicmessages: [],
   },
   listeners: {
-    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message': (share, msg) => {
+    'https://github.com/hyperledger/aries-toolbox/tree/master/docs/basicmessage/1.0/message': (share, msg) => {
       share.basicmessages.push({
         'msg': msg,
         'direction': 'Received'
       });
     },
     'send-message': (share, msg) => {
-      if (msg['@type'] === 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message') {
+      if (msg['@type'] === 'https://github.com/hyperledger/aries-toolbox/tree/master/docs/basicmessage/1.0/message') {
         share.basicmessages.push({
           'msg': msg,
           'direction': 'Sent'
@@ -98,7 +98,7 @@ export default {
   methods: {
     send: function() {
       let msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message",
+        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/basicmessage/1.0/message",
         "content": this.content
       };
       this.send_message(msg);

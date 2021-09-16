@@ -74,7 +74,7 @@ import { base64_decode, base64_encode } from '../base64.js';
 import { from_store } from '../connection_detail.js';
 const uuidv4 = require('uuid/v4');
 const coordinate_mediation =
-  (type) => `did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/coordinate-mediation/1.0/${type}`;
+  (type) => `https://github.com/hyperledger/aries-toolbox/tree/master/docs/coordinate-mediation/1.0/${type}`;
 
 export default {
   name: 'agent-list',
@@ -153,12 +153,12 @@ export default {
       //TODO: open connection?
       this.mediator_connection.on_disconnect = function(){
         vm.mediator_connection.send_message({
-          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping",
+          "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/trust_ping/1.0/ping",
           "response_requested": false
         });
       };
       this.mediator_connection.send_message({
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping",
+        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/trust_ping/1.0/ping",
         "response_requested": false
       });
       console.log("mediator connected", this.mediator_connection);
@@ -345,7 +345,7 @@ export default {
         "~transport": {
           "return_route": "all"
         },
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/request",
+        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/connections/1.0/request",
         "label": "ToolBox",
         "connection": {
           "DID": toolbox_did.did,

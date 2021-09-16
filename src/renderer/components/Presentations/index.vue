@@ -25,7 +25,7 @@ export const metadata = {
     group: 'Agent to Agent',
     priority: 90,
     required_protocols: [
-      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1'
+      'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1'
     ]
   }
 };
@@ -35,14 +35,14 @@ export const shared = {
     holder_presentations: [],
   },
   listeners: {
-    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentations-list': (share, msg) => {
+    'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/presentations-list': (share, msg) => {
       share.holder_presentations = msg.results;
     }
   },
   methods: {
     fetch_holder_presentations: ({send}) => {
       send({
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentations-get-list",
+        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/presentations-get-list",
       })
     }
   }
@@ -72,12 +72,12 @@ export default {
   methods: {
     async sendPresentationProposal(form){
       let query_msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/send-presentation-proposal",
+        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/send-presentation-proposal",
         "connection_id": form.connection_id,
         "comment": form.comment,
         "auto_present": form.auto_present , //optional, default to false
         "presentation_proposal": {
-          "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/present-proof/1.0/presentation-preview",
+          "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/present-proof/1.0/presentation-preview",
           /**
            * name 
            * cred_def_id //optional

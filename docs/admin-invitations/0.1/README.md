@@ -114,7 +114,7 @@ Example #2 (ACA-Py Plugin Toolbox):
 			"alias": "Invitation I sent to Alice", 
 			"invitation_key": "AAd14qqe8JS4nCtVR3v7ogHmZG2FXtMUBDa8X3hy8QZX"}, 
 		"invitation": {
-			"@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/invitation", 
+			"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/connections/1.0/invitation", 
 			"@id": "5da062e6-2102-4566-a01e-b0d2dc9663cc", 
 			"serviceEndpoint": "http://acapy_plugin_agent:3000", 
 			"recipientKeys": ["AAd14qqe8JS4nCtVR3v7ogHmZG2FXtMUBDa8X3hy8QZX"], 
@@ -198,7 +198,7 @@ Example #2 (ACA-Py Plugin Toolbox):
 					"accept": "auto", 
 					"alias": "Invitation I sent to Alice"},
 			"invitation": {
-				"@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/invitation", 
+				"@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/connections/1.0/invitation", 
 				"@id": "5886772e-e3e4-4990-98f1-6939a23e304d", 
 				"recipientKeys": ["DgRxL5egD95vSN4ucKwK5oHTRc5x8cAQTsunnJ69BhBQ"], 
 				"serviceEndpoint": "http://acapy_plugin_agent:3000",

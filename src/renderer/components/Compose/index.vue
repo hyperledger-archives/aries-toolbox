@@ -29,7 +29,7 @@ export default {
   data: function() {
     return {
       content: {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping",
+        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/trust_ping/1.0/ping",
         "response_requested": true
       },
       options: {

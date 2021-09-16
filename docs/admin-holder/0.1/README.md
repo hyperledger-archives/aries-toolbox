@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Protocol URI:** `did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1`
+**Protocol URI:** `https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1`
 
 Define messages for credential holder admin protocols.
 
@@ -34,7 +34,7 @@ Example:
 
 ```json
 {
-  "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credentials-get-list",
+  "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/credentials-get-list",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "~paginate": {
     "limit": 10,
@@ -64,7 +64,7 @@ Example:
 
 ```json
 {
-  "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credentials-list",
+  "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/credentials-list",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "results": [],
   "~page": {
@@ -93,7 +93,7 @@ Example:
 
 ```json
 {
-  "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-offer-accept",
+  "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/credential-offer-accept",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "credential_exchange_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
 }
@@ -115,7 +115,7 @@ Example:
 
 ```json
 {
-  "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-offer-received",
+  "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/credential-offer-received",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "state": "credential_acked",
   "created_at": "2021-04-13 14:55:53Z",
@@ -212,7 +212,7 @@ Example:
 
 ```json
 {
-  "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-request-sent",
+  "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/credential-request-sent",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "state": "credential_acked",
   "created_at": "2021-04-13 14:55:53Z",
@@ -309,7 +309,7 @@ Example:
 
 ```json
 {
-  "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-received",
+  "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/credential-received",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "state": "credential_acked",
   "created_at": "2021-04-13 14:55:53Z",
@@ -406,7 +406,7 @@ Example:
 
 ```json
 {
-  "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/send-credential-proposal",
+  "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/send-credential-proposal",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "trace": false,
   "connection_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
@@ -465,7 +465,7 @@ Example:
 
 ```json
 {
-  "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-exchange",
+  "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/credential-exchange",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "state": "credential_acked",
   "created_at": "2021-04-13 14:55:53Z",
@@ -562,7 +562,7 @@ Example:
 
 ```json
 {
-  "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentations-get-list",
+  "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/presentations-get-list",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "connection_id": null,
   "~paginate": {
@@ -590,7 +590,7 @@ Example:
 
 ```json
 {
-  "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentations-list",
+  "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/presentations-list",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "results": null,
   "~page": {
@@ -619,7 +619,7 @@ Example:
 
 ```json
 {
-  "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentation-request-approve",
+  "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/presentation-request-approve",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "presentation_exchange_id": null,
   "self_attested_attributes": null,
@@ -653,7 +653,7 @@ Example:
 
 ```json
 {
-  "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentation-get-matching-credentials",
+  "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/presentation-get-matching-credentials",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "presentation_exchange_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "~paginate": {
@@ -681,7 +681,7 @@ Example:
 
 ```json
 {
-  "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentation-matching-credentials",
+  "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/presentation-matching-credentials",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "presentation_exchange_id": null,
   "matching_credentials": {
@@ -726,13 +726,13 @@ Example:
 
 ```json
 {
-  "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/send-presentation-proposal",
+  "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/send-presentation-proposal",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "trace": false,
   "connection_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "comment": null,
   "presentation_proposal": {
-    "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/present-proof/1.0/presentation-preview",
+    "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/present-proof/1.0/presentation-preview",
     "attributes": {
       "name": "favourite_drink",
       "cred_def_id": "WgWxqztrNooG92RXvxSTWv:3:CL:20:tag",
@@ -775,7 +775,7 @@ Example:
 
 ```json
 {
-  "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentation-exchange",
+  "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/presentation-exchange",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "state": "verified",
   "created_at": "2021-04-13 14:55:53Z",

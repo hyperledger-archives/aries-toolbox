@@ -119,7 +119,7 @@ export default {
         }
         console.log("mediator change!", mediator_agent);
       },
-      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/notification/1.0/problem-report':
+      'https://github.com/hyperledger/aries-toolbox/tree/master/docs/notification/1.0/problem-report':
       (vm, msg) => {
         vm.$notify.error({
           title: 'Small problem...',
@@ -134,7 +134,7 @@ export default {
           customClass: 'problem-report-notification'
         })
       },
-      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/coordinate-mediation/1.0/mediate-grant': (vm, msg) => {
+      'https://github.com/hyperledger/aries-toolbox/tree/master/docs/coordinate-mediation/1.0/mediate-grant': (vm, msg) => {
         vm.enable_as_mediator(msg);
       },
       'https://didcomm.org/coordinate-mediation/1.0/mediate-grant': (vm, msg) => {
@@ -200,7 +200,7 @@ export default {
     },
     async processInbound(msg){
       // RFC 0348 Step 1: modify prefix (if present) to old standard
-      let OLD = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/";
+      let OLD = "https://github.com/hyperledger/aries-toolbox/tree/master/docs/";
       let NEW = "https://didcomm.org/";
       if(msg['@type'].startsWith(NEW)){
         msg['@type'] = msg['@type'].replace(NEW, OLD);
@@ -212,7 +212,7 @@ export default {
     return_route_poll(){
       // This brute forces picking up return route messages
       let msg = {
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping",
+        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/trust_ping/1.0/ping",
         "response_requested": false,
         "~transport": {
           "return_route": "all"
