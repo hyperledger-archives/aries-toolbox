@@ -122,7 +122,7 @@ export default {
         revocation_registry_size: 100
       },
       retrieve_cred_def_id: '',
-      formLabelWidth: '100px'
+      formLabelWidth: '95px'
     }
   },
   created: async function() {
