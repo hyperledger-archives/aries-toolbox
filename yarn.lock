@@ -5013,9 +5013,9 @@ json5@^2.1.2, json5@^2.2.0:
     minimist "^1.2.5"
 
 jsoneditor@^9.1.1:
-  version "9.5.2"
-  resolved "https://registry.yarnpkg.com/jsoneditor/-/jsoneditor-9.5.2.tgz#960468319f248b7f933c07a18336e67a9ea78f03"
-  integrity sha512-kIUutoSX2S72Grjl+PHoR3oz5d42tpOfLicZrQrjB2RHO+UAq3RThqEpbH1AR61F4aauTYpOJwB1Altnf9Fdfg==
+  version "9.5.6"
+  resolved "https://registry.yarnpkg.com/jsoneditor/-/jsoneditor-9.5.6.tgz#b2abca2aeb34bb5291025d0eeddcb2845e0d90a9"
+  integrity sha512-smu4CKCOeJiizGGGYQ7ZAvCclnuJP7gX/wcoHw/DWiJMUZq+3KjJNDhYnVTRgi+Zk0UlPngA4egmuJre/H2mXg==
   dependencies:
     ace-builds "^1.4.12"
     ajv "^6.12.6"
