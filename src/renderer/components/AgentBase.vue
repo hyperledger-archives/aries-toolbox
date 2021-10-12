@@ -128,7 +128,7 @@ export default {
               return text.slice(0, 30).trim() + '...';
             }
             return text;
-          })(msg['explain-ltxt']),
+          })(msg["explain-ltxt"] || msg['description']['en']),
           onClick: () => vm.redirect('message-history'),
           duration: 4000,
           customClass: 'problem-report-notification'
