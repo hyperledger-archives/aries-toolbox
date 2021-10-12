@@ -25,18 +25,25 @@ extension that can be loaded at runtime. As administrative protocols are
 reviewed, both the appropriate toolbox modules and the ACApy extensions will be
 updated.
 
+#### Prerequisites
+
+- libindy installed on your computer see [here](https://github.com/hyperledger/aries-framework-javascript/tree/main/docs/libindy) for help.
+
+- node version 16.8.0 (this specific version has been tested extensively and should work)
+
+- python ^3.7 (required for node-gyp)
+
 #### Build Setup
 
 ```bash
 # install dependencies
 yarn install
 
-# serve with hot reload at localhost:9080
-yarn run dev
+# serve the application
+yarn start
 
 # build electron application for production
-yarn run build
-
+yarn build # Not yet tested
 
 ```
 
