@@ -1,7 +1,7 @@
 # Aries Toolbox
 
 The Toolbox makes interacting with Aries Agent easier for developers and system
-administrators.  Toolbox Modules provide user interface for protocols. Debugging
+administrators. Toolbox Modules provide user interface for protocols. Debugging
 information and details are included and visible.
 
 The ToolBox uses the Discover Features Protocol to determine which protocols are
@@ -21,14 +21,13 @@ Work](docs/howmoduleswork.md) to learn more or contribute a new module.
 
 Many of the included modules rely on administrative protocols that have not yet
 been through a thorough review. These protocols are supported for ACApy via an
-extension that can be loaded at runtime.  As administrative protocols are
+extension that can be loaded at runtime. As administrative protocols are
 reviewed, both the appropriate toolbox modules and the ACApy extensions will be
 updated.
 
-
 #### Build Setup
 
-``` bash
+```bash
 # install dependencies
 yarn install
 
