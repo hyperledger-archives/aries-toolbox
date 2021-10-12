@@ -1,6 +1,6 @@
 {
-  "short_name": "Aries Agent",
-  "name": "Aries Agent Electron",
+  "short_name": "Aries Toolbox",
+  "name": "Aries Toolbox Next",
   "icons": [
     {
       "src": "assets/favicon.ico",

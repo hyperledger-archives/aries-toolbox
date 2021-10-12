@@ -1,12 +1,11 @@
 {
-  "name": "aries-agent-electron",
+  "name": "aries-toolbox-next",
   "version": "0.1.0",
   "private": true,
-  "description": "Aries Agent Electron with aries-framework-javascript",
-  "author": "Berend Sliedrecht",
+  "description": "Aries toolbox version 2, built with Electron and AFJ",
   "build": {
-    "productName": "Aries Agent",
-    "appId": "com.blueberi.ariesagentelectron",
+    "productName": "Aries Toolbox Next",
+    "appId": "com.example.aries-toolbox-next",
     "mac": {
       "icon": "./public/assets/icon.icns"
     }
