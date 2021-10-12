@@ -83,7 +83,6 @@
           </el-input>
           <el-form-item  label="Restrictions:" class="restrictions">
             <el-select
-              :disabled="true"
               v-model="requestForm.attributes[index].restrictions.cred_def"
               filterable
               no-data-text="No credential definitions"
@@ -145,7 +144,6 @@
           </el-input>
           <el-form-item label="Restrictions:" class="restrictions">
             <el-select
-              :disabled="true"
               v-model="requestForm.predicates[index].restrictions.cred_def"
               filterable
               no-data-text="No credential definitions"
