@@ -1,0 +1,1 @@
+export { setupAndInitializeAgent } from './agent'

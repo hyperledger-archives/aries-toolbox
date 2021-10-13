@@ -1,7 +1,7 @@
 # Aries Toolbox
 
 The Toolbox makes interacting with Aries Agent easier for developers and system
-administrators.  Toolbox Modules provide user interface for protocols. Debugging
+administrators. Toolbox Modules provide user interface for protocols. Debugging
 information and details are included and visible.
 
 The ToolBox uses the Discover Features Protocol to determine which protocols are
@@ -21,23 +21,29 @@ Work](docs/howmoduleswork.md) to learn more or contribute a new module.
 
 Many of the included modules rely on administrative protocols that have not yet
 been through a thorough review. These protocols are supported for ACApy via an
-extension that can be loaded at runtime.  As administrative protocols are
+extension that can be loaded at runtime. As administrative protocols are
 reviewed, both the appropriate toolbox modules and the ACApy extensions will be
 updated.
 
+#### Prerequisites
+
+- libindy installed on your computer see [here](https://github.com/hyperledger/aries-framework-javascript/tree/main/docs/libindy) for help.
+
+- node version 16.8.0 (this specific version has been tested extensively and should work)
+
+- python ^3.7 (required for node-gyp)
 
 #### Build Setup
 
-``` bash
+```bash
 # install dependencies
 yarn install
 
-# serve with hot reload at localhost:9080
-yarn run dev
+# serve the application
+yarn start
 
 # build electron application for production
-yarn run build
-
+yarn build # Not yet tested
 
 ```
 
