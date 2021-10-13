@@ -44,7 +44,6 @@
   "dependencies": {
     "@aries-framework/core": "^0.1.0-alpha.284",
     "@aries-framework/node": "^0.1.0-alpha.284",
-    "electron-fetch": "^1.7.4",
     "electron-is-dev": "^2.0.0",
     "indy-sdk": "^1.16.0-dev-1636",
     "node-fetch": "^3.0.0",
