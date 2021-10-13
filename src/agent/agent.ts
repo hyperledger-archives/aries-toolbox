@@ -1,5 +1,4 @@
 import { Agent, AriesFrameworkError, ConsoleLogger, FileSystem, IndySdkError, LogLevel } from '@aries-framework/core'
-import fetch from 'electron-fetch'
 import events from 'events'
 import Indy from 'indy-sdk'
 import nodeFetch from 'node-fetch'
@@ -43,7 +42,7 @@ export const setupAndInitializeAgent = async (label = 'test agent') => {
   const electronAgentDependencies = {
     indy: indyWithErrorHandling as unknown as typeof Indy,
     FileSystem: ElectronFileSystem,
-    fetch: fetch as unknown as typeof nodeFetch,
+    fetch: window.fetch as unknown as typeof nodeFetch,
     EventEmitterClass: events.EventEmitter,
     WebSocketClass: ws,
   }
