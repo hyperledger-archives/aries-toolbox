@@ -53,17 +53,12 @@ export const shared = {
     'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1/list-dids':
     (share, msg) => {
       share.dids = msg.result;
-      let public_did = share.dids.find(
-        item => 'metadata' in item && 'public' in item.metadata && item.metadata.public
-      );
-      if (public_did) {
-        share.public_did = public_did.did;
-      }
     },
     'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1/did': (share, msg) => {
-      if(msg.result && 'metadata' in msg.result && 'public' in msg.result.metadata && msg.result.metadata.public === true) {
-        share.public_did = msg.result.did;
-      }
+      share.fetch_dids();
+    },
+    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1/public-did': (share, msg) => {
+      share.public_did = msg.result.did;
       share.fetch_dids();
     }
   },
