@@ -56,7 +56,7 @@ export const shared = {
     },
     'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1/did': (share, msg) => {
       share.fetch_dids();
-    }
+    },
     'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1/public-did': (share, msg) => {
       share.public_did = msg.result.did;
       share.fetch_dids();
