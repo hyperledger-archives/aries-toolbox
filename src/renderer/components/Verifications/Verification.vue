@@ -94,19 +94,6 @@
                 :value="cred_def">
               </el-option>
             </el-select>
-            <el-select
-              :disabled="true"
-              v-model="requestForm.attributes[index].restrictions.trusted_issuer"
-              filterable
-              no-data-text="No registered trusted issuers"
-              placeholder="Trusted Issuers">
-              <el-option
-                v-for="issuer in trusted_issuers"
-                :key="issuer.did"
-                :label="issuer.label"
-                :value="issuer.did">
-              </el-option>
-            </el-select>
           </el-form-item>
         </el-form-item>
 
@@ -153,19 +140,6 @@
                 :key="cred_def.cred_def_id"
                 :label="cred_def.cred_def_id"
                 :value="cred_def">
-              </el-option>
-            </el-select>
-            <el-select
-              :disabled="true"
-              v-model="requestForm.predicates[index].restrictions.trusted_issuer"
-              filterable
-              no-data-text="No registered trusted issuers"
-              placeholder="Trusted Issuers">
-              <el-option
-                v-for="issuer in trusted_issuers"
-                :key="issuer.did"
-                :label="issuer.label"
-                :value="issuer.did">
               </el-option>
             </el-select>
           </el-form-item>
@@ -216,7 +190,6 @@ export default {
     'editable',
     'connections',
     'cred_defs',
-    'trusted_issuers'
   ],
   mixins: [share({use: ['id_to_connection']})],
   components: {
@@ -332,8 +305,7 @@ export default {
       this.requestForm.attributes.push({
         name: '',
         restrictions: {
-          cred_def: undefined,
-          trusted_issuer: undefined
+          cred_def: undefined
         },
       });
     },
@@ -346,7 +318,6 @@ export default {
         p_type: '',
         restrictions: {
           cred_def: undefined,
-          trusted_issuer: undefined,
         },
       });
     },
