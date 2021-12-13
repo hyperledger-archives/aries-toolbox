@@ -39,8 +39,7 @@ export const shared = {
     (share, msg) => share.holder_presentations = msg.results,
     'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentation-request-received':
     (share, msg) => {
-        console.log(share.holder_presentations);
-        console.log(msg)
+        share.holder_presentations.push(msg.raw_repr)
     },
   },
   methods: {
