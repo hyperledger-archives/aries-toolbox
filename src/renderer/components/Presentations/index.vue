@@ -35,9 +35,12 @@ export const shared = {
     holder_presentations: [],
   },
   listeners: {
-    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentations-list': (share, msg) => {
-      share.holder_presentations = msg.results;
-    }
+    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentations-list':
+    (share, msg) => share.holder_presentations = msg.results,
+    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentation-request-received':
+    (share, msg) => {
+        share.holder_presentations.push(msg.raw_repr)
+    },
   },
   methods: {
     fetch_holder_presentations: ({send}) => {
