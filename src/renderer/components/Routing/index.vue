@@ -109,7 +109,7 @@
         </el-select>
       </el-form-item>
       <el-form-item label="" :label-width="formLabelWidth">
-        <el-button @click="keylist_update_send">Go</el-button>
+        <el-button type="primary" @click="keylist_update_send">Go</el-button>
       </el-form-item>
     </el-form>
   </el-row>
