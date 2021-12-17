@@ -1,27 +1,55 @@
 <template >
   <el-row>
-    <did-list
-      name="did_list"
-      title="DIDs:"
-      activeDid="public_did"
-      :list="dids"
-      @did-update="updateAgentDid"
-      @did-activate="activate_did">
-    </did-list>
-  <p>Create a Did:</p>
-  <el-form :model=did_form>
-    <div>
-      <span slot="label">Did:</span>
-      <el-input v-model="did_form.did" style="width:100px;"> </el-input>
-      <span slot="label">Seed:</span>
-      <el-input v-model="did_form.seed" style="width:100px;"> </el-input>
-      <span slot="label">Alias:</span>
-      <el-input v-model="did_form.label" style="width:100px;"> </el-input>
-    </div>
-    <div>
-      <el-button type="primary" @click="createDid()">Create DID</el-button>
-    </div>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">DIDs</a>
+    <el-button
+      type="primary"
+      icon="el-icon-refresh"
+      @click="fetch_dids"></el-button>
+  </nav>
+  <el-collapse v-model="expanded_items">
+    <ul class="list">
+      <el-collapse-item
+        v-for="did in dids"
+        v-bind:title="did.did"
+        :name="did.did"
+        :key="did.did">
+        <el-row :key="did.did">
+          <p>Verification Key: {{did.verkey}}</p>
+          <p>DID: {{did.did}}</p>
+          <el-button type="primary" @click="updateAgentDid(did.updateAgentDid)">Edit DID</el-button>
+          <el-button type="primary" @click="activate_did(did.activate_did)">Activate DID</el-button>
+          <div>
+            <vue-json-pretty
+              :deep=0
+              :data="did">
+            </vue-json-pretty>
+          </div>
+        </el-row>
+      </el-collapse-item>
+    </ul>
+  </el-collapse>
+
+  <el-divider></el-divider>
+
+  <p>Create a DID:</p>
+  <el-form :inline="false" label-width="120px">
     <link rel="shortcut icon" href="/static"/>
+    <el-form-item label="DID:">
+      <el-input v-model="did_form.alias" style="width:200px;"> </el-input>
+      <i>Your new public DID.</i>
+    </el-form-item>
+    <el-form-item label="Seed:">
+      <el-input v-model="did_form.label" style="width:200px;"> </el-input>
+      <i>Seed for this DID.</i>
+    </el-form-item>
+    <el-form-item label="Alias:">
+      <el-input v-model="did_form.group" style="width:200px;"> </el-input>
+      <i>Alias used in your DID.</i>
+    </el-form-item>
+    <el-form-item>
+      <el-button type="primary" @click="createDid()">Create DID</el-button>
+    </el-form-item>
   </el-form>
   </el-row>
 </template>
