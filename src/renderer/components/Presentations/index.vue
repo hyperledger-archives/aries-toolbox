@@ -5,6 +5,7 @@
       v-bind:presentations= "holder_presentations"
       v-bind:connections = "active_connections"
       v-bind:cred_defs = "cred_defs"
+      v-bind:connection_details = "id_to_connection"
       @presentation-refresh = "fetch_holder_presentations"
       @send-presentation-proposal= "sendPresentationProposal"
       ></presentation>
@@ -60,7 +61,8 @@ export default {
       use: [
         'active_connections', 
         'cred_defs',
-        'holder_presentations'
+        'holder_presentations',
+        'id_to_connection'
       ],
       actions: ['fetch_holder_presentations']
     })

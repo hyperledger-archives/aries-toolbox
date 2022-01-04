@@ -15,15 +15,19 @@
     <el-collapse v-model="expanded_items">
       <ul class="list">
         <el-collapse-item
-          v-if="presentations.length"
           v-for="presentation in presentations"
           v-bind:title="presentation_title(presentation)"
           :name="presentation.presentation_exchange_id"
-          :key="presentation.presentation_exchange_id">
-          <el-row>
+          :key="presentation.presentation">
+          <el-row :key="presentation.presentation">
+            <p>Sent to: {{presentation.connection_their_label}}</p>
+            <p>Created at: {{presentation.created_at}}</p>
+            <p>Role: {{presentation.role}}</p>
+            <p>Connection ID: {{presentation.connection_id}}</p>
+            <p>Presentation Exchange ID: {{presentation.presentation_exchange_id}}</p>
             <div>
               <vue-json-pretty
-                :deep=1
+                :deep=0
                 :data="presentation">
               </vue-json-pretty>
             </div>
