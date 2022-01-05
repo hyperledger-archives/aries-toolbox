@@ -24,12 +24,16 @@
         <el-collapse-item
           v-for="schema in list"
           v-bind:title="schema.schema_name + ' ' + schema.schema_version"
-          :name="schema.schema_id"
-          :key="schema.schema_id"
+          :name="schema.schema"
+          :key="schema.schema"
         >
-          <el-row>
+          <el-row :key="schema.schema">
+            <p>Name: {{schema.schema_name}}</p>
+            <p>Version: {{schema.schema_version}}</p>
+            <p>Schema ID: {{schema.schema_id}}</p>
+            <p>Created: {{schema.created_at}}</p>
             <div>
-              <vue-json-pretty :deep="1" :data="schema"> </vue-json-pretty>
+              <vue-json-pretty :deep="0" :data="schema"> </vue-json-pretty>
             </div>
             <el-button v-on:click="collapse_expanded(schema)">^</el-button>
           </el-row>

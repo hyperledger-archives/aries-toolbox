@@ -27,11 +27,14 @@
           v-for="creddef in list"
           v-bind:title="creddef.cred_def_id"
           :name="creddef.cred_def_id"
-          :key="creddef.cred_def_id">
-          <el-row>
+          :key="creddef.cred_def">
+          <el-row :key="creddef.cred_def">
+            <p>Cred. def. ID: {{creddef.cred_def_id}}</p>
+            <p>Schema ID: {{creddef.schema_id}}</p>
+            <p>Created: {{creddef.created_at}}</p>
             <div>
               <vue-json-pretty
-                :deep=1
+                :deep=0
                 :data="creddef">
               </vue-json-pretty>
             </div>
