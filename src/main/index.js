@@ -100,7 +100,7 @@ app.on('ready', () => {
 
   if (isDev) {
     installDevTools()
-    mainWindow.webContents.openDevTools({mode: 'right'})
+    // mainWindow.webContents.openDevTools({mode: 'right'})
   }
 
   if (isDebug) {
