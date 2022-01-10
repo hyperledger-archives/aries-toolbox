@@ -35,7 +35,9 @@ export const shared = {
   },
   listeners: {
     "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/presentations-list":
-    (share, msg) => share.issuer_presentations = msg.results
+    (share, msg) => share.issuer_presentations = msg.results,
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/presentation-received":
+    (share, msg) => share.fetch_issuer_presentations()
   },
   methods: {
     fetch_issuer_presentations: ({send}) => {
