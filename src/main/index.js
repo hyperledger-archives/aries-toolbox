@@ -51,15 +51,10 @@ function createWindow() {
    */
   mainWindow = new BrowserWindow({
     backgroundColor: '#fff',
-    // width: 960,
-    // height: 540,
-    // minWidth: 960,
-    // minHeight: 540,
+    minWidth: 350,
+    minHeight: 300,
+    width: 350,
     height: 600,
-    // width: 350,
-    width: 905,
-    useContentSize: true,
-    // useContentSize: true,
     webPreferences: {
       nodeIntegration: true,
       nodeIntegrationInWorker: true,
