@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "module": "es2015",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "strict": true,
+    "target": "ES6",
+    "types": ["node"]
+  },
+  "exclude": ["node_modules"],
+  "files": ["src/vue-shims.d.ts"],
+  "include": ["src/**/*.ts", "src/**/*.vue"]
+}

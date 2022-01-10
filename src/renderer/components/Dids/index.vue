@@ -86,8 +86,12 @@ export const shared = {
       share.fetch_dids();
     },
     'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1/public-did': (share, msg) => {
-      share.public_did = msg.result.did;
-      share.fetch_dids();
+      if(typeof msg.result !== "undefined") {
+        share.public_did = msg.result.did;
+        share.fetch_dids();
+      } else {
+        console.warn("No Public DID found");
+      }
     }
   },
   methods: {
