@@ -17,11 +17,15 @@
           v-for="issued_credential in credentials"
           v-bind:title="credential_title(issued_credential)"
           :name="issued_credential.credential_exchange_id"
-          :key="issued_credential.credential_exchange_id">
-          <el-row>
+          :key="issued_credential.issued_credential">
+          <el-row :key="issued_credential.issued_credential">
+            <p>Name: {{issued_credential.name}}</p>
+            <p>Cred. def. ID: {{issued_credential.cred_def_id}}</p>
+            <p>Created: {{issued_credential.created_at}}</p>
+            <p>Issued to: {{issued_credential.connection_their_label}}</p>
             <div>
               <vue-json-pretty
-                :deep=1
+                :deep=0
                 :data="issued_credential">
               </vue-json-pretty>
             </div>

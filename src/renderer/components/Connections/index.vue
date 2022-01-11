@@ -1,5 +1,5 @@
 <template>
-  <el-row>
+  <el-row :key="connection">
     <connection-list
       title="Active Connections:"
       editable="true"
