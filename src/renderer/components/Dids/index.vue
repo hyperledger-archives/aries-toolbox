@@ -7,7 +7,7 @@
       icon="el-icon-refresh"
       @click="fetch_dids"></el-button>
   </nav>
-  <el-collapse v-model="expanded_items">
+  <el-collapse>
     <ul class="list">
       <el-collapse-item
         v-for="did in dids"
@@ -17,8 +17,8 @@
         <el-row :key="did.did">
           <p>Verification Key: {{did.verkey}}</p>
           <p>DID: {{did.did}}</p>
-          <el-button type="primary" @click="updateAgentDid(did.updateAgentDid)">Edit DID</el-button>
-          <el-button type="primary" @click="activate_did(did.activate_did)">Activate DID</el-button>
+          <el-button type="primary" @click="updateAgentDid(did)">Update DID</el-button>
+          <el-button type="primary" @click="activate_did(did)">Activate DID</el-button>
           <div>
             <vue-json-pretty
               :deep=0
