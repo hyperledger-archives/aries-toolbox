@@ -3,16 +3,12 @@ dist/electron/*
 dist/web/*
 build/*
 !build/icons
+coverage
 node_modules/
 npm-debug.log
 npm-debug.log.*
 thumbs.db
 !.gitkeep
-
-.idea/
-crash.log
-yarn-error.log
-
 data/tmp/
 .tmp/
 tmp/
@@ -20,3 +16,5 @@ tmp/
 dist
 coverage
 __coverage__
+node_modules
+_scripts
