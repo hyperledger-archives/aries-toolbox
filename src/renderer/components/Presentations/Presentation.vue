@@ -15,13 +15,17 @@
       <ul class="list">
         <el-collapse-item
           v-for="presentation in VerifiedPresentations"
-          v-bind:title="presentation.presentation_exchange_id"
+          v-bind:title="presentation_title(presentation)"
           :name="presentation.presentation_exchange_id"
-          :key="presentation.presentation_exchange_id">
-          <el-row>
+          :key="presentation.presentation">
+          <el-row :key="presentation.presentation">
+            <p>Connected to: {{connection_details[presentation.connection_id].label}}</p>
+            <p>Presentation Exchange ID: {{presentation.presentation_exchange_id}}</p>
+            <p>Connection ID: {{presentation.connection_id}}</p>
+            <p>Role: {{presentation.role}}</p>
             <div>
               <vue-json-pretty
-                :deep=1
+                :deep=0
                 :data="presentation">
               </vue-json-pretty>
             </div>
@@ -37,13 +41,17 @@
       <ul class="list">
         <el-collapse-item
           v-for="presentation in ReceivedRequests"
-          v-bind:title="presentation.presentation_exchange_id"
+          v-bind:title="presentation_title(presentation)"
           :name="presentation.presentation_exchange_id"
-          :key="presentation.presentation_exchange_id">
-          <el-row>
+          :key="presentation.presentation">
+          <el-row :key="presentation.presentation">
+            <p>Connected to: {{connection_details[presentation.connection_id].label}}</p>
+            <p>Presentation Exchange ID: {{presentation.presentation_exchange_id}}</p>
+            <p>Connection ID: {{presentation.connection_id}}</p>
+            <p>Role: {{presentation.role}}</p>
             <div>
               <vue-json-pretty
-                :deep=1
+                :deep=0
                 :data="presentation">
               </vue-json-pretty>
             </div>
@@ -59,13 +67,17 @@
       <ul class="list">
         <el-collapse-item
           v-for="presentation in SentPresentations"
-          v-bind:title="presentation.presentation_exchange_id"
+          v-bind:title="presentation_title(presentation)"
           :name="presentation.presentation_exchange_id"
-          :key="presentation.presentation_exchange_id">
-          <el-row>
+          :key="presentation.presentation">
+          <el-row :key="presentation.presentation">
+            <p>Connected to: {{connection_details[presentation.connection_id].label}}</p>
+            <p>Presentation Exchange ID: {{presentation.presentation_exchange_id}}</p>
+            <p>Connection ID: {{presentation.connection_id}}</p>
+            <p>Role: {{presentation.role}}</p>
             <div>
               <vue-json-pretty
-                :deep=1
+                :deep=0
                 :data="presentation">
               </vue-json-pretty>
             </div>
@@ -81,13 +93,17 @@
       <ul class="list">
         <el-collapse-item
           v-for="presentation in SentProposals"
-          v-bind:title="presentation.presentation_exchange_id"
+          v-bind:title="presentation_title(presentation)"
           :name="presentation.presentation_exchange_id"
-          :key="presentation.presentation_exchange_id">
-          <el-row>
+          :key="presentation.presentation">
+          <el-row :key="presentation.presentation">
+            <p>Connected to: {{connection_details[presentation.connection_id].label}}</p>
+            <p>Presentation Exchange ID: {{presentation.presentation_exchange_id}}</p>
+            <p>Connection ID: {{presentation.connection_id}}</p>
+            <p>Role: {{presentation.role}}</p>
             <div>
               <vue-json-pretty
-                :deep=1
+                :deep=0
                 :data="presentation">
               </vue-json-pretty>
             </div>
@@ -243,6 +259,7 @@ export default {
     'presentations',
     'connections',
     'cred_defs',
+    'connection_details'
   ],
   components: {
     VueJsonPretty,
@@ -282,6 +299,23 @@ export default {
       this.proposalForm.predicates = [];
 
       this.$emit('send-presentation-proposal', values);
+      
+    },
+    presentation_title: function(pres) {
+      let presentation_details = '';
+      let connection = this.connection_details[pres.connection_id];
+      let title= "";
+      if (connection && connection.label) {
+        title += `Sent to ${connection.label}`
+      } else {
+        title += 'Unknown'
+      }
+      if (!pres.comment) {
+        presentation_details = pres.presentation_exchange_id;
+      } else {
+        presentation_details = pres.comment;
+      }
+      return `${title}: ${presentation_details}`;
     },
     add_attribute: function() {
       this.proposalForm.attributes.push({
@@ -388,7 +422,7 @@ export default {
         "role" in exchange &&
         "prover" === exchange.role
       )
-    },
+    }
   }
 }
 </script>

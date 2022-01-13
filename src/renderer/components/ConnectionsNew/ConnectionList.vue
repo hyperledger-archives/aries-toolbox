@@ -13,11 +13,15 @@
           v-for="(connection) in list"
           v-bind:title="get_name(connection)"
           :name="connection.connection_id"
-          :key="title+connection.connection_id">
-          <el-row>
+          :key="connection.connection">
+          <el-row :key="connection.connection">
+            <p>Connected to: {{connection.label}}</p>
+            <p>Connection ID: {{connection.connection_id}}</p>
+            <p>My DID: {{connection.my_did}}</p>
+            <p>Their DID: {{connection.their_did}}</p>
             <div>
               <vue-json-pretty
-                :deep=1
+                :deep=0
                 :data="connection">
               </vue-json-pretty>
             </div>
