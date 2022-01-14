@@ -5,6 +5,7 @@
         title="DIDs"
         activeDid="public_did"
         :list="dids"
+        @fetch-dids="fetch_dids"
         @did-update="updateAgentDid"
         @did-activate="activate_did">
     </did-list>

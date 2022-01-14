@@ -100,6 +100,9 @@ export default {
       this.editForm.permissions = did.permissions
       this.editFormActive = true
     },
+    fetch_dids: function() {
+      this.$emit('fetch-dids');
+    },
     update: function() {
       this.editFormActive = false;
       this.$emit('did-update', this.editForm);
