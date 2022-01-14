@@ -3,24 +3,16 @@
     <div>
       Endpoint: {{get_connection().service.serviceEndpoint}}<br/>
       Use Return Route: {{get_connection().use_return_route}}
-
     </div>
     <el-button type="secondary" @click="clear_history">Clear</el-button>
-    <div class="message-display" v-for="m in message_history.slice().reverse()" :key="m.msg['@id']">
-      <i>{{m.direction}}</i>
-      <vue-json-pretty
-        :deep=1
-        :data="m.msg">
-      </vue-json-pretty>
-    </div>
+    <message-list v-bind:messages="message_history"></message-list>
   </el-row>
 </template>
 
 <script>
 import message_bus from '@/message_bus.js';
 import share from '@/share.js';
-import VueJsonPretty from 'vue-json-pretty';
-import 'vue-json-pretty/lib/styles.css';
+import MessageList from './MessageList.vue'
 
 export const metadata = {
   menu: {
@@ -41,7 +33,7 @@ export const shared = {
     'message-received': (share, msg) => {
       share.message_history.push({msg: msg, direction: 'Received'});
     },
-    'send-message': (share, msg) => {
+    'sent-message': (share, msg) => {
       share.message_history.push({msg: msg, direction: 'Sent'});
     }
   }
@@ -62,7 +54,7 @@ export default {
     }
   },
   components: {
-    VueJsonPretty
-  },
+    MessageList
+  }
 }
 </script>
