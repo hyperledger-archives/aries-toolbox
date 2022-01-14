@@ -93,9 +93,6 @@ export default {
             if (attribute.restrictions.cred_def) {
               transmuted_attr.restrictions[0].cred_def_id = attribute.restrictions.cred_def.cred_def_id;
             }
-            if (transmuted_attr.restrictions.length < 1) {
-              delete transmuted_attr.restrictions;
-            }
             acc[attribute.name] = transmuted_attr;
             return acc;
           }, {}),
@@ -111,9 +108,6 @@ export default {
             }
             if (predicate.restrictions.cred_def) {
               transmuted_pred.restrictions[0].cred_def_id = predicate.restrictions.cred_def.cred_def_id;
-            }
-            if (transmuted_pred.restrictions.length < 1) {
-              delete transmuted_pred.restrictions;
             }
             acc[predicate.name] = transmuted_pred;
             return acc;
