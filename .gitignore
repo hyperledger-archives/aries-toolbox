@@ -11,3 +11,12 @@ thumbs.db
 
 .idea/
 crash.log
+yarn-error.log
+
+data/tmp/
+.tmp/
+tmp/
+.cache
+dist
+coverage
+__coverage__

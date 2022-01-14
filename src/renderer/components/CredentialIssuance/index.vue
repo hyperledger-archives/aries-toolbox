@@ -67,7 +67,9 @@ export const shared = {
     "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/credentials-list":
     (share, msg) => share.issued_credentials = msg.results,
     "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/credential-definition-list":
-    (share, msg) => share.cred_defs = msg.results
+    (share, msg) => share.cred_defs = msg.results,
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/credential-issued":
+    (share, msg) => share.fetch_issued_credentials()
   },
   methods: {
     fetch_schemas: ({send}) => {
