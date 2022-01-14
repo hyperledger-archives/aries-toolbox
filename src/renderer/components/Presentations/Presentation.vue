@@ -311,11 +311,11 @@ export default {
         title += 'Unknown'
       }
       if (!pres.comment) {
-        presentation_details = pres.presentation_exchange_id;
+        presentation_details = pres.presentation_request.name;
       } else {
         presentation_details = pres.comment;
       }
-      return `${title}: ${presentation_details}`;
+      return `${presentation_details}: ${title}`;
     },
     add_attribute: function() {
       this.proposalForm.attributes.push({

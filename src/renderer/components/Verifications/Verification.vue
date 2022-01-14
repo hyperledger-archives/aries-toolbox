@@ -280,7 +280,7 @@ export default {
   },
   methods: {
     presentation_title: function(presentation) {
-      return presentation.presentation_request.name + ' requested from ' + presentation.connection_their_label;
+      return presentation.presentation_request.name + ': Requested from ' + presentation.connection_their_label;
     },
     collapse_expanded: function(creddef) {
       this.expanded_items = this.expanded_items.filter(
