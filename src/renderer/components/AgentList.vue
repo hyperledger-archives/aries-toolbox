@@ -121,7 +121,9 @@ export default {
         height: 600,
         webPreferences: {
           webSecurity: false,
-          nodeIntegration: true
+          contextIsolation: false,
+          nodeIntegration: true,
+          enableRemoteModule: true,
         }
       })
 

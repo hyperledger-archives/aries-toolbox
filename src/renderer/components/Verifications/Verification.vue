@@ -193,7 +193,7 @@ export default {
     'list',
     'editable',
     'connections',
-    'cred_defs'
+    'cred_defs',
   ],
   mixins: [share({use: ['id_to_connection']})],
   components: {

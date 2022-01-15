@@ -76,7 +76,8 @@ export const metadata = {
     update: protocol + '/update',
     delete: protocol + '/delete',
     deleted: protocol + '/deleted',
-    receive_invitation: protocol + '/receive-invitation'
+    receive_invitation: protocol + '/receive-invitation',
+    connected: protocol + '/connected'
   }
 };
 
@@ -109,6 +110,8 @@ export const shared = {
     [metadata.types.connection]:
     (share, msg) => share.fetch_connections(),
     [metadata.types.deleted]:
+    (share, msg) => share.fetch_connections(),
+    [metadata.types.connected]:
     (share, msg) => share.fetch_connections(),
   },
   methods: {
@@ -189,9 +192,6 @@ export default {
       this.send_message(receive_invite_msg);
       this.invite_form.invitation = "";
       this.invite_form.mediation_id = "";
-      setTimeout(() => {
-        return this.fetch_connections();
-      }, 4000);
     },
     mediator_name: function(mediator) {
       let connection_label = 'Unknown';
