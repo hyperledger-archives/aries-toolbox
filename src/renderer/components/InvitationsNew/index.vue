@@ -184,7 +184,7 @@ export default {
       this.invite_form.alias = "";
       this.invite_form.group = "";
       this.invite_form.mediation_id = "";
-      this.invite_form.auto_accept = false;
+      this.invite_form.auto_accept = true;
       this.invite_form.multi_use = false;
       this.send_message(query_msg);
     },
