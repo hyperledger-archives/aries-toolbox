@@ -193,7 +193,8 @@ export default {
     ...mapActions("Agents", ["update_agent"]),
     async send_connection_message(msg){
       await this.connection_loaded;
-      this.connection.send_message(msg);
+      let sent_message = await this.connection.send_message(msg);
+      this.$message_bus.$emit('sent-message', sent_message)
     },
     get_connection(){
       return this.connection;

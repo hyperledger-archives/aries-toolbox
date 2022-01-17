@@ -14,15 +14,15 @@
   <el-form :inline="false" label-width="120px">
     <link rel="shortcut icon" href="/static"/>
     <el-form-item label="DID:">
-      <el-input v-model="did_form.alias" style="width:200px;"> </el-input>
+      <el-input v-model="did_form.did" style="width:200px;"> </el-input>
       <i>Your new DID.</i>
     </el-form-item>
     <el-form-item label="Seed:">
-      <el-input v-model="did_form.label" style="width:200px;"> </el-input>
+      <el-input v-model="did_form.seed" style="width:200px;"> </el-input>
       <i>Seed for this DID.</i>
     </el-form-item>
     <el-form-item label="Label:">
-      <el-input v-model="did_form.group" style="width:200px;"> </el-input>
+      <el-input v-model="did_form.label" style="width:200px;"> </el-input>
       <i>An alias used to easily identify your DID.</i>
     </el-form-item>
     <el-form-item>
@@ -119,7 +119,6 @@ export default {
         did:'',
         seed:'',
         label:'',
-        metadata:'',
       },
       active_ledger_selector:{
         leger:'',
@@ -147,15 +146,16 @@ export default {
         msg.metadata = { "label": this.did_form.label };
       }
       this.send_message(msg);
+      this.did_form.label = '';
+      this.did_form.seed = '';
+      this.did_form.did = '';
     },
     async updateAgentDid(editForm){
       this.send_message({
         "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1/set-did-metadata",
         "did": editForm.did,
         "metadata": {
-          ...editForm.metadata,
-          'label':editForm.label,
-          'permission': editForm.permission,
+          'label': editForm.label,
         },
       });
     },

@@ -133,21 +133,24 @@ class ConnectionDetail {
 
     async send_message(msg) {
         console.log("Sending message:", msg);
+        let message_to_send = {
+            ...msg
+        }
 
-        if (!('@id' in msg)) { // Ensure @id is populated
-            msg['@id'] = uuidv4().toString();
+        if (!('@id' in message_to_send)) { // Ensure @id is populated
+            message_to_send['@id'] = uuidv4().toString();
         }
 
         // don't use return_route if this is the active mediator
         // messages will arrive via the main agentlist
         if (this.use_return_route) {
-            if (!("~transport" in msg)) {
-                msg["~transport"] = {}
+            if (!("~transport" in message_to_send)) {
+                message_to_send["~transport"] = {}
             }
-            msg["~transport"]["return_route"] = "all"
+            message_to_send["~transport"]["return_route"] = "all"
         }
 
-        const packedMsg = await this.packMessage(msg);
+        const packedMsg = await this.packMessage(message_to_send);
 
         // Send message
         if (this.service_transport_protocol === "http" ||
@@ -182,6 +185,7 @@ class ConnectionDetail {
         } else {
             throw "Unsupported transport protocol";
         }
+        return message_to_send
     }
 
     async packMessage(msg) {
