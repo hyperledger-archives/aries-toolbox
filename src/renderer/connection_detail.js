@@ -3,7 +3,7 @@ const bs58 = require('bs58');
 const rp = require('request-promise');
 const uuidv4 = require('uuid/v4');
 const WebSocketAsPromised = require('websocket-as-promised');
-const WebSocket = require('ws');
+// const WebSocket = require('ws');
 
 class ConnectionDetail {
     constructor(input, inbound_processor = null) {
@@ -60,6 +60,10 @@ class ConnectionDetail {
                     return new Buffer.from(data, 'ascii');
                 },
                 unpackMessage: async data => {
+
+                    if (data instanceof MessageEvent) {
+                        data = data.data;
+                    }
 
                     if (data instanceof Blob) {
                         data = await blobToStr(data);

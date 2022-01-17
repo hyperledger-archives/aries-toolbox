@@ -5,7 +5,6 @@
       v-bind:list="issuer_presentations"
       v-bind:connections="active_connections"
       v-bind:cred_defs="cred_defs"
-      v-bind:trusted_issuers="trusted_issuers"
       @verification-refresh="fetch_issuer_presentations"
       @presentation-request="presentation_request"></verification>
   </el-row>
@@ -36,7 +35,9 @@ export const shared = {
   },
   listeners: {
     "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/presentations-list":
-    (share, msg) => share.issuer_presentations = msg.results
+    (share, msg) => share.issuer_presentations = msg.results,
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/presentation-received":
+    (share, msg) => share.fetch_issuer_presentations()
   },
   methods: {
     fetch_issuer_presentations: ({send}) => {
@@ -67,7 +68,6 @@ export default {
         'issuer_presentations',
         'active_connections',
         'cred_defs',
-        'trusted_issuers',
       ],
       actions: ['fetch_issuer_presentations']
     })
@@ -87,17 +87,11 @@ export default {
               name: attribute.name,
               restrictions: []
             };
-            if (attribute.restrictions.cred_def || attribute.restrictions.trusted_issuer) {
+            if (attribute.restrictions.cred_def) {
               transmuted_attr.restrictions.push({});
             }
             if (attribute.restrictions.cred_def) {
               transmuted_attr.restrictions[0].cred_def_id = attribute.restrictions.cred_def.cred_def_id;
-            }
-            if (attribute.restrictions.trusted_issuer) {
-              transmuted_attr.restrictions[0].issuer_did = attribute.restrictions.trusted_issuer;
-            }
-            if (transmuted_attr.restrictions.length < 1) {
-              delete transmuted_attr.restrictions;
             }
             acc[attribute.name] = transmuted_attr;
             return acc;
@@ -109,17 +103,11 @@ export default {
               p_value: parseInt(predicate.threshold),
               restrictions: []
             };
-            if (predicate.restrictions.cred_def || predicate.restrictions.trusted_issuer) {
+            if (predicate.restrictions.cred_def) {
               transmuted_pred.restrictions.push({});
             }
             if (predicate.restrictions.cred_def) {
               transmuted_pred.restrictions[0].cred_def_id = predicate.restrictions.cred_def.cred_def_id;
-            }
-            if (predicate.restrictions.trusted_issuer) {
-              transmuted_pred.restrictions[0].issuer_did = predicate.restrictions.trusted_issuer;
-            }
-            if (transmuted_pred.restrictions.length < 1) {
-              delete transmuted_pred.restrictions;
             }
             acc[predicate.name] = transmuted_pred;
             return acc;

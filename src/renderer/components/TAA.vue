@@ -40,7 +40,7 @@
 <script>
 import message_bus from '@/message_bus.js';
 import share from '@/share.js';
-import marked from 'marked';
+import {marked} from 'marked';
 import dompurify from 'dompurify';
 
 export const protocol = "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-taa/0.1";
