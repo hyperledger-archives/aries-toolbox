@@ -13,7 +13,7 @@
         <el-collapse-item
           v-for="did in list"
           v-bind:title="get_name(did)"
-          :name="get_name(did)"
+          :name="did.did"
           :key="did.did">
           <el-row :key="did.did">
             <div>
@@ -88,7 +88,7 @@ export default {
   methods: {
     get_name: function(did) {
       if('metadata'in did && 'label' in did.metadata) {
-        return `DID ${did.metadata.label}: ${did.did}`;
+        return `${did.metadata.label}: ${did.did}`;
       };
       return 'DID: ' + did.did + ', Verkey: ' + did.verkey;
     },
