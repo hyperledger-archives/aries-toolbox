@@ -68,7 +68,8 @@
             value-key="proposalForm.selected_cred_def"
             placeholder="Select"
             :disabled="!proposalForm.connection_id"
-            @change="update_attributes">
+            @change="update_attributes"
+            no-data-text="No credential definitions found">
             <el-option
               v-for="cred_def in cred_defs"
               :key="cred_def.cred_def_id"
@@ -94,7 +95,7 @@
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="deActivateForm()">Cancel</el-button>
+        <el-button @click="deactivateForm()">Cancel</el-button>
         <el-button :disabled="!proposalForm.selected_cred_def" type="primary" @click="propose">Confirm</el-button>
       </span>
     </el-dialog>
@@ -138,12 +139,7 @@ export default {
     }
   },
   methods: {
-    collapse_expanded: function(credential){
-      this.expanded_items = this.expanded_items.filter(
-        item => item != credential.credential_exchange_id
-      );
-    },
-    deActivateForm: function() {
+    deactivateForm: function() {
       this.proposalFormActive = false;
       this.proposalForm = {
         connection_id: '',
@@ -198,24 +194,6 @@ export default {
         }
         return item;
       });
-    },
-    offerReceivedStateCredentials(){
-      return this.credentials.filter(cred => "state" in cred && cred.state === "offer_received")
-    },
-    sentRequestStateCredentials(){
-      return this.credentials.filter(cred => "state" in cred && cred.state === "request_sent")
-    },
-    receivedStateCredentials(){
-      return this.credentials.filter(
-        cred =>
-          "state" in cred &&
-          cred.state === "credential_received" ||
-          cred.state === "stored" ||
-          cred.state === "credential_acked"
-      )
-    },
-    storedStateCredentials(){
-      return this.credentials.filter(cred => "state" in cred && cred.state === "stored")
     },
   }
 }
