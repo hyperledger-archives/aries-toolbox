@@ -15,9 +15,12 @@
       <ul class="list">
         <el-collapse-item
           v-for="credential in credentials"
-          v-bind:title="credential_title(credential)"
           :name="credential.cred_def_id"
           :key="credential.cred_def_id">
+          <template slot="title">
+            <i :class="credential.state === 'credential_acked' ? 'el-icon-finished status' : 'el-icon-loading status'"></i>
+            {{credential_title(credential)}}
+          </template>
           <el-row>
             <ul>
               <li><strong>State:</strong> {{credential.state}}</li>
@@ -33,45 +36,16 @@
             </ul>
             <div>
               <vue-json-pretty
-                :deep=1
+                :deep=0
+                :deepCollapseChildren="true"
                 :data="credential">
               </vue-json-pretty>
             </div>
-            <el-button v-on:click="collapse_expanded(credential)">^</el-button>
           </el-row>
         </el-collapse-item>
       </ul>
     </el-collapse>
-    <nav
-      v-if="offerReceivedStateCredentials.length"
-      class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#">Offers</a>
-      <!-- <el-button
-        type="primary"
-        icon="el-icon-plus"
-        @click="offerFormActive = true">Accept Offer</el-button> -->
-    </nav>
-    <el-collapse
-      v-model="expanded_items">
-      <ul class="list">
-        <el-collapse-item
-          v-for="credential in offerReceivedStateCredentials"
-          v-bind:title="credential.credential_exchange_id"
-          :name="credential.credential_exchange_id"
-          :key="credential.credential_exchange_id">
-          <el-row>
-            <div>
-              <vue-json-pretty
-                :deep=1
-                :data="credential">
-              </vue-json-pretty>
-            </div>
-            <el-button v-on:click="collapse_expanded(credential)">^</el-button>
-          </el-row>
-        </el-collapse-item>
-      </ul>
-    </el-collapse>
-    <el-dialog title="Propose Credential" :visible.sync="proposalFormActive" @close="deActivateForm()">
+    <el-dialog title="Propose Credential" :visible.sync="proposalFormActive" @close="deactivateForm()">
       <el-form :model="proposalForm">
         <el-form-item label="Connection:" :label-width="formLabelWidth">
           <el-select
