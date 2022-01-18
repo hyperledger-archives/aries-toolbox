@@ -23,6 +23,7 @@
         :disabled="dids.length === 0">
         <el-select
           v-model="active_did"
+          no-data-text="No DIDs found"
           filterable placeholder="Activate DID">
           <el-option
             v-for="did in dids"

@@ -51,6 +51,7 @@
           <el-select
             v-model="proposalForm.connection_id"
             filterable
+            no-data-text="No connections found"
             value-key="proposalForm.connection_id"
             placeholder="Select">
             <el-option

@@ -52,6 +52,7 @@
           <el-select
             v-model="createForm.schema_id"
             filterable
+            no-data-text="No schemas found"
             value-key="createForm.schema_id"
             placeholder="Select">
             <el-option

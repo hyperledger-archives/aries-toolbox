@@ -45,6 +45,7 @@
         <el-form-item label="Connection:" :label-width="formLabelWidth">
           <el-select
             v-model="proposalForm.connection_id"
+            no-data-text="No connections found"
             filterable
             placeholder="Connection">
             <el-option
@@ -87,6 +88,7 @@
             placeholder="Attribute Value">
             <el-select
               slot="prepend"
+              no-data-text="No attributes found"
               v-if="proposalForm.attributes[index].cred_def != null"
               v-model="proposalForm.attributes[index].name"
               placeholder="Attribute Name"
@@ -130,6 +132,7 @@
             placeholder="Threshold">
             <el-select
               slot="prepend"
+              no-data-text="No attributes found"
               v-if="proposalForm.predicates[index].cred_def != null"
               v-model="proposalForm.predicates[index].name"
               placeholder="Attribute Name"

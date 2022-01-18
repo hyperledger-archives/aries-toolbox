@@ -38,6 +38,7 @@
         <el-select style="width: 300px;"
           v-model="invite_form.mediation_id"
           filterable
+          no-data-text="No mediators found"
           placeholder="Mediator">
           <el-option
             v-for="mediator in mediators"

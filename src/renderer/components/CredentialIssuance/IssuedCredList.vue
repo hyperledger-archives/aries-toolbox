@@ -49,6 +49,7 @@
           <el-select
             v-model="issueForm.connection_id"
             filterable
+            no-data-text="No connections found"
             value-key="issueForm.connection_id"
             placeholder="Select">
             <el-option
@@ -62,6 +63,7 @@
         <el-form-item label="Credential Definition:" :label-width="formLabelWidth">
           <el-select
             v-model="issueForm.selected_cred_def"
+            no-data-text="No credential definitions found"
             remote
             value-key="issueForm.selected_cred_def"
             placeholder="Select"
