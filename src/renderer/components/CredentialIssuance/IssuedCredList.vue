@@ -18,14 +18,23 @@
           v-bind:title="credential_title(issued_credential)"
           :name="issued_credential.credential_exchange_id"
           :key="issued_credential.issued_credential">
+          <template slot="title">
+            <i :class="issued_credential.state === 'credential_acked' ? 'el-icon-finished status' : 'el-icon-loading status'"></i>
+            {{credential_title(issued_credential)}}
+          </template>
           <el-row :key="issued_credential.issued_credential">
-            <p>Name: {{issued_credential.name}}</p>
-            <p>Cred. def. ID: {{issued_credential.cred_def_id}}</p>
-            <p>Created: {{issued_credential.created_at}}</p>
-            <p>Issued to: {{issued_credential.connection_their_label}}</p>
+            <ul>
+              <li><strong>Issued to:</strong> {{issued_credential.connection.label}} ({{issued_credential.connection.connection_id}})</li>
+              <li><strong>State:</strong> {{issued_credential.state}}</li>
+              <li><strong>Credential Definition ID:</strong> {{issued_credential.credential_definition_id}}</li>
+              <li><strong>Schema ID:</strong> {{issued_credential.schema_id}}</li>
+              <li><strong>Created:</strong> {{issued_credential.created_at}}</li>
+              <li><strong>Attributes:</strong> <attributes class="issued-attrs" :values="issued_credential.credential_proposal_dict.credential_proposal.attributes"></attributes></li>
+            </ul>
             <div>
               <vue-json-pretty
                 :deep=0
+                :deepCollapseChildren="true"
                 :data="issued_credential">
               </vue-json-pretty>
             </div>
@@ -40,6 +49,7 @@
           <el-select
             v-model="issueForm.connection_id"
             filterable
+            no-data-text="No connections found"
             value-key="issueForm.connection_id"
             placeholder="Select">
             <el-option
@@ -53,6 +63,7 @@
         <el-form-item label="Credential Definition:" :label-width="formLabelWidth">
           <el-select
             v-model="issueForm.selected_cred_def"
+            no-data-text="No credential definitions found"
             remote
             value-key="issueForm.selected_cred_def"
             placeholder="Select"
@@ -89,10 +100,19 @@
     </el-dialog>
   </div>
 </template>
-
+<style>
+.issued-attrs {
+  margin-left: 2em;
+}
+.status {
+  font-size: 1.5em;
+  margin-right: .25em;
+}
+</style>
 <script>
 import VueJsonPretty from 'vue-json-pretty';
 import share from '@/share.js';
+import Attributes from './Attributes.vue';
 
 export default {
   name: 'issued-cred-list',
@@ -100,6 +120,7 @@ export default {
   mixins: [share({use: ['id_to_connection']})],
   components: {
     VueJsonPretty,
+    Attributes,
   },
   data () {
     return {

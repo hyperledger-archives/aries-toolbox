@@ -26,7 +26,8 @@
         label="Invitation URL:">
         <el-input
           style="width: 300px;"
-          v-model="invite_form.invitation">
+          v-model="invite_form.invitation"
+          @keypress.enter.native="recieve_invitation">
           <el-button
             slot="append"
             type="primary"
@@ -38,6 +39,7 @@
         <el-select style="width: 300px;"
           v-model="invite_form.mediation_id"
           filterable
+          no-data-text="No mediators found"
           placeholder="Mediator">
           <el-option
             v-for="mediator in mediators"
@@ -112,7 +114,10 @@ export const shared = {
     [metadata.types.deleted]:
     (share, msg) => share.fetch_connections(),
     [metadata.types.connected]:
-    (share, msg) => share.fetch_connections(),
+    (share, msg) => {
+      share.fetch_connections();
+      share.fetch_invitations_v1();
+    },
   },
   methods: {
     fetch_connections: ({send}) => {

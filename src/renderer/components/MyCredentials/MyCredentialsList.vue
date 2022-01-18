@@ -15,56 +15,43 @@
       <ul class="list">
         <el-collapse-item
           v-for="credential in credentials"
-          v-bind:title="credential_title(credential)"
           :name="credential.cred_def_id"
           :key="credential.cred_def_id">
+          <template slot="title">
+            <i :class="credential.state === 'credential_acked' ? 'el-icon-finished status' : 'el-icon-loading status'"></i>
+            {{credential_title(credential)}}
+          </template>
           <el-row>
+            <ul>
+              <li><strong>State:</strong> {{credential.state}}</li>
+              <li><strong>Credential Definition ID:</strong> {{credential.credential_definition_id}}</li>
+              <li><strong>Schema ID:</strong> {{credential.credential.schema_id}}</li>
+              <li><strong>Created:</strong> {{credential.created_at}}</li>
+              <li><strong>Attributes:</strong>
+                <attributes
+                  class="received-attrs"
+                  :values="Object.keys(credential.credential.attrs).map(item => ({name: item, value: credential.credential.attrs[item]}))"
+                ></attributes>
+              </li>
+            </ul>
             <div>
               <vue-json-pretty
-                :deep=1
+                :deep=0
+                :deepCollapseChildren="true"
                 :data="credential">
               </vue-json-pretty>
             </div>
-            <el-button v-on:click="collapse_expanded(credential)">^</el-button>
           </el-row>
         </el-collapse-item>
       </ul>
     </el-collapse>
-    <nav
-      v-if="offerReceivedStateCredentials.length"
-      class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#">Offers</a>
-      <!-- <el-button
-        type="primary"
-        icon="el-icon-plus"
-        @click="offerFormActive = true">Accept Offer</el-button> -->
-    </nav>
-    <el-collapse
-      v-model="expanded_items">
-      <ul class="list">
-        <el-collapse-item
-          v-for="credential in offerReceivedStateCredentials"
-          v-bind:title="credential.credential_exchange_id"
-          :name="credential.credential_exchange_id"
-          :key="credential.credential_exchange_id">
-          <el-row>
-            <div>
-              <vue-json-pretty
-                :deep=1
-                :data="credential">
-              </vue-json-pretty>
-            </div>
-            <el-button v-on:click="collapse_expanded(credential)">^</el-button>
-          </el-row>
-        </el-collapse-item>
-      </ul>
-    </el-collapse>
-    <el-dialog title="Propose Credential" :visible.sync="proposalFormActive" @close="deActivateForm()">
+    <el-dialog title="Propose Credential" :visible.sync="proposalFormActive" @close="deactivateForm()">
       <el-form :model="proposalForm">
         <el-form-item label="Connection:" :label-width="formLabelWidth">
           <el-select
             v-model="proposalForm.connection_id"
             filterable
+            no-data-text="No connections found"
             value-key="proposalForm.connection_id"
             placeholder="Select">
             <el-option
@@ -82,7 +69,8 @@
             value-key="proposalForm.selected_cred_def"
             placeholder="Select"
             :disabled="!proposalForm.connection_id"
-            @change="update_attributes">
+            @change="update_attributes"
+            no-data-text="No credential definitions found">
             <el-option
               v-for="cred_def in cred_defs"
               :key="cred_def.cred_def_id"
@@ -108,16 +96,21 @@
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="deActivateForm()">Cancel</el-button>
+        <el-button @click="deactivateForm()">Cancel</el-button>
         <el-button :disabled="!proposalForm.selected_cred_def" type="primary" @click="propose">Confirm</el-button>
       </span>
     </el-dialog>
   </div>
 </template>
-
+<style>
+.received-attrs {
+  margin-left: 2em;
+}
+</style>
 <script>
 import VueJsonPretty from 'vue-json-pretty';
 import share from '@/share.js';
+import Attributes from '../CredentialIssuance/Attributes.vue';
 
 export default {
   name: 'my-credentials-list',
@@ -131,6 +124,7 @@ export default {
   mixins: [share({use: ['id_to_connection']})],
   components: {
     VueJsonPretty,
+    Attributes,
   },
   data () {
     return {
@@ -146,12 +140,7 @@ export default {
     }
   },
   methods: {
-    collapse_expanded: function(credential){
-      this.expanded_items = this.expanded_items.filter(
-        item => item != credential.credential_exchange_id
-      );
-    },
-    deActivateForm: function() {
+    deactivateForm: function() {
       this.proposalFormActive = false;
       this.proposalForm = {
         connection_id: '',
@@ -206,24 +195,6 @@ export default {
         }
         return item;
       });
-    },
-    offerReceivedStateCredentials(){
-      return this.credentials.filter(cred => "state" in cred && cred.state === "offer_received")
-    },
-    sentRequestStateCredentials(){
-      return this.credentials.filter(cred => "state" in cred && cred.state === "request_sent")
-    },
-    receivedStateCredentials(){
-      return this.credentials.filter(
-        cred =>
-          "state" in cred &&
-          cred.state === "credential_received" ||
-          cred.state === "stored" ||
-          cred.state === "credential_acked"
-      )
-    },
-    storedStateCredentials(){
-      return this.credentials.filter(cred => "state" in cred && cred.state === "stored")
     },
   }
 }
