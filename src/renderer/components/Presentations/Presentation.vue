@@ -5,6 +5,7 @@
       <el-button
         type="primary"
         icon="el-icon-plus"
+        disabled
         @click="proposalFormActive = true">Presentation Proposal</el-button>
       <el-button
         type="primary"
