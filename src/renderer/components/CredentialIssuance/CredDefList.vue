@@ -29,12 +29,15 @@
           :name="creddef.cred_def_id"
           :key="creddef.cred_def">
           <el-row :key="creddef.cred_def">
-            <p>Cred. def. ID: {{creddef.cred_def_id}}</p>
-            <p>Schema ID: {{creddef.schema_id}}</p>
-            <p>Created: {{creddef.created_at}}</p>
+            <ul>
+              <li><strong>Schema ID:</strong> {{creddef.schema_id}}</li>
+              <li><strong>Created:</strong> {{creddef.created_at}}</li>
+              <li><strong>Attributes:</strong> <attributes :list="creddef.attributes" inline></attributes></li>
+            </ul>
             <div>
               <vue-json-pretty
                 :deep=0
+                :deepCollapseChildren="true"
                 :data="creddef">
               </vue-json-pretty>
             </div>
@@ -72,6 +75,7 @@
 import VueJsonPretty from 'vue-json-pretty';
 import message_bus from '../../message_bus.js';
 import share from '../../share.js';
+import Attributes from './Attributes.vue';
 
 export default {
   name: 'cred-def-list',
@@ -99,6 +103,7 @@ export default {
   ],
   components: {
     VueJsonPretty,
+    Attributes,
   },
   data () {
     return {

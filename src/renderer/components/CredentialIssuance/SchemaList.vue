@@ -28,12 +28,19 @@
           :key="schema.schema"
         >
           <el-row :key="schema.schema">
-            <p>Name: {{schema.schema_name}}</p>
-            <p>Version: {{schema.schema_version}}</p>
-            <p>Schema ID: {{schema.schema_id}}</p>
-            <p>Created: {{schema.created_at}}</p>
+            <ul>
+              <li><strong>Name:</strong> {{schema.schema_name}}</li>
+              <li><strong>Version:</strong> {{schema.schema_version}}</li>
+              <li><strong>Schema ID:</strong> {{schema.schema_id}}</li>
+              <li><strong>Created:</strong> {{schema.created_at}}</li>
+              <li><strong>Attributes:</strong><attributes :list="schema.attributes" inline></attributes></li>
+            </ul>
             <div>
-              <vue-json-pretty :deep="0" :data="schema"> </vue-json-pretty>
+              <vue-json-pretty
+                :deep="0"
+                :deepCollapseChildren="true"
+                :data="schema"
+              ></vue-json-pretty>
             </div>
             <el-button v-on:click="collapse_expanded(schema)">^</el-button>
           </el-row>
@@ -83,12 +90,14 @@
 
 <script>
 import VueJsonPretty from "vue-json-pretty";
+import Attributes from "./Attributes.vue";
 
 export default {
   name: "schema-list",
   props: ["title", "list", "editable"],
   components: {
     VueJsonPretty,
+    Attributes,
   },
   data() {
     return {

@@ -19,6 +19,18 @@
           :name="credential.cred_def_id"
           :key="credential.cred_def_id">
           <el-row>
+            <ul>
+              <li><strong>State:</strong> {{credential.state}}</li>
+              <li><strong>Credential Definition ID:</strong> {{credential.credential_definition_id}}</li>
+              <li><strong>Schema ID:</strong> {{credential.credential.schema_id}}</li>
+              <li><strong>Created:</strong> {{credential.created_at}}</li>
+              <li><strong>Attributes:</strong>
+                <attributes
+                  class="received-attrs"
+                  :values="Object.keys(credential.credential.attrs).map(item => ({name: item, value: credential.credential.attrs[item]}))"
+                ></attributes>
+              </li>
+            </ul>
             <div>
               <vue-json-pretty
                 :deep=1
@@ -114,10 +126,15 @@
     </el-dialog>
   </div>
 </template>
-
+<style>
+.received-attrs {
+  margin-left: 2em;
+}
+</style>
 <script>
 import VueJsonPretty from 'vue-json-pretty';
 import share from '@/share.js';
+import Attributes from '../CredentialIssuance/Attributes.vue';
 
 export default {
   name: 'my-credentials-list',
@@ -131,6 +148,7 @@ export default {
   mixins: [share({use: ['id_to_connection']})],
   components: {
     VueJsonPretty,
+    Attributes,
   },
   data () {
     return {
