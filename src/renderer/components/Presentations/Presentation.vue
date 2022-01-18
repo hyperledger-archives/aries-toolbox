@@ -27,8 +27,8 @@
               <li><strong>Requested by:</strong> {{connection_details[presentation.connection_id].label}} ({{presentation.connection_id}})</li>
               <li><strong>State:</strong> {{presentation.state}}</li>
               <li><strong>Presentation Exchange ID:</strong> {{presentation.presentation_exchange_id}}</li>
-              <li><strong>Requested Attributes:</strong> <attributes :list="Object.keys(presentation.presentation_request.requested_attributes)" inline></attributes></li>
-              <li><strong>Requested Predicates:</strong> <attributes :list="Object.keys(presentation.presentation_request.requested_predicates)" inline></attributes></li>
+              <li><strong>Requested Attributes:</strong> <attributes :list="requestedAttributes(presentation)" inline></attributes></li>
+              <li><strong>Requested Predicates:</strong> <attributes :list="requestedPredicates(presentation)" inline></attributes></li>
             </ul>
             <div>
               <vue-json-pretty
@@ -287,6 +287,14 @@ export default {
         });
       });
     },
+    requestedAttributes: function(presentation) {
+      let attrs = presentation.presentation_request.requested_attributes
+      return Object.values(attrs).map(attr => attr.name)
+    },
+    requestedPredicates: function(presentation) {
+      let preds = presentation.presentation_request.requested_predicates
+      return Object.values(preds).map(pred => `${pred.name} ${pred.p_type} ${pred.p_value}`)
+    }
   },
   computed: {
     connection_map: function() {
