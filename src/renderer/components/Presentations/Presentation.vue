@@ -14,105 +14,32 @@
     <el-collapse v-model="ver_pres_expanded_items">
       <ul class="list">
         <el-collapse-item
-          v-for="presentation in VerifiedPresentations"
-          v-bind:title="presentation_title(presentation)"
+          v-for="presentation in presentations"
           :name="presentation.presentation_exchange_id"
           :key="presentation.presentation">
+          <template slot="title">
+            <i :class="presentation.state === 'presentation_acked' ? 'el-icon-finished status' : 'el-icon-loading status'"></i>
+            {{presentation_title(presentation)}}
+          </template>
           <el-row :key="presentation.presentation">
-            <p>Connected to: {{connection_details[presentation.connection_id].label}}</p>
-            <p>Presentation Exchange ID: {{presentation.presentation_exchange_id}}</p>
-            <p>Connection ID: {{presentation.connection_id}}</p>
-            <p>Role: {{presentation.role}}</p>
+            <ul>
+              <li><strong>Requested by:</strong> {{connection_details[presentation.connection_id].label}} ({{presentation.connection_id}})</li>
+              <li><strong>State:</strong> {{presentation.state}}</li>
+              <li><strong>Presentation Exchange ID:</strong> {{presentation.presentation_exchange_id}}</li>
+              <li><strong>Requested Attributes:</strong> <attributes :list="Object.keys(presentation.presentation_request.requested_attributes)" inline></attributes></li>
+              <li><strong>Requested Predicates:</strong> <attributes :list="Object.keys(presentation.presentation_request.requested_predicates)" inline></attributes></li>
+            </ul>
             <div>
               <vue-json-pretty
                 :deep=0
+                :deepCollapseChildren="true"
                 :data="presentation">
               </vue-json-pretty>
             </div>
-            <el-button v-on:click="collapse_expanded_ver_pres(presentation)">^</el-button>
           </el-row>
         </el-collapse-item>
       </ul>
     </el-collapse>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#"> Received Requests </a>
-    </nav>
-    <el-collapse v-model="rec_req_expanded_items">
-      <ul class="list">
-        <el-collapse-item
-          v-for="presentation in ReceivedRequests"
-          v-bind:title="presentation_title(presentation)"
-          :name="presentation.presentation_exchange_id"
-          :key="presentation.presentation">
-          <el-row :key="presentation.presentation">
-            <p>Connected to: {{connection_details[presentation.connection_id].label}}</p>
-            <p>Presentation Exchange ID: {{presentation.presentation_exchange_id}}</p>
-            <p>Connection ID: {{presentation.connection_id}}</p>
-            <p>Role: {{presentation.role}}</p>
-            <div>
-              <vue-json-pretty
-                :deep=0
-                :data="presentation">
-              </vue-json-pretty>
-            </div>
-            <el-button v-on:click="collapse_expanded_rec_req(presentation)">^</el-button>
-          </el-row>
-        </el-collapse-item>
-      </ul>
-    </el-collapse>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#"> Sent Presentation </a>
-    </nav>
-    <el-collapse v-model="sent_pres_expanded_items">
-      <ul class="list">
-        <el-collapse-item
-          v-for="presentation in SentPresentations"
-          v-bind:title="presentation_title(presentation)"
-          :name="presentation.presentation_exchange_id"
-          :key="presentation.presentation">
-          <el-row :key="presentation.presentation">
-            <p>Connected to: {{connection_details[presentation.connection_id].label}}</p>
-            <p>Presentation Exchange ID: {{presentation.presentation_exchange_id}}</p>
-            <p>Connection ID: {{presentation.connection_id}}</p>
-            <p>Role: {{presentation.role}}</p>
-            <div>
-              <vue-json-pretty
-                :deep=0
-                :data="presentation">
-              </vue-json-pretty>
-            </div>
-            <el-button v-on:click="collapse_expanded_sent_pres(presentation)">^</el-button>
-          </el-row>
-        </el-collapse-item>
-      </ul>
-    </el-collapse>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#"> Sent Proposals </a>
-    </nav>
-    <el-collapse v-model="sent_prop_expanded_items">
-      <ul class="list">
-        <el-collapse-item
-          v-for="presentation in SentProposals"
-          v-bind:title="presentation_title(presentation)"
-          :name="presentation.presentation_exchange_id"
-          :key="presentation.presentation">
-          <el-row :key="presentation.presentation">
-            <p>Connected to: {{connection_details[presentation.connection_id].label}}</p>
-            <p>Presentation Exchange ID: {{presentation.presentation_exchange_id}}</p>
-            <p>Connection ID: {{presentation.connection_id}}</p>
-            <p>Role: {{presentation.role}}</p>
-            <div>
-              <vue-json-pretty
-                :deep=0
-                :data="presentation">
-              </vue-json-pretty>
-            </div>
-            <el-button v-on:click="collapse_expanded_sent_prop(presentation)">^</el-button>
-          </el-row>
-        </el-collapse-item>
-      </ul>
-    </el-collapse>
-
     <el-dialog title="Make a Presentation Proposal" :visible.sync="proposalFormActive">
       <el-form :model="proposalForm">
         <el-form-item label="Connection:" :label-width="formLabelWidth">
@@ -249,8 +176,16 @@
   </div>
 </template>
 
+<style>
+i.status {
+  font-size: 1.5em;
+  margin-right: .25em;
+}
+</style>
+
 <script>
 import VueJsonPretty from 'vue-json-pretty';
+import Attributes from '../CredentialIssuance/Attributes.vue';
 
 export default {
   name: 'presentation',
@@ -263,6 +198,7 @@ export default {
   ],
   components: {
     VueJsonPretty,
+    Attributes,
   },
   data () {
     return {
@@ -306,7 +242,7 @@ export default {
       let connection = this.connection_details[pres.connection_id];
       let title= "";
       if (connection && connection.label) {
-        title += `Sent to ${connection.label}`
+        title += `Requested by ${connection.label}`
       } else {
         title += 'Unknown'
       }
@@ -338,26 +274,6 @@ export default {
     remove_predicate: function(index) {
       this.proposalForm.predicates.splice(index, 1);
     },
-    collapse_expanded_ver_pres: function(presentation){
-      this.ver_pres_expanded_items = this.ver_pres_expanded_items.filter(
-        item => item != presentation.presentation_exchange_id
-      );
-    },
-    collapse_expanded_sent_prop: function(presentation){
-      this.sent_prop_expanded_items = this.sent_prop_expanded_items.filter(
-        item => item != presentation.presentation_exchange_id
-      );
-    },
-    collapse_expanded_rec_req: function(presentation){
-      this.rec_req_expanded_items = this.rec_req_expanded_items.filter(
-        item => item != presentation.presentation_exchange_id
-      );
-    },
-    collapse_expanded_sent_pres: function(presentation){
-      this.sent_pres_expanded_items = this.sent_pres_expanded_items.filter(
-        item => item != presentation.presentation_exchange_id
-      );
-    },
     update_attributes: function(cred_def) {
       var comp = this;
       cred_def.attributes.forEach(name => {
@@ -380,49 +296,6 @@ export default {
     completed_verifications: function() {
       return this.presentations.filter(pres_exch => pres_exch.state === 'verified');
     },
-    VerifiedPresentations() {
-      console.log('PRESENTATIONS', this.presentations);
-      return this.presentations.filter(
-        exchange =>
-        (
-          "state" in exchange &&
-          (
-            exchange.state === "verified" ||
-            exchange.state === "presentation_acked"
-          )
-        ) &&
-        //==========================================
-        "role" in exchange &&
-        "prover" === exchange.role )
-    },
-    ReceivedRequests(){
-      return this.presentations.filter(
-        exchange =>
-        "state" in exchange &&
-        exchange.state === "request_received" &&
-        //==========================================
-        "role" in exchange &&
-        "prover" === exchange.role)
-    },
-    SentPresentations(){
-      return this.presentations.filter(
-        exchange =>
-        "state" in exchange &&
-        exchange.state === "presentation_sent" &&
-        //==========================================
-        "role" in exchange &&
-        "prover" === exchange.role )
-    },
-    SentProposals(){
-      return this.presentations.filter(
-        exchange =>
-        "state" in exchange &&
-        exchange.state === "proposal_sent"  &&
-        //==========================================
-        "role" in exchange &&
-        "prover" === exchange.role
-      )
-    }
   }
 }
 </script>
