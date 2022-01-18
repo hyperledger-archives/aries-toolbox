@@ -18,6 +18,10 @@
           v-bind:title="credential_title(issued_credential)"
           :name="issued_credential.credential_exchange_id"
           :key="issued_credential.issued_credential">
+          <template slot="title">
+            <i :class="issued_credential.state === 'credential_acked' ? 'el-icon-finished status' : 'el-icon-loading status'"></i>
+            {{credential_title(issued_credential)}}
+          </template>
           <el-row :key="issued_credential.issued_credential">
             <ul>
               <li><strong>Issued to:</strong> {{issued_credential.connection.label}} ({{issued_credential.connection.connection_id}})</li>
@@ -97,6 +101,10 @@
 <style>
 .issued-attrs {
   margin-left: 2em;
+}
+.status {
+  font-size: 1.5em;
+  margin-right: .25em;
 }
 </style>
 <script>
