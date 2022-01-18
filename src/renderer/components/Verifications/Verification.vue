@@ -16,17 +16,19 @@
         <el-collapse-item
           v-for="presentation in presentations"
           :name="presentation.presentation_exchange_id"
-          :key="presentation.presentation">
+          :key="presentation.presentation_exchange_id">
           <template slot="title">
             <i v-bind:class="presentation.verified ? 'el-icon-success verified' : 'el-icon-circle-close verified'"></i> {{presentation_title(presentation)}}
           </template>
-          <el-row :key="presentation.presentation">
+          <el-row>
             <ul>
               <li><strong>Requested from:</strong> {{presentation.connection_their_label}} ({{presentation.connection_id}})</li>
               <li><strong>Presentation Exchange ID:</strong> {{presentation.presentation_exchange_id}}</li>
               <li><strong>State:</strong> {{presentation.state}}</li>
               <li><strong>Verified:</strong> {{presentation.verified ? presentation.verified : false}}</li>
               <li><strong>Created at:</strong> {{presentation.created_at}}</li>
+              <li v-if="presentation.presentation"><strong>Revealed Attributes:</strong> <attributes class="attributes" :values="revealedAttributes(presentation)"></attributes></li>
+              <li v-if="presentation.presentation"><strong>Predicates:</strong> <attributes :list="predicates(presentation)" inline></attributes></li>
             </ul>
             <div>
               <vue-json-pretty
@@ -186,10 +188,14 @@ i.verified {
   margin-right: .25em;
   font-size: 1.5em;
 }
+.attributes {
+  margin-left: 2em;
+}
 </style>
 
 <script>
 import VueJsonPretty from 'vue-json-pretty';
+import Attributes from '../CredentialIssuance/Attributes.vue';
 import share from '@/share.js';
 
 export default {
@@ -204,6 +210,7 @@ export default {
   mixins: [share({use: ['id_to_connection']})],
   components: {
     VueJsonPretty,
+    Attributes,
   },
   data () {
     return {
@@ -333,6 +340,14 @@ export default {
     },
     remove_predicate: function(index) {
       this.requestForm.predicates.splice(index, 1);
+    },
+    revealedAttributes: function(presentation) {
+      const attrs = presentation.presentation.requested_proof.revealed_attrs;
+      return Object.keys(attrs).map(attr => ({name: attr, value: attrs[attr].raw}))
+    },
+    predicates: function(presentation) {
+      let preds = presentation.presentation_request.requested_predicates
+      return Object.values(preds).map(pred => `${pred.name} ${pred.p_type} ${pred.p_value}`)
     }
   }
 }
