@@ -57,7 +57,7 @@
 
 <script>
 const fs = require("fs");
-
+const electron = require('electron');
 const bs58 = require('bs58');
 const rp = require('request-promise');
 
@@ -272,6 +272,45 @@ export default {
     });
     this.$electron.ipcRenderer.on('toolbox-mediator-change', async (event, data) => {
       this.$message_bus.$emit('toolbox-mediator-change');
+    });
+    const InputMenu = electron.remote.Menu.buildFromTemplate([{
+      label: 'Undo',
+      role: 'undo',
+    }, {
+      label: 'Redo',
+      role: 'redo',
+    }, {
+      type: 'separator',
+    }, {
+      label: 'Cut',
+      role: 'cut',
+    }, {
+      label: 'Copy',
+      role: 'copy',
+    }, {
+      label: 'Paste',
+      role: 'paste',
+    }, {
+      type: 'separator',
+    }, {
+      label: 'Select all',
+      role: 'selectall',
+    },
+    ]);
+
+    document.body.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      let node = e.target;
+
+      while (node) {
+        if (node.nodeName.match(/^(input|textarea)$/i) || node.isContentEditable) {
+          InputMenu.popup(electron.remote.getCurrentWindow());
+          break;
+        }
+        node = node.parentNode;
+      }
     });
   },
   beforeDestroy: function() {
