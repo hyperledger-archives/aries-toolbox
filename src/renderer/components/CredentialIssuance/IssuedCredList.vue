@@ -24,7 +24,7 @@
           </template>
           <el-row :key="issued_credential.issued_credential">
             <ul>
-              <li><strong>Issued to:</strong> {{issued_credential.connection.label}} ({{issued_credential.connection.connection_id}})</li>
+              <li><strong>Issued to:</strong> {{issued_to(issued_credential)}}</li>
               <li><strong>State:</strong> {{issued_credential.state}}</li>
               <li><strong>Credential Definition ID:</strong> {{issued_credential.credential_definition_id}}</li>
               <li><strong>Schema ID:</strong> {{issued_credential.schema_id}}</li>
@@ -197,7 +197,15 @@ export default {
         connection_name = cred.connection.label;
       }
       return `${split[2]} v${split[3]} issued to ${connection_name}`;
+    },
+    issued_to: function(cred) {
+      if (!cred.connection) {
+        return '[deleted]';
+      } else {
+        return `${cred.connection.label} (${cred.connection.connection_id})`;
+      }
     }
+
   }
 }
 </script>
