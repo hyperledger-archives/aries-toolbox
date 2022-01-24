@@ -87,6 +87,36 @@ function createWindow() {
   mainWindow.on('closed', () => {
     console.log('\nApplication exiting...')
   })
+  mainWindow.webContents.on('context-menu', (e, props) => {
+    const InputMenu = Menu.buildFromTemplate([{
+        label: 'Undo',
+        role: 'undo',
+    }, {
+        label: 'Redo',
+        role: 'redo',
+    }, {
+        type: 'separator',
+    }, {
+        label: 'Cut',
+        role: 'cut',
+    }, {
+        label: 'Copy',
+        role: 'copy',
+    }, {
+        label: 'Paste',
+        role: 'paste',
+    }, {
+        type: 'separator',
+    }, {
+        label: 'Select all',
+        role: 'selectall',
+    },
+    ]);
+    const { inputFieldType } = props;
+    if (inputFieldType === 'plainText') {
+      InputMenu.popup(mainWindow);
+    }
+  });
 }
 
 app.on('ready', () => {

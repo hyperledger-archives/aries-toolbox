@@ -64,6 +64,7 @@
         <el-select style="width: 200px;"
           v-model="invite_form.mediation_id"
           filterable
+          no-data-text="No mediators found"
           placeholder="Mediator">
           <el-option
             v-for="mediator in mediators"
@@ -184,7 +185,7 @@ export default {
       this.invite_form.alias = "";
       this.invite_form.group = "";
       this.invite_form.mediation_id = "";
-      this.invite_form.auto_accept = false;
+      this.invite_form.auto_accept = true;
       this.invite_form.multi_use = false;
       this.send_message(query_msg);
     },
