@@ -13,7 +13,7 @@
       </div>
     </el-card>
 
-    <hr v-if="agent_list.length > 0"></hr>
+    <hr v-if="agent_list.length > 0">
 
     <div class="invite-entry">
       <h5>New Agent Connection</h5>
