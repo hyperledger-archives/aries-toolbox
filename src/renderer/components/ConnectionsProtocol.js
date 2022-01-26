@@ -1,5 +1,12 @@
+import { new_connection } from '../connection_detail.js';
+import { base64_decode, base64_encode } from '../base64.js';
+const DIDComm = require('encryption-envelope-js');
+const bs58 = require('bs58');
+const rp = require('request-promise');
+const uuidv4 = require('uuid/v4');
+
 export default {
-    async new_agent_invitation_process(invitation){
+    async new_agent_invitation_process(component, invitation){
       //process invite, prepare request
       //extract c_i param
       function getUrlVars(url) {
@@ -30,14 +37,14 @@ export default {
         "serviceEndpoint": ""
       };
 
-      if(this.mediator_connection && this.mediator_connection.active_as_mediator){
-        let mediator_agent = this.agent_list.find(a => a.active_as_mediator === true);
+      if(component.mediator_connection && component.mediator_connection.active_as_mediator){
+        let mediator_agent = component.agent_list.find(a => a.active_as_mediator === true);
         if(mediator_agent != null) {
           service_endpoint_block["routingKeys"] = mediator_agent.mediator_info.routing_keys || [];
           service_endpoint_block["serviceEndpoint"] = mediator_agent.mediator_info.endpoint;
         }
         console.log('Informing mediator about new key to route...');
-        await this.add_route_to_mediator(toolbox_did.publicKey_b58);
+        await component.add_route_to_mediator(toolbox_did.publicKey_b58);
       }
 
       var req = {
@@ -68,7 +75,7 @@ export default {
       const packedMsg = await didcomm.packMessage(JSON.stringify(req), [bs58.decode(invite.recipientKeys[0])], toolbox_did, true);
       console.log("Packed Exchange Request", packedMsg);
 
-      // this code assumes that the response comes via return-route on the post.
+      // component code assumes that the response comes via return-route on the post.
       const res = await rp({
         method: 'POST',
         uri: invite.serviceEndpoint,
@@ -84,7 +91,7 @@ export default {
       console.log("response message", response);
       let connection_detail = new_connection(invite.label, response.connection.DIDDoc, toolbox_did);
       console.log("connection detail", connection_detail);
-      this.add_agent(connection_detail.to_store());
+      component.add_agent(connection_detail.to_store());
       return connection_detail;
     }
 }

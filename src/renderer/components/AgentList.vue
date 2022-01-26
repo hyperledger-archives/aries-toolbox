@@ -63,16 +63,11 @@
 
 <script>
 const electron = require('electron');
-const bs58 = require('bs58');
-const rp = require('request-promise');
-const DIDComm = require('encryption-envelope-js');
 //import DIDComm from 'didcomm-js';
 import { mapState, mapActions, mapGetters } from "vuex"
-import { new_connection } from '../connection_detail.js';
 import message_bus from '@/message_bus.js';
-import { base64_decode, base64_encode } from '../base64.js';
 import { from_store } from '../connection_detail.js';
-import 'ConnectionsProtocol.js';
+import ConnectionsProtocol from './ConnectionsProtocol.js';
 const uuidv4 = require('uuid/v4');
 const coordinate_mediation =
   (type) => `did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/coordinate-mediation/1.0/${type}`;
@@ -284,7 +279,7 @@ export default {
     },
 
     async process_mediator_invitation() {
-      let connection = await this.new_agent_invitation_process(this.new_mediator_invitation);
+      let connection = await this.new_agent_invitation_process(this, this.new_mediator_invitation);
       connection.unpacked_processor = this.mediatorInbound(connection);
       await this.send_mediation_request(connection);
       this.mediatorConnect(connection);
@@ -294,7 +289,7 @@ export default {
     async connect_clicked() {
       this.invitation_error = "";
       try {
-        await this.new_agent_invitation_process(this.new_agent_invitation);
+        await ConnectionsProtocol.new_agent_invitation_process(this, this.new_agent_invitation);
       } catch (err) {
         console.log("request post err", err);
         this.invitation_error = err.message;
