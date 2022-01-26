@@ -13,21 +13,30 @@
       </div>
     </el-card>
 
-    <el-card shadow="never" class="function_card" id="new_agent_connection">
-      <span slot="header">New Agent Connection</span>
-      <div>
-        <el-form :inline="true">
-          <el-input v-model="new_agent_invitation" placeholder="Paste agent invitation"></el-input>
-          <el-button type="primary" @click="connect_clicked">Connect</el-button>
-        </el-form>
-      </div>
-      <el-alert v-show="invitation_error != ''"
-        title="Invitation Error"
-        type="error"
-        :description="invitation_error"
-        show-icon>
-      </el-alert>
-    </el-card>
+    <hr v-if="agent_list.length > 0"></hr>
+
+    <div class="invite-entry">
+      <h5>New Agent Connection</h5>
+      <el-form :inline="true">
+        <el-input
+          v-model="new_agent_invitation"
+          placeholder="Paste agent invitation"
+          @keypress.enter.native="connect_clicked">
+        <el-button
+          slot="append"
+          type="primary"
+          icon="el-icon-plus"
+          @click="connect_clicked"
+          >Connect</el-button>
+        </el-input>
+      </el-form>
+    </div>
+    <el-alert v-show="invitation_error != ''"
+      title="Invitation Error"
+      type="error"
+      :description="invitation_error"
+      show-icon>
+    </el-alert>
     <el-card shadow="never" class="function_card" id="new_agent_invitation" v-show="hasMediator && false">
       <span slot="header">New Agent Invitation</span>
       <div>
@@ -43,21 +52,28 @@
         show-icon>
       </el-alert>
     </el-card>
-    <el-card shadow="never" class="function_card" id="new_mediator_connection">
-      <span slot="header">Connect to Mediator</span>
-      <div>
-        <el-form :inline="true">
-          <el-input v-model="new_mediator_invitation" placeholder="Paste mediator invitation"></el-input>
-          <el-button type="primary" @click="process_mediator_invitation">Connect</el-button>
-        </el-form>
-      </div>
-      <el-alert v-show="mediation_error != ''"
-        title="Invitation Error"
-        type="error"
-        :description="mediation_error"
-        show-icon>
-      </el-alert>
-    </el-card>
+    <div class="invite-entry">
+    <h5>Connect to Mediator</h5>
+      <el-form :inline="true">
+        <el-input
+          v-model="new_mediator_invitation"
+          placeholder="Paste mediator invitation"
+          @keypress.enter.native="process_mediator_invitation">
+        <el-button
+          slot="append"
+          type="primary"
+          icon="el-icon-plus"
+          @click="process_mediator_invitation"
+          >Connect</el-button>
+        </el-input>
+      </el-form>
+    </div>
+    <el-alert v-show="mediation_error != ''"
+      title="Invitation Error"
+      type="error"
+      :description="mediation_error"
+      show-icon>
+    </el-alert>
   </el-row>
 </template>
 
@@ -346,5 +362,11 @@ export default {
     text-align: right;
     float:right;
     margin-top: 10px;
+  }
+  .invite-entry {
+    margin: 1em 1em;
+  }
+  hr {
+    margin: 1em;
   }
 </style>

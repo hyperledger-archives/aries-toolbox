@@ -72,6 +72,9 @@ export default {
       actions: ['fetch_issuer_presentations']
     })
   ],
+  created: async function() {
+    this.fetch_issuer_presentations();
+  },
   methods: {
     async presentation_request(form){
       // response comes back in admin-issuer/0.1/presentation-exchange
