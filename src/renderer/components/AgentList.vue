@@ -13,7 +13,7 @@
       </div>
     </el-card>
 
-    <hr v-if="agent_list.length > 0"></hr>
+    <hr v-if="agent_list.length > 0">
 
     <div class="invite-entry">
       <h5>New Agent Connection</h5>
@@ -79,19 +79,14 @@
 
 <script>
 const electron = require('electron');
-const bs58 = require('bs58');
-const rp = require('request-promise');
-const DIDComm = require('encryption-envelope-js');
 //import DIDComm from 'didcomm-js';
 import { mapState, mapActions, mapGetters } from "vuex"
-import { new_connection } from '../connection_detail.js';
 import message_bus from '@/message_bus.js';
-import { base64_decode, base64_encode } from '../base64.js';
 import { from_store } from '../connection_detail.js';
+import ConnectionsProtocol from './ConnectionsProtocol.js';
 const uuidv4 = require('uuid/v4');
 const coordinate_mediation =
   (type) => `did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/coordinate-mediation/1.0/${type}`;
-
 export default {
   name: 'agent-list',
   components: {  },
@@ -127,7 +122,6 @@ export default {
   },
   methods: {
     ...mapActions("Agents", ["add_agent", "update_agent", "delete_agent"]),
-
     openConnection: async function(a) {
       const modalPath = process.env.NODE_ENV === 'development'
         ? 'http://localhost:9080/#/agent/'+a.id
@@ -142,7 +136,6 @@ export default {
           enableRemoteModule: true,
         }
       })
-
       // TODO: Get the close handler to work to keep track of open windows only
       win.on('close', function () {
         win = null;
@@ -151,13 +144,10 @@ export default {
       win.loadURL(modalPath);
       let window_key = a.my_key_b58.publicKey;
       this.agent_windows[window_key] = win;
-
     },
-
     deleteConnection: async function(a){
       this.delete_agent(a);
     },
-
     mediatorConnect: async function(mediator_agent){
       let vm = this; //hold reference
       let agent_info = await this.get_agent(mediator_agent.id);
@@ -181,7 +171,6 @@ export default {
       });
       console.log("mediator connected", this.mediator_connection);
     },
-
     /**
      * Process messages received through mediator.
      */
@@ -205,7 +194,6 @@ export default {
         // TODO: get inbound message to proper agent window. this needs to happen even if window not open.
         // store message
         let message_uuid = uuidv4();
-
         // send message
         let window_key = recipients[0];
         // TODO: detect lack of open window.
@@ -229,7 +217,6 @@ export default {
         //TODO: deliver queued message after window opens.
       };
     },
-
     /**
      * Tear down mediator info after mediator connection deletion.
      */
@@ -243,14 +230,12 @@ export default {
       }
       this.mediator_connection = null;
     },
-
     /**
      * Generate an invitation for connecting to the toolbox through mediation.
      */
     generate_invitation: function(){
       // TODO Implement
     },
-
     /**
      * Inform the mediator of a new key to route to this agent.
      * @param {string} verkey Key to add to mediator routes.
@@ -275,7 +260,6 @@ export default {
         // TODO do something with errors
       }
     },
-
     async send_mediation_request(connection) {
       // prepare message
       let msg = {
@@ -297,113 +281,22 @@ export default {
         console.error("Encountered error while attempting to establish mediation:", err)
       }
     },
-
     async process_mediator_invitation() {
-      let connection = await this.new_agent_invitation_process(this.new_mediator_invitation);
+      let connection = await this.new_agent_invitation_process(this, this.new_mediator_invitation);
       connection.unpacked_processor = this.mediatorInbound(connection);
       await this.send_mediation_request(connection);
       this.mediatorConnect(connection);
       this.new_mediator_invitation = "";
     },
-
     async connect_clicked() {
       this.invitation_error = "";
       try {
-        await this.new_agent_invitation_process(this.new_agent_invitation);
+        await ConnectionsProtocol.new_agent_invitation_process(this, this.new_agent_invitation);
       } catch (err) {
         console.log("request post err", err);
         this.invitation_error = err.message;
       }
       this.new_agent_invitation = "";
-    },
-
-    async new_agent_invitation_process(invitation){
-      //process invite, prepare request
-      //extract c_i param
-      function getUrlVars(url) {
-        var vars = {};
-        var parts = url.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
-          vars[key] = value;
-        });
-        return vars;
-      }
-
-      var invite_b64 = getUrlVars(invitation)["c_i"];
-      //base 64 decode
-      var invite_string = base64_decode(invite_b64);
-      var invite = JSON.parse(invite_string);
-
-      //make a did
-      const didcomm = new DIDComm.DIDComm();
-      await didcomm.Ready;
-      const toolbox_did = await didcomm.generateKeyPair();
-      toolbox_did.did = bs58.encode(Buffer.from(toolbox_did.publicKey.subarray(0, 16)));
-      toolbox_did.publicKey_b58 = bs58.encode(Buffer.from(toolbox_did.publicKey));
-      toolbox_did.privateKey_b58 = bs58.encode(Buffer.from(toolbox_did.privateKey));
-
-      let service_endpoint_block = {
-        "id": toolbox_did.did + ";indy",
-        "type": "IndyAgent",
-        "recipientKeys": [toolbox_did.publicKey_b58],
-        "serviceEndpoint": ""
-      };
-
-      if(this.mediator_connection && this.mediator_connection.active_as_mediator){
-        let mediator_agent = this.agent_list.find(a => a.active_as_mediator === true);
-        if(mediator_agent != null) {
-          service_endpoint_block["routingKeys"] = mediator_agent.mediator_info.routing_keys || [];
-          service_endpoint_block["serviceEndpoint"] = mediator_agent.mediator_info.endpoint;
-        }
-        console.log('Informing mediator about new key to route...');
-        await this.add_route_to_mediator(toolbox_did.publicKey_b58);
-      }
-
-      var req = {
-        "@id":  (uuidv4().toString()),
-        "~transport": {
-          "return_route": "all"
-        },
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/request",
-        "label": "ToolBox",
-        "connection": {
-          "DID": toolbox_did.did,
-          "DIDDoc": {
-            "@context": "https://w3id.org/did/v1",
-            "id": toolbox_did.did,
-            "publicKey": [{
-              "id": toolbox_did.did + "#keys-1",
-              "type": "Ed25519VerificationKey2018",
-              "controller": toolbox_did.did,
-              "publicKeyBase58": toolbox_did.publicKey_b58
-            }],
-            "service": [service_endpoint_block]
-          }
-        }
-      };
-      console.log("Exchange Request", req);
-
-      //send request, look for response
-      const packedMsg = await didcomm.packMessage(JSON.stringify(req), [bs58.decode(invite.recipientKeys[0])], toolbox_did, true);
-      console.log("Packed Exchange Request", packedMsg);
-
-      // this code assumes that the response comes via return-route on the post.
-      const res = await rp({
-        method: 'POST',
-        uri: invite.serviceEndpoint,
-        body: packedMsg,
-      });
-      const unpackedResponse = await didcomm.unpackMessage(res, toolbox_did);
-      const response = JSON.parse(unpackedResponse.message);
-      //TODO: Validate signature against invite.
-      let buff = Buffer.from(response['connection~sig'].sig_data, 'base64');
-      let text = buff.toString('ascii');
-      //first 8 chars are a timestamp for the signature, so we ignore those before parsing value
-      response.connection = JSON.parse(text.substring(8));
-      console.log("response message", response);
-      let connection_detail = new_connection(invite.label, response.connection.DIDDoc, toolbox_did);
-      console.log("connection detail", connection_detail);
-      this.add_agent(connection_detail.to_store());
-      return connection_detail;
     },
   },
   created: async function(){
@@ -427,7 +320,6 @@ export default {
       mediator_connection: {},
       window_message_queue: {},
     }
-
   }
 }
 </script>
