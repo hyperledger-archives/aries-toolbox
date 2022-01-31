@@ -190,7 +190,7 @@ class ConnectionDetail {
 
     async packMessage(msg) {
         await this.didcomm.Ready;
-        return await this.didcomm.packMessage(
+        return this.didcomm.packMessage(
             JSON.stringify(msg),
             [bs58.decode(this.service.recipientKeys[0])],
             this.my_key
@@ -213,7 +213,7 @@ class ConnectionDetail {
     async unpackMessage(packed_msg) {
         await this.didcomm.Ready;
         // this will only work if the key matches. If it doesn't match, it'll fail.
-        const unpackedResponse = await this.didcomm.unpackMessage(packed_msg, this.my_key);
+        const unpackedResponse = this.didcomm.unpackMessage(packed_msg, this.my_key);
         //console.log("unpacked", unpackedResponse);
         return JSON.parse(unpackedResponse.message);
     }

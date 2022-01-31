@@ -25,7 +25,7 @@ export default {
       //make a did
       const didcomm = new DIDComm.DIDComm();
       await didcomm.Ready;
-      const toolbox_did = await didcomm.generateKeyPair();
+      const toolbox_did = didcomm.generateKeyPair();
       toolbox_did.did = bs58.encode(Buffer.from(toolbox_did.publicKey.subarray(0, 16)));
       toolbox_did.publicKey_b58 = bs58.encode(Buffer.from(toolbox_did.publicKey));
       toolbox_did.privateKey_b58 = bs58.encode(Buffer.from(toolbox_did.privateKey));
@@ -70,9 +70,13 @@ export default {
         }
       };
       console.log("Exchange Request", req);
+      const signed = didcomm.signedAttachment(req.connection.DIDDoc, toolbox_did)
+      console.log("Example attachment signing:", signed)
+      console.log("Example attachment verification:", didcomm.verifySignedAttachment(signed))
+      console.log("Example attachment decoding:", didcomm.decodeSignedAttachment(signed))
 
       //send request, look for response
-      const packedMsg = await didcomm.packMessage(JSON.stringify(req), [bs58.decode(invite.recipientKeys[0])], toolbox_did, true);
+      const packedMsg = didcomm.packMessage(JSON.stringify(req), [bs58.decode(invite.recipientKeys[0])], toolbox_did, true);
       console.log("Packed Exchange Request", packedMsg);
 
       // this code assumes that the response comes via return-route on the post.
@@ -81,10 +85,10 @@ export default {
         uri: invite.serviceEndpoint,
         body: packedMsg,
       });
-      const unpackedResponse = await didcomm.unpackMessage(res, toolbox_did);
+      const unpackedResponse = didcomm.unpackMessage(res, toolbox_did);
       const response = JSON.parse(unpackedResponse.message);
       //TODO: Validate signature against invite.
-      let buff = new Buffer(response['connection~sig'].sig_data, 'base64');
+      let buff = Buffer.from(response['connection~sig'].sig_data, 'base64');
       let text = buff.toString('ascii');
       //first 8 chars are a timestamp for the signature, so we ignore those before parsing value
       response.connection = JSON.parse(text.substring(8));
