@@ -1,27 +1,12 @@
 import { new_connection } from '../connection_detail.js';
-import { base64_decode, base64_encode } from '../base64.js';
 const DIDComm = require('encryption-envelope-js');
 const bs58 = require('bs58');
 const rp = require('request-promise');
 const uuidv4 = require('uuid/v4');
 
 export default {
-    async new_agent_invitation_process(component, invitation){
-      //process invite, prepare request
-      //extract c_i param
-      function getUrlVars(url) {
-        var vars = {};
-        var parts = url.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
-          vars[key] = value;
-        });
-        return vars;
-      }
 
-      var invite_b64 = getUrlVars(invitation)["c_i"];
-      //base 64 decode
-      var invite_string = base64_decode(invite_b64);
-      var invite = JSON.parse(invite_string);
-
+    async new_agent_invitation_process(component, invite){
       //make a did
       const didcomm = new DIDComm.DIDComm();
       await didcomm.Ready;
