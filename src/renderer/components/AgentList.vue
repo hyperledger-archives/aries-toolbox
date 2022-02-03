@@ -85,6 +85,7 @@ import message_bus from '@/message_bus.js';
 import { from_store } from '../connection_detail.js';
 import { base64_decode } from '../base64.js';
 import ConnectionsProtocol from './ConnectionsProtocol.js';
+import DIDExProtocol from './DIDExProtocol'
 const uuidv4 = require('uuid/v4');
 const coordinate_mediation =
   (type) => `did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/coordinate-mediation/1.0/${type}`;
@@ -318,14 +319,25 @@ export default {
       var invite = JSON.parse(invite_string);
       
       this.invitation_error = "";
-      try {
-        await ConnectionsProtocol.new_agent_invitation_process(this, this.new_agent_invitation);
-      } catch (err) {
-        console.log("request post err", err);
-        this.invitation_error = err.message;
+      if (invite.handshake_protocols[0] === "https://didcomm.org/connections/1.0") {
+        try {
+          await ConnectionsProtocol.new_agent_invitation_process(this, this.new_agent_invitation);
+        } catch (err) {
+          console.log("request post err", err);
+          this.invitation_error = err.message;
+        }
+        this.new_agent_invitation = "";
       }
-      this.new_agent_invitation = "";
-    },
+      else {
+        try {
+          await DIDExProtocol.new_agent_invitation_process(this, this.new_agent_invitation);
+        } catch (err) {
+          console.log("request post err", err);
+          this.invitation_error = err.message;
+        }
+        this.new_agent_invitation = "";
+      }
+    }
   },
   created: async function(){
     let mediator_agent = this.agent_list.find(a => a.active_as_mediator === true);
