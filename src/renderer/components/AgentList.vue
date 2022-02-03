@@ -319,7 +319,7 @@ export default {
       var invite = JSON.parse(invite_string);
       
       this.invitation_error = "";
-      if (invite["handshake_protocols"][0] === "https://didcomm.org/connections/1.0") {
+      if (invite.handshake_protocols[0] === "https://didcomm.org/connections/1.0") {
         try {
           await ConnectionsProtocol.new_agent_invitation_process(this, this.new_agent_invitation);
         } catch (err) {
