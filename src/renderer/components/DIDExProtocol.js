@@ -13,12 +13,29 @@ export default {
         toolbox_did.publicKey_b58 = bs58.encode(Buffer.from(toolbox_did.publicKey));
         toolbox_did.privateKey_b58 = bs58.encode(Buffer.from(toolbox_did.privateKey));
 
+        let service_endpoint_block = {
+            "id": toolbox_did.did + ";indy",
+            "type": "IndyAgent",
+            "recipientKeys": [toolbox_did.publicKey_b58],
+            "serviceEndpoint": ""
+          };
+    
+        if(component.mediator_connection && component.mediator_connection.active_as_mediator){
+            let mediator_agent = component.agent_list.find(a => a.active_as_mediator === true);
+            if(mediator_agent != null) {
+              service_endpoint_block["routingKeys"] = mediator_agent.mediator_info.routing_keys || [];
+              service_endpoint_block["serviceEndpoint"] = mediator_agent.mediator_info.endpoint;
+            }
+            console.log('Informing mediator about new key to route...');
+            await component.add_route_to_mediator(toolbox_did.publicKey_b58);
+        }
+        let id = (uuidv4().toString())
         var req = {
-            "@id": (uuidv4().toString()),
+            "@id": id,
             "@type": "https://didcomm.org/didexchange/1.0/request",
             "~thread": { 
-                "thid": "a46cdd0f-a2ca-4d12-afbf-2e78a6f1f3ef",
-                "pthid": "032fbd19-f6fd-48c5-9197-ba9a47040470" 
+                "thid": id,
+                "pthid": invite.id 
             },
             "label": "Toolbox",
             //"goal_code": "aries.rel.build",        <------- Necessary?
