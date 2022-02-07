@@ -28,8 +28,8 @@ export default {
             }
             console.log('Informing mediator about new key to route...');
             await component.add_route_to_mediator(toolbox_did.publicKey_b58);
-        }
-        let id = (uuidv4().toString())
+        };
+        let id = (uuidv4().toString());
         var req = {
             "@id": id,
             "@type": "https://didcomm.org/didexchange/1.0/request",
@@ -55,6 +55,49 @@ export default {
                     }
                 }
             }
-        }
+        };
+        console.log("Exchange Request", req);
+        const signed = didcomm.signedAttachment(req['did_doc~attach'], toolbox_did);
+        console.log("Example attachment signing:", signed);
+        console.log("Example attachment verification:", didcomm.verifySignedAttachment(signed));
+        console.log("Example attachment decoding:", didcomm.decodeSignedAttachment(signed));
+
+        //send request, look for response
+        const packedMsg = didcomm.packMessage(JSON.stringify(req), [bs58.decode(invite.recipientKeys[0])], toolbox_did, true);
+        console.log("Packed Exchange Request", packedMsg);
+
+        // this code assumes that the response comes via return-route on the post.
+        const res = await rp({
+            method: 'POST',
+            uri: invite.serviceEndpoint,
+            body: packedMsg,
+        });
+        const unpackedResponse = didcomm.unpackMessage(res, toolbox_did);
+        const response = JSON.parse(unpackedResponse.message);
+        //TODO: Validate signature against invite.
+        let buff = Buffer.from(response['connection~sig'].sig_data, 'base64');
+        let text = buff.toString('ascii');
+        //first 8 chars are a timestamp for the signature, so we ignore those before parsing value
+        response.connection = JSON.parse(text.substring(8));
+        console.log("response message", response);
+        let connection_detail = new_connection(invite.label, response['did_doc~attach'], toolbox_did);
+        console.log("connection detail", connection_detail);
+        component.add_agent(connection_detail.to_store());
+
+        //send a complete message once connection is established
+        var com = {
+            "@type": "https://didcomm.org/didexchange/1.0/complete",
+            "@id": id,
+            "~thread": {
+                "thid": id,
+                "pthid": invite.id
+            }
+        };
+        console.log("Exchange Complete", com);
+
+        //send complete message
+        const packedMsg = didcomm.packMessage(JSON.stringify(com), [bs58.decode(invite.recipientKeys[0])], toolbox_did, true);
+        console.log("Packed Exchange Complete", packedMsg);
+        return connection_detail;
     }
 }
