@@ -38,23 +38,8 @@ export default {
                 "pthid": invite.id 
             },
             "label": "Toolbox",
-            //"goal_code": "aries.rel.build",        <------- Necessary?
-            //"goal": "To create a relationship",      <--/ 
             "did": toolbox_did.did,
-            "did_doc~attach": {
-                "@id": toolbox_did.did,
-                "mime-type": "application/json",
-                "data": {
-                    "base64": "eyJ0eXAiOiJKV1Qi... (bytes omitted)",
-                    "jws": {
-                        "header": {
-                            "kid": "did:key:z6MkmjY8GnV5i9YTDtPETC2uUAW6ejw3nk5mXF5yci5ab7th"
-                        },
-                        "protected": "probably",
-                        "signature": "pending"
-                    }
-                }
-            }
+            "did_doc~attach": "didcomm.signedattachment"
         };
         console.log("Exchange Request", req);
         const signed = didcomm.signedAttachment(req['did_doc~attach'], toolbox_did);
