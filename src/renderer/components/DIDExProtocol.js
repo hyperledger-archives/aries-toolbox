@@ -5,7 +5,8 @@ const rp = require('request-promise');
 const uuidv4 = require('uuid/v4');
 
 export default {
-    new_agent_invitation_process(component, invite) {
+
+    async new_agent_invitation_process(component, invite) {
         const didcomm = new DIDComm.DIDComm();
         await didcomm.Ready;
         const toolbox_did = didcomm.generateKeyPair();
@@ -39,38 +40,45 @@ export default {
             },
             "label": "Toolbox",
             "did": toolbox_did.did,
-            "did_doc~attach": "didcomm.signedattachment"
+            "~transport": {"return_route": "all"}
         };
-        console.log("Exchange Request", req);
-        const signed = didcomm.signedAttachment(req['did_doc~attach'], toolbox_did);
-        console.log("Example attachment signing:", signed);
-        console.log("Example attachment verification:", didcomm.verifySignedAttachment(signed));
-        console.log("Example attachment decoding:", didcomm.decodeSignedAttachment(signed));
+
+        let DIDDoc = {
+            "@context": "https://w3id.org/did/v1",
+            "id": toolbox_did.did,
+            "publicKey": [{
+              "id": toolbox_did.did + "#keys-1",
+              "type": "Ed25519VerificationKey2018",
+              "controller": toolbox_did.did,
+              "publicKeyBase58": toolbox_did.publicKey_b58
+            }],
+            "service": [service_endpoint_block]
+          }
+        req['did_doc~attach'] = didcomm.signedAttachment(DIDDoc, toolbox_did);
 
         //send request, look for response
-        const packedMsg = didcomm.packMessage(JSON.stringify(req), [bs58.decode(invite.recipientKeys[0])], toolbox_did, true);
-        console.log("Packed Exchange Request", packedMsg);
+        const packedDIDExMsg = didcomm.packMessage(JSON.stringify(req), [didcomm.ed25519PubEncoder.decode(invite.services[0].recipientKeys[0])], toolbox_did, true);
 
         // this code assumes that the response comes via return-route on the post.
         const res = await rp({
             method: 'POST',
-            uri: invite.serviceEndpoint,
-            body: packedMsg,
+            uri: invite.services[0].serviceEndpoint,
+            body: packedDIDExMsg,
         });
-        const unpackedResponse = didcomm.unpackMessage(res, toolbox_did);
-        const response = JSON.parse(unpackedResponse.message);
-        //TODO: Validate signature against invite.
-        let buff = Buffer.from(response['connection~sig'].sig_data, 'base64');
-        let text = buff.toString('ascii');
-        //first 8 chars are a timestamp for the signature, so we ignore those before parsing value
-        response.connection = JSON.parse(text.substring(8));
-        console.log("response message", response);
-        let connection_detail = new_connection(invite.label, response['did_doc~attach'], toolbox_did);
-        console.log("connection detail", connection_detail);
+        const unpackedExResponse = didcomm.unpackMessage(res, toolbox_did);
+        const response = JSON.parse(unpackedExResponse.message);
+
+        didcomm.verifySignedAttachment(response['did_doc~attach']);
+        if(response['did_doc~attach'].data.jws.header.kid != invite.services[0].recipientKeys[0]){
+            throw new Error("Signer of DID Doc is not original sender of invitation.")
+        }
+        let responseDoc = didcomm.decodeSignedAttachment(response['did_doc~attach']);
+        
+        let connection_detail = new_connection(invite.label, responseDoc, toolbox_did);
         component.add_agent(connection_detail.to_store());
 
         //send a complete message once connection is established
-        var com = {
+        const com = {
             "@type": "https://didcomm.org/didexchange/1.0/complete",
             "@id": id,
             "~thread": {
@@ -78,11 +86,9 @@ export default {
                 "pthid": invite.id
             }
         };
-        console.log("Exchange Complete", com);
 
         //send complete message
-        const packedMsg = didcomm.packMessage(JSON.stringify(com), [bs58.decode(invite.recipientKeys[0])], toolbox_did, true);
-        console.log("Packed Exchange Complete", packedMsg);
+        const packedComplete = await connection_detail.send_message(com);
         return connection_detail;
     }
 }
