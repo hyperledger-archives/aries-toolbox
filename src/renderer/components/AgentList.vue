@@ -313,29 +313,52 @@ export default {
       },
 
     async connect_clicked() {
-      var invite_b64 = this.getUrlVars(this.new_agent_invitation)["c_i"];
-      //base 64 decode
-      var invite_string = base64_decode(invite_b64);
-      var invite = JSON.parse(invite_string);
-      
-      this.invitation_error = "";
-      if (invite.handshake_protocols[0] === "https://didcomm.org/connections/1.0") {
-        try {
-          await ConnectionsProtocol.new_agent_invitation_process(this, this.new_agent_invitation);
-        } catch (err) {
-          console.log("request post err", err);
-          this.invitation_error = err.message;
+      let invite_b64 = "";
+      if (this.new_agent_invitation.includes("?oob")) {
+        //OOB Invitation
+        invite_b64 = this.getUrlVars(this.new_agent_invitation)["oob"];
+        //base 64 decode
+        let invite_string = base64_decode(invite_b64);
+        let invite = JSON.parse(invite_string);
+        
+        this.invitation_error = "";
+        if (!invite.handshake_protocols || invite.handshake_protocols.length === 0) {
+          throw new Error("Handshake protocols are required for connection.")
         }
-        this.new_agent_invitation = "";
-      }
-      else {
-        try {
-          await DIDExProtocol.new_agent_invitation_process(this, this.new_agent_invitation);
-        } catch (err) {
-          console.log("request post err", err);
-          this.invitation_error = err.message;
+        if (invite.handshake_protocols[0] === "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0") {
+          try {
+            await ConnectionsProtocol.new_agent_invitation_process(this, invite);
+          } catch (err) {
+            console.log("request post err", err);
+            this.invitation_error = err.message;
+          }
+          this.new_agent_invitation = "";
         }
-        this.new_agent_invitation = "";
+        else if (invite.handshake_protocols[0] === "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0") {
+          try {
+            await DIDExProtocol.new_agent_invitation_process(this, invite);
+          } catch (err) {
+            console.log("request post err", err);
+            this.invitation_error = err.message;
+          }
+          this.new_agent_invitation = "";
+        }
+        else {
+            throw new Error("No supported handshake_protocols supplied.");
+        }
+      } else if (this.new_agent_invitation.includes("?c_i")) {
+        //Connections Invitation
+        invite_b64 = this.getUrlVars(this.new_agent_invitation)["c_i"];
+        //base 64 decode
+        let invite_string = base64_decode(invite_b64);
+        let invite = JSON.parse(invite_string);
+        try {
+            await ConnectionsProtocol.new_agent_invitation_process(this, invite);
+          } catch (err) {
+            console.log("request post err", err);
+            this.invitation_error = err.message;
+          }
+          this.new_agent_invitation = "";
       }
     }
   },
