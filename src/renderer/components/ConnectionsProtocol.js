@@ -6,7 +6,7 @@ const uuidv4 = require('uuid/v4');
 
 export default {
 
-    async new_agent_invitation_process(component, invite){
+    async connectByInvite(component, invite){
       //make a did
       const didcomm = new DIDComm.DIDComm();
       await didcomm.Ready;
