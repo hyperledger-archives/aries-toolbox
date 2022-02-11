@@ -312,7 +312,7 @@ export default {
         return vars;
       },
 
-    newAgentInvitationProcess: function(raw_invitation) {
+    async newAgentInvitationProcess (raw_invitation) {
       let urlVars = this.getUrlVars(raw_invitation); 
       if ("oob" in urlVars) {
         //OOB Invitation
@@ -333,7 +333,7 @@ export default {
 
         for (const protocol of invite.handshake_protocols) {
             if (protocol in protocolToHandler) {
-                protocolToHandler[protocol].connectByInvite(this, invite);
+                await protocolToHandler[protocol].connectByInvite(this, invite);
                 handled = true;
                 break;
             }
@@ -349,13 +349,13 @@ export default {
         let invite_string = base64_decode(invite_b64);
         let invite = JSON.parse(invite_string);
 
-        ConnectionsProtocol.connectByInvite(this, invite);
+        await ConnectionsProtocol.connectByInvite(this, invite);
       }
     },
 
     async connect_clicked() {
       try {
-        this.newAgentInvitationProcess(this.new_agent_invitation);
+        await this.newAgentInvitationProcess(this.new_agent_invitation);
       } catch (err) {
         console.log("request post err", err);
         this.invitation_error = err.message;
