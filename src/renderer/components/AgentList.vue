@@ -83,10 +83,13 @@ const electron = require('electron');
 import { mapState, mapActions, mapGetters } from "vuex"
 import message_bus from '@/message_bus.js';
 import { from_store } from '../connection_detail.js';
+import { base64_decode } from '../base64.js';
 import ConnectionsProtocol from './ConnectionsProtocol.js';
+import DIDExProtocol from './DIDExProtocol'
 const uuidv4 = require('uuid/v4');
 const coordinate_mediation =
   (type) => `did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/coordinate-mediation/1.0/${type}`;
+
 export default {
   name: 'agent-list',
   components: {  },
@@ -122,6 +125,7 @@ export default {
   },
   methods: {
     ...mapActions("Agents", ["add_agent", "update_agent", "delete_agent"]),
+
     openConnection: async function(a) {
       const modalPath = process.env.NODE_ENV === 'development'
         ? 'http://localhost:9080/#/agent/'+a.id
@@ -136,6 +140,7 @@ export default {
           enableRemoteModule: true,
         }
       })
+
       // TODO: Get the close handler to work to keep track of open windows only
       win.on('close', function () {
         win = null;
@@ -144,10 +149,13 @@ export default {
       win.loadURL(modalPath);
       let window_key = a.my_key_b58.publicKey;
       this.agent_windows[window_key] = win;
+
     },
+
     deleteConnection: async function(a){
       this.delete_agent(a);
     },
+
     mediatorConnect: async function(mediator_agent){
       let vm = this; //hold reference
       let agent_info = await this.get_agent(mediator_agent.id);
@@ -171,6 +179,7 @@ export default {
       });
       console.log("mediator connected", this.mediator_connection);
     },
+
     /**
      * Process messages received through mediator.
      */
@@ -194,6 +203,7 @@ export default {
         // TODO: get inbound message to proper agent window. this needs to happen even if window not open.
         // store message
         let message_uuid = uuidv4();
+
         // send message
         let window_key = recipients[0];
         // TODO: detect lack of open window.
@@ -217,6 +227,7 @@ export default {
         //TODO: deliver queued message after window opens.
       };
     },
+
     /**
      * Tear down mediator info after mediator connection deletion.
      */
@@ -230,12 +241,14 @@ export default {
       }
       this.mediator_connection = null;
     },
+
     /**
      * Generate an invitation for connecting to the toolbox through mediation.
      */
     generate_invitation: function(){
       // TODO Implement
     },
+
     /**
      * Inform the mediator of a new key to route to this agent.
      * @param {string} verkey Key to add to mediator routes.
@@ -260,6 +273,7 @@ export default {
         // TODO do something with errors
       }
     },
+
     async send_mediation_request(connection) {
       // prepare message
       let msg = {
@@ -281,6 +295,7 @@ export default {
         console.error("Encountered error while attempting to establish mediation:", err)
       }
     },
+
     async process_mediator_invitation() {
       let connection = await this.new_agent_invitation_process(this, this.new_mediator_invitation);
       connection.unpacked_processor = this.mediatorInbound(connection);
@@ -288,16 +303,65 @@ export default {
       this.mediatorConnect(connection);
       this.new_mediator_invitation = "";
     },
+
+    getUrlVars: function(url) {
+        var vars = {};
+        var parts = url.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+          vars[key] = value;
+        });
+        return vars;
+      },
+
+    async newAgentInvitationProcess (raw_invitation) {
+      let urlVars = this.getUrlVars(raw_invitation); 
+      if ("oob" in urlVars) {
+        //OOB Invitation
+        let invite_b64 = this.getUrlVars(raw_invitation)["oob"];
+      
+        //base 64 decode
+        let invite_string = base64_decode(invite_b64);
+        let invite = JSON.parse(invite_string);
+          
+        const protocolToHandler = {
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0": ConnectionsProtocol,
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0": DIDExProtocol,
+          "https://didcomm.org/connections/1.0": ConnectionsProtocol,
+          "https://didcomm.org/didexchange/1.0": DIDExProtocol,
+        }
+
+        let handled = false
+
+        for (const protocol of invite.handshake_protocols) {
+            if (protocol in protocolToHandler) {
+                await protocolToHandler[protocol].connectByInvite(this, invite);
+                handled = true;
+                break;
+            }
+        }
+
+        if (!handled) {
+            throw new Error("No supported handshake_protocols supplied")
+        }
+      } else if ("c_i" in urlVars) {
+        //Connections Invitation
+        let invite_b64 = this.getUrlVars(raw_invitation)["c_i"];
+        //base 64 decode
+        let invite_string = base64_decode(invite_b64);
+        let invite = JSON.parse(invite_string);
+
+        await ConnectionsProtocol.connectByInvite(this, invite);
+      }
+    },
+
     async connect_clicked() {
-      this.invitation_error = "";
       try {
-        await ConnectionsProtocol.new_agent_invitation_process(this, this.new_agent_invitation);
+        await this.newAgentInvitationProcess(this.new_agent_invitation);
       } catch (err) {
         console.log("request post err", err);
         this.invitation_error = err.message;
       }
       this.new_agent_invitation = "";
-    },
+      }
   },
   created: async function(){
     let mediator_agent = this.agent_list.find(a => a.active_as_mediator === true);
@@ -320,6 +384,7 @@ export default {
       mediator_connection: {},
       window_message_queue: {},
     }
+
   }
 }
 </script>
