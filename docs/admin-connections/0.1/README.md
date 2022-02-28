@@ -6,14 +6,19 @@ Connections Admin Protocol
 **Protocol URI:** `https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1`
 
 ### Protocol Messages
-- [connection](#connection)
-- [get-list](#get-list)
-- [list](#list)
-- [update](#update)
-- [delete](#delete)
-- [deleted](#deleted)
-- [receive-invitation](#receive-invitation)
-- [connected](#connected)
+- [Connections Admin Protocol](#connections-admin-protocol)
+  - [Overview](#overview)
+    - [Protocol Messages](#protocol-messages)
+  - [Message Definitions](#message-definitions)
+    - [Connection](#connection)
+    - [Get List](#get-list)
+    - [List](#list)
+    - [Update](#update)
+    - [Delete](#delete)
+    - [Deleted](#deleted)
+    - [Receive Invitation](#receive-invitation)
+    - [Receive OOB Invitation](#receive-oob-invitation)
+    - [Connected](#connected)
 
 ## Message Definitions
 
@@ -165,6 +170,21 @@ given invitation or not.
 
 `mediation_id` (Optional): Identifier for mediator to use when accepting this
 invitation.
+
+--------------------------------------------------------------------------------
+
+### Receive OOB Invitation
+
+Create a new connection by receiving an out-of-band invitation.
+
+```jsonc
+{
+  "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/receive-oob-invitation",
+  "invitation": "https://example.com?c_i=..."
+  "auto_accept": true,
+  "mediation_id": "cbf76a1c-aba9-4675-af64-a65ef116f359"
+}
+```
 
 --------------------------------------------------------------------------------
 
