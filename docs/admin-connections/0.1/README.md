@@ -6,19 +6,15 @@ Connections Admin Protocol
 **Protocol URI:** `https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1`
 
 ### Protocol Messages
-- [Connections Admin Protocol](#connections-admin-protocol)
-  - [Overview](#overview)
-    - [Protocol Messages](#protocol-messages)
-  - [Message Definitions](#message-definitions)
-    - [Connection](#connection)
-    - [Get List](#get-list)
-    - [List](#list)
-    - [Update](#update)
-    - [Delete](#delete)
-    - [Deleted](#deleted)
-    - [Receive Invitation](#receive-invitation)
-    - [Receive OOB Invitation](#receive-oob-invitation)
-    - [Connected](#connected)
+- [connection](#connection)
+- [get-list](#get-list)
+- [list](#list)
+- [update](#update)
+- [delete](#delete)
+- [deleted](#deleted)
+- [receive-invitation](#receive-invitation)
+- [receive-oob-invitation](#receive-oob-invitation)
+- [connected](#connected)
 
 ## Message Definitions
 
