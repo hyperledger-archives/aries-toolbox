@@ -180,7 +180,7 @@ Create a new connection by receiving an out-of-band invitation.
 ```jsonc
 {
   "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/receive-oob-invitation",
-  "invitation": "https://example.com?c_i=..."
+  "invitation": "https://example.com?oob=..."
   "auto_accept": true,
   "mediation_id": "cbf76a1c-aba9-4675-af64-a65ef116f359"
 }
