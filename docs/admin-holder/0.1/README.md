@@ -18,6 +18,7 @@ Define messages for credential holder admin protocols.
 - [presentations-get-list](#presentations-get-list)
 - [presentations-list](#presentations-list)
 - [presentation-request-approve](#presentation-request-approve)
+- [presentation-request-reject](#presentation-request-reject)
 - [presentation-get-matching-credentials](#presentation-get-matching-credentials)
 - [presentation-matching-credentials](#presentation-matching-credentials)
 - [send-presentation-proposal](#send-presentation-proposal)
@@ -644,6 +645,33 @@ Example:
 `requested_predicates` (Dict): Nested object mapping proof request predicate referents to requested-predicate specifiers
 
 `comment` (String; Optional): Optional comment.
+
+### presentation-request-reject
+
+Reject presentation request.
+
+Example:
+
+```json
+{
+  "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentation-request-reject",
+  "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "presentation_exchange_id": presentation_request_received[
+    "presentation_exchange_id"
+  ],
+  "message_description": msg_desc,
+}
+```
+
+#### Fields
+
+`@type` (String): Message type
+
+`@id` (String; Optional): Message identifier
+
+`presentation_exchange_id` (String): Presentation to match credentials to.
+
+`message_description` (String; Optional): Description of cause of rejection.  
 
 ### presentation-get-matching-credentials
 
