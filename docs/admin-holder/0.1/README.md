@@ -13,6 +13,7 @@ Define messages for credential holder admin protocols.
 - [credential-offer-received](#credential-offer-received)
 - [credential-request-sent](#credential-request-sent)
 - [credential-received](#credential-received)
+- [credential-delete](#credential-delete)
 - [send-credential-proposal](#send-credential-proposal)
 - [credential-exchange](#credential-exchange)
 - [presentations-get-list](#presentations-get-list)
@@ -398,6 +399,25 @@ Example:
 `revoc_reg_id` (String; Optional): Revocation registry identifier
 
 `revocation_id` (String; Optional): Credential identifier within revocation registry
+
+### credential-delete
+
+Delete existing credential exchange.
+
+Example:
+
+```json
+{
+  "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-delete",
+  "credential_exchange_id": 3fa85f64-5717-4562-b3fc-2c963f66afa6
+}
+```
+
+#### Fields
+
+`@type` (String): Message type
+
+`credential_exchange_id` (String; Optional): Credential exchange identifier
 
 ### send-credential-proposal
 
