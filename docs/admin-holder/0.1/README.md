@@ -409,7 +409,7 @@ Example:
 ```json
 {
   "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-delete",
-  "credential_exchange_id": 3fa85f64-5717-4562-b3fc-2c963f66afa6
+  "credential_exchange_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
 }
 ```
 
@@ -676,10 +676,8 @@ Example:
 {
   "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentation-request-reject",
   "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "presentation_exchange_id": presentation_request_received[
-    "presentation_exchange_id"
-  ],
-  "message_description": msg_desc,
+  "presentation_exchange_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "message_description": "Description of problem",
 }
 ```
 
@@ -689,7 +687,7 @@ Example:
 
 `@id` (String; Optional): Message identifier
 
-`presentation_exchange_id` (String): Presentation to match credentials to.
+`presentation_exchange_id` (String): Presentation to reject.
 
 `message_description` (String; Optional): Description of cause of rejection.  
 
