@@ -2,7 +2,7 @@
 
 The toolbox is built upon Electron, using Vue and ElementUI for the user
 interface. If you are interested mostly in creating a new UI module, see [How
-Modules Work](docs/howmoduleswork.md).
+Modules Work](howmoduleswork.md).
 
 ## AgentList
 
