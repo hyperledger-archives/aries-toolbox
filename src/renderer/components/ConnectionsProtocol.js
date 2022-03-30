@@ -55,10 +55,6 @@ export default {
         }
       };
       console.log("Exchange Request", req);
-      const signed = didcomm.signedAttachment(req.connection.DIDDoc, toolbox_did)
-      console.log("Example attachment signing:", signed)
-      console.log("Example attachment verification:", didcomm.verifySignedAttachment(signed))
-      console.log("Example attachment decoding:", didcomm.decodeSignedAttachment(signed))
 
       //send request, look for response
       const packedMsg = didcomm.packMessage(JSON.stringify(req), [bs58.decode(invite.recipientKeys[0])], toolbox_did, true);
