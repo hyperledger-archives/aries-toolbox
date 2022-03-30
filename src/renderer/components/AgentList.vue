@@ -297,7 +297,7 @@ export default {
     },
 
     async process_mediator_invitation() {
-      let connection = await this.new_agent_invitation_process(this, this.new_mediator_invitation);
+      let connection = await this.newAgentInvitationProcess(this.new_mediator_invitation);
       connection.unpacked_processor = this.mediatorInbound(connection);
       await this.send_mediation_request(connection);
       this.mediatorConnect(connection);
@@ -333,9 +333,9 @@ export default {
 
         for (const protocol of invite.handshake_protocols) {
             if (protocol in protocolToHandler) {
-                await protocolToHandler[protocol].connectByInvite(this, invite);
+                let connection = await protocolToHandler[protocol].connectByInvite(this, invite);
                 handled = true;
-                break;
+                return connection;
             }
         }
 
@@ -349,7 +349,7 @@ export default {
         let invite_string = base64_decode(invite_b64);
         let invite = JSON.parse(invite_string);
 
-        await ConnectionsProtocol.connectByInvite(this, invite);
+        return await ConnectionsProtocol.connectByInvite(this, invite);
       }
     },
 
