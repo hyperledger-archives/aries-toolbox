@@ -24,7 +24,7 @@
     "bulma-fluent": "^0.4.3",
     "dompurify": "^2.3.5",
     "element-ui": "^2.15.6",
-    "encryption-envelope-js": "^1.2.4",
+    "encryption-envelope-js": "^1.2.5",
     "marked": "^4.0.12",
     "material-design-icons": "^3.0.1",
     "request-promise": "^4.2.6",
