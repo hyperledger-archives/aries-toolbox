@@ -74,6 +74,10 @@
             type="textarea"></el-input>
         </el-form-item>
 
+        <el-form-item label="Exclude Revoked:">
+          <el-checkbox v-model="requestForm.non_revoked" />
+        </el-form-item>
+
         <!-- Dynamic Attributes -->
         <el-form-item
           v-for="(attribute, index) in requestForm.attributes"
@@ -221,6 +225,7 @@ export default {
         connection_id: '', // Who
         comment: '', // Optional comment
         name: '',
+        non_revoked: false,
         attributes: [
           // Key: (can be whatever) property name,
           // {
@@ -309,6 +314,9 @@ export default {
         predicates: this.requestForm.predicates
       }
       this.requestFormActive = false;
+      if (this.requestForm.non_revoked) {
+        values.non_revoked = true;
+      }
 
       this.requestForm.connection_id = '';
       this.requestForm.name = '';

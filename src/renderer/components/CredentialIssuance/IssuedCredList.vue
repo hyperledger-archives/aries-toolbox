@@ -39,10 +39,21 @@
               </vue-json-pretty>
             </div>
             <el-button v-on:click="collapse_expanded(issued_credential)">^</el-button>
+            <el-button v-on:click="activateRevokeForm(issued_credential)">Revoke</el-button>
           </el-row>
         </el-collapse-item>
       </ul>
     </el-collapse>
+    <el-dialog title="Revoke Credential" :visible.sync="revokeFormActive" @close="deActivateRevokeForm()">
+      <el-descriptions :title.sync="revokeForm.title" border=true column=1>
+        <el-descriptions-item label="Exchange ID">{{revokeForm.credential_exchange_id}}</el-descriptions-item>
+        <el-descriptions-item label="Creation Date">{{revokeForm.created_at}}</el-descriptions-item>
+      </el-descriptions>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="deActivateRevokeForm()">Cancel</el-button>
+        <el-button :disabled="!revokeForm.credential_exchange_id" type="primary" @click="revoke">Confirm</el-button>
+      </span>
+    </el-dialog>
     <el-dialog title="Issue Credential" :visible.sync="issueFormActive" @close="deActivateForm()">
       <el-form :model="issueForm">
         <el-form-item label="Connection:" :label-width="formLabelWidth">
@@ -132,8 +143,15 @@ export default {
         comment: '',
         attributes: []
       },
+      revokeFormActive: false,
+      revokeForm: {
+        title: '',
+        credential_exchange_id: null,
+        created_at: null
+      },
       retrieve_cred_def_id: '',
-      formLabelWidth: '200px'
+      formLabelWidth: '200px',
+      revokeFormLabelWidth: '100px'
     }
   },
   computed: {
@@ -154,6 +172,22 @@ export default {
         item => item != creddef.credential_exchange_id
       );
     },
+    activateRevokeForm: function(cred) {
+      this.revokeFormActive = true;
+      this.revokeForm = {
+        title: `Are you sure that you want to revoke "${this.credential_title(cred)}"?`,
+        credential_exchange_id: cred.credential_exchange_id,
+        created_at: cred.created_at
+      }
+    },
+    deActivateRevokeForm: function() {
+      this.revokeFormActive = false;
+      this.revokeForm = {
+        title: '',
+        credential_exchange_id: null,
+        created_at: null
+      }
+    },
     deActivateForm: function() {
       this.issueFormActive = false;
       this.issueForm = {
@@ -162,6 +196,19 @@ export default {
         comment: '',
         attributes: []
       };
+    },
+    revoke: function() {
+      let values = {
+        credential_exchange_id: this.revokeForm.credential_exchange_id,
+      }
+      this.revokeForm = {
+        title: '',
+        credential_exchange_id: null,
+        created_at: null
+      }
+
+      this.$emit('revoke', values);
+      this.revokeFormActive = false;
     },
     issue: function() {
       let values = {
