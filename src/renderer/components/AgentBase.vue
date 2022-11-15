@@ -15,7 +15,7 @@
       <el-form :disabled="dids.length === 0">
         <el-select v-model="active_did" no-data-text="No DIDs found" filterable placeholder="Activate DID">
           <el-option v-for="did in dids" :key="did.did"
-            :label="did.metadata?.label ? `${did.metadata.label} (${did.did})` : did.did" :value="did">
+            :label="'metadata' in did && 'label' in did.metadata ? `${did.metadata.label} (${did.did})` : did.did" :value="did">
           </el-option>
         </el-select>
         <!--
