@@ -49,8 +49,12 @@ export const shared = {
     },
   },
   listeners: {
-    "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/credentials-list":
-    (share, msg) => share.holder_credentials = msg.results
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credentials-list":
+    (share, msg) => share.holder_credentials = msg.results,
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-offer-received":
+    (share, msg) => share.holder_credentials.push(msg.raw_repr),
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-received":
+    (share, msg) => share.fetch_holder_credentials()
   },
   methods: {
     fetch_holder_credentials: ({send}) => {

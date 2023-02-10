@@ -17,25 +17,50 @@
           v-for="issued_credential in credentials"
           v-bind:title="credential_title(issued_credential)"
           :name="issued_credential.credential_exchange_id"
-          :key="issued_credential.credential_exchange_id">
-          <el-row>
+          :key="issued_credential.issued_credential">
+          <template slot="title">
+            <i :class="issued_credential.state === 'credential_acked' ? 'el-icon-finished status' : 'el-icon-loading status'"></i>
+            {{credential_title(issued_credential)}}
+          </template>
+          <el-row :key="issued_credential.issued_credential">
+            <ul>
+              <li><strong>Issued to:</strong> {{issued_to(issued_credential)}}</li>
+              <li><strong>State:</strong> {{issued_credential.state}}</li>
+              <li><strong>Credential Definition ID:</strong> {{issued_credential.credential_definition_id}}</li>
+              <li><strong>Schema ID:</strong> {{issued_credential.schema_id}}</li>
+              <li><strong>Created:</strong> {{issued_credential.created_at}}</li>
+              <li><strong>Attributes:</strong> <attributes class="issued-attrs" :values="issued_credential.credential_proposal_dict.credential_proposal.attributes"></attributes></li>
+            </ul>
             <div>
               <vue-json-pretty
-                :deep=1
+                :deep=0
+                :deepCollapseChildren="true"
                 :data="issued_credential">
               </vue-json-pretty>
             </div>
             <el-button v-on:click="collapse_expanded(issued_credential)">^</el-button>
+            <el-button v-on:click="activateRevokeForm(issued_credential)">Revoke</el-button>
           </el-row>
         </el-collapse-item>
       </ul>
     </el-collapse>
+    <el-dialog title="Revoke Credential" :visible.sync="revokeFormActive" @close="deActivateRevokeForm()">
+      <el-descriptions :title.sync="revokeForm.title" border=true column=1>
+        <el-descriptions-item label="Exchange ID">{{revokeForm.credential_exchange_id}}</el-descriptions-item>
+        <el-descriptions-item label="Creation Date">{{revokeForm.created_at}}</el-descriptions-item>
+      </el-descriptions>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="deActivateRevokeForm()">Cancel</el-button>
+        <el-button :disabled="!revokeForm.credential_exchange_id" type="primary" @click="revoke">Confirm</el-button>
+      </span>
+    </el-dialog>
     <el-dialog title="Issue Credential" :visible.sync="issueFormActive" @close="deActivateForm()">
       <el-form :model="issueForm">
         <el-form-item label="Connection:" :label-width="formLabelWidth">
           <el-select
             v-model="issueForm.connection_id"
             filterable
+            no-data-text="No connections found"
             value-key="issueForm.connection_id"
             placeholder="Select">
             <el-option
@@ -49,6 +74,7 @@
         <el-form-item label="Credential Definition:" :label-width="formLabelWidth">
           <el-select
             v-model="issueForm.selected_cred_def"
+            no-data-text="No credential definitions found"
             remote
             value-key="issueForm.selected_cred_def"
             placeholder="Select"
@@ -85,10 +111,19 @@
     </el-dialog>
   </div>
 </template>
-
+<style>
+.issued-attrs {
+  margin-left: 2em;
+}
+.status {
+  font-size: 1.5em;
+  margin-right: .25em;
+}
+</style>
 <script>
 import VueJsonPretty from 'vue-json-pretty';
 import share from '@/share.js';
+import Attributes from './Attributes.vue';
 
 export default {
   name: 'issued-cred-list',
@@ -96,6 +131,7 @@ export default {
   mixins: [share({use: ['id_to_connection']})],
   components: {
     VueJsonPretty,
+    Attributes,
   },
   data () {
     return {
@@ -107,8 +143,15 @@ export default {
         comment: '',
         attributes: []
       },
+      revokeFormActive: false,
+      revokeForm: {
+        title: '',
+        credential_exchange_id: null,
+        created_at: null
+      },
       retrieve_cred_def_id: '',
-      formLabelWidth: '200px'
+      formLabelWidth: '200px',
+      revokeFormLabelWidth: '100px'
     }
   },
   computed: {
@@ -129,6 +172,22 @@ export default {
         item => item != creddef.credential_exchange_id
       );
     },
+    activateRevokeForm: function(cred) {
+      this.revokeFormActive = true;
+      this.revokeForm = {
+        title: `Are you sure that you want to revoke "${this.credential_title(cred)}"?`,
+        credential_exchange_id: cred.credential_exchange_id,
+        created_at: cred.created_at
+      }
+    },
+    deActivateRevokeForm: function() {
+      this.revokeFormActive = false;
+      this.revokeForm = {
+        title: '',
+        credential_exchange_id: null,
+        created_at: null
+      }
+    },
     deActivateForm: function() {
       this.issueFormActive = false;
       this.issueForm = {
@@ -137,6 +196,19 @@ export default {
         comment: '',
         attributes: []
       };
+    },
+    revoke: function() {
+      let values = {
+        credential_exchange_id: this.revokeForm.credential_exchange_id,
+      }
+      this.revokeForm = {
+        title: '',
+        credential_exchange_id: null,
+        created_at: null
+      }
+
+      this.$emit('revoke', values);
+      this.revokeFormActive = false;
     },
     issue: function() {
       let values = {
@@ -172,7 +244,15 @@ export default {
         connection_name = cred.connection.label;
       }
       return `${split[2]} v${split[3]} issued to ${connection_name}`;
+    },
+    issued_to: function(cred) {
+      if (!cred.connection) {
+        return '[deleted]';
+      } else {
+        return `${cred.connection.label} (${cred.connection.connection_id})`;
+      }
     }
+
   }
 }
 </script>

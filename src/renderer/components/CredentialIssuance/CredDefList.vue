@@ -27,11 +27,17 @@
           v-for="creddef in list"
           v-bind:title="creddef.cred_def_id"
           :name="creddef.cred_def_id"
-          :key="creddef.cred_def_id">
-          <el-row>
+          :key="creddef.cred_def">
+          <el-row :key="creddef.cred_def">
+            <ul>
+              <li><strong>Schema ID:</strong> {{creddef.schema_id}}</li>
+              <li><strong>Created:</strong> {{creddef.created_at}}</li>
+              <li><strong>Attributes:</strong> <attributes :list="creddef.attributes" inline></attributes></li>
+            </ul>
             <div>
               <vue-json-pretty
-                :deep=1
+                :deep=0
+                :deepCollapseChildren="true"
                 :data="creddef">
               </vue-json-pretty>
             </div>
@@ -46,6 +52,7 @@
           <el-select
             v-model="createForm.schema_id"
             filterable
+            no-data-text="No schemas found"
             value-key="createForm.schema_id"
             placeholder="Select">
             <el-option
@@ -55,6 +62,12 @@
               :value="schema.schema_id">
             </el-option>
           </el-select>
+        </el-form-item>
+        <el-form-item label="Revocable?" :label-width="formLabelWidth">
+          <el-checkbox id="support_revocation" v-model="createForm.support_revocation" />
+        </el-form-item>
+        <el-form-item label="Revocation Registry Size" :label-width="formLabelWidth">
+          <el-input-number id="revocation_registry_size" v-model="createForm.revocation_registry_size" :disabled="!createForm.support_revocation" min=4 max=32769 />
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
@@ -69,6 +82,7 @@
 import VueJsonPretty from 'vue-json-pretty';
 import message_bus from '../../message_bus.js';
 import share from '../../share.js';
+import Attributes from './Attributes.vue';
 
 export default {
   name: 'cred-def-list',
@@ -96,16 +110,19 @@ export default {
   ],
   components: {
     VueJsonPretty,
+    Attributes,
   },
   data () {
     return {
       expanded_items:[],
       createFormActive: false,
       createForm: {
-        schema_id: ''
+        schema_id: '',
+        support_revocation: false,
+        revocation_registry_size: 100
       },
       retrieve_cred_def_id: '',
-      formLabelWidth: '100px'
+      formLabelWidth: '95px'
     }
   },
   created: async function() {
@@ -117,10 +134,16 @@ export default {
       let query_msg = {
         "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-credential-definitions/0.1/send-credential-definition",
         "schema_id": this.createForm.schema_id,
+        "support_revocation": this.createForm.support_revocation,
       };
+      if (this.createForm.support_revocation) {
+        query_msg["revocation_registry_size"] = this.createForm.revocation_registry_size;
+      }
       this.send_message(query_msg);
       this.createFormActive = false;
       this.createForm.schema_id = '';
+      this.createForm.support_revocation = false;
+      this.createForm.revocation_registry_size = 100;
     },
     get_cred_def: function() {
       let query_msg = {
@@ -138,6 +161,8 @@ export default {
     deactivate: function() {
       this.createFormActive = false;
       this.createForm.schema_id = '';
+      this.createForm.support_revocation = false;
+      this.createForm.revocation_registry_size = 100;
     },
   }
 }

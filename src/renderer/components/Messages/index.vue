@@ -5,6 +5,7 @@
         <el-select
           v-model="connection_id"
           filterable
+          no-data-text="No connections found"
           placeholder="Select Conversation"
           @change="connection_selected">
           <el-option

@@ -5,6 +5,7 @@
       <el-button
         type="primary"
         icon="el-icon-plus"
+        disabled
         @click="proposalFormActive = true">Presentation Proposal</el-button>
       <el-button
         type="primary"
@@ -14,94 +15,38 @@
     <el-collapse v-model="ver_pres_expanded_items">
       <ul class="list">
         <el-collapse-item
-          v-for="presentation in VerifiedPresentations"
-          v-bind:title="presentation.presentation_exchange_id"
+          v-for="presentation in presentations"
           :name="presentation.presentation_exchange_id"
-          :key="presentation.presentation_exchange_id">
-          <el-row>
+          :key="presentation.presentation">
+          <template slot="title">
+            <i :class="presentation.state === 'presentation_acked' ? 'el-icon-finished status' : 'el-icon-loading status'"></i>
+            {{presentation_title(presentation)}}
+          </template>
+          <el-row :key="presentation.presentation">
+            <ul>
+              <li><strong>Requested by:</strong> {{connection_details[presentation.connection_id].label}} ({{presentation.connection_id}})</li>
+              <li><strong>State:</strong> {{presentation.state}}</li>
+              <li><strong>Presentation Exchange ID:</strong> {{presentation.presentation_exchange_id}}</li>
+              <li><strong>Requested Attributes:</strong> <attributes :list="requestedAttributes(presentation)" inline></attributes></li>
+              <li><strong>Requested Predicates:</strong> <attributes :list="requestedPredicates(presentation)" inline></attributes></li>
+            </ul>
             <div>
               <vue-json-pretty
-                :deep=1
+                :deep=0
+                :deepCollapseChildren="true"
                 :data="presentation">
               </vue-json-pretty>
             </div>
-            <el-button v-on:click="collapse_expanded_ver_pres(presentation)">^</el-button>
           </el-row>
         </el-collapse-item>
       </ul>
     </el-collapse>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#"> Received Requests </a>
-    </nav>
-    <el-collapse v-model="rec_req_expanded_items">
-      <ul class="list">
-        <el-collapse-item
-          v-for="presentation in ReceivedRequests"
-          v-bind:title="presentation.presentation_exchange_id"
-          :name="presentation.presentation_exchange_id"
-          :key="presentation.presentation_exchange_id">
-          <el-row>
-            <div>
-              <vue-json-pretty
-                :deep=1
-                :data="presentation">
-              </vue-json-pretty>
-            </div>
-            <el-button v-on:click="collapse_expanded_rec_req(presentation)">^</el-button>
-          </el-row>
-        </el-collapse-item>
-      </ul>
-    </el-collapse>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#"> Sent Presentation </a>
-    </nav>
-    <el-collapse v-model="sent_pres_expanded_items">
-      <ul class="list">
-        <el-collapse-item
-          v-for="presentation in SentPresentations"
-          v-bind:title="presentation.presentation_exchange_id"
-          :name="presentation.presentation_exchange_id"
-          :key="presentation.presentation_exchange_id">
-          <el-row>
-            <div>
-              <vue-json-pretty
-                :deep=1
-                :data="presentation">
-              </vue-json-pretty>
-            </div>
-            <el-button v-on:click="collapse_expanded_sent_pres(presentation)">^</el-button>
-          </el-row>
-        </el-collapse-item>
-      </ul>
-    </el-collapse>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#"> Sent Proposals </a>
-    </nav>
-    <el-collapse v-model="sent_prop_expanded_items">
-      <ul class="list">
-        <el-collapse-item
-          v-for="presentation in SentProposals"
-          v-bind:title="presentation.presentation_exchange_id"
-          :name="presentation.presentation_exchange_id"
-          :key="presentation.presentation_exchange_id">
-          <el-row>
-            <div>
-              <vue-json-pretty
-                :deep=1
-                :data="presentation">
-              </vue-json-pretty>
-            </div>
-            <el-button v-on:click="collapse_expanded_sent_prop(presentation)">^</el-button>
-          </el-row>
-        </el-collapse-item>
-      </ul>
-    </el-collapse>
-
     <el-dialog title="Make a Presentation Proposal" :visible.sync="proposalFormActive">
       <el-form :model="proposalForm">
         <el-form-item label="Connection:" :label-width="formLabelWidth">
           <el-select
             v-model="proposalForm.connection_id"
+            no-data-text="No connections found"
             filterable
             placeholder="Connection">
             <el-option
@@ -144,6 +89,7 @@
             placeholder="Attribute Value">
             <el-select
               slot="prepend"
+              no-data-text="No attributes found"
               v-if="proposalForm.attributes[index].cred_def != null"
               v-model="proposalForm.attributes[index].name"
               placeholder="Attribute Name"
@@ -187,6 +133,7 @@
             placeholder="Threshold">
             <el-select
               slot="prepend"
+              no-data-text="No attributes found"
               v-if="proposalForm.predicates[index].cred_def != null"
               v-model="proposalForm.predicates[index].name"
               placeholder="Attribute Name"
@@ -233,8 +180,16 @@
   </div>
 </template>
 
+<style>
+i.status {
+  font-size: 1.5em;
+  margin-right: .25em;
+}
+</style>
+
 <script>
 import VueJsonPretty from 'vue-json-pretty';
+import Attributes from '../CredentialIssuance/Attributes.vue';
 
 export default {
   name: 'presentation',
@@ -243,9 +198,11 @@ export default {
     'presentations',
     'connections',
     'cred_defs',
+    'connection_details'
   ],
   components: {
     VueJsonPretty,
+    Attributes,
   },
   data () {
     return {
@@ -282,6 +239,23 @@ export default {
       this.proposalForm.predicates = [];
 
       this.$emit('send-presentation-proposal', values);
+      
+    },
+    presentation_title: function(pres) {
+      let presentation_details = '';
+      let connection = this.connection_details[pres.connection_id];
+      let title= "";
+      if (connection && connection.label) {
+        title += `Requested by ${connection.label}`
+      } else {
+        title += 'Unknown'
+      }
+      if (!pres.comment) {
+        presentation_details = pres.presentation_request.name;
+      } else {
+        presentation_details = pres.comment;
+      }
+      return `${presentation_details}: ${title}`;
     },
     add_attribute: function() {
       this.proposalForm.attributes.push({
@@ -304,26 +278,6 @@ export default {
     remove_predicate: function(index) {
       this.proposalForm.predicates.splice(index, 1);
     },
-    collapse_expanded_ver_pres: function(presentation){
-      this.ver_pres_expanded_items = this.ver_pres_expanded_items.filter(
-        item => item != presentation.presentation_exchange_id
-      );
-    },
-    collapse_expanded_sent_prop: function(presentation){
-      this.sent_prop_expanded_items = this.sent_prop_expanded_items.filter(
-        item => item != presentation.presentation_exchange_id
-      );
-    },
-    collapse_expanded_rec_req: function(presentation){
-      this.rec_req_expanded_items = this.rec_req_expanded_items.filter(
-        item => item != presentation.presentation_exchange_id
-      );
-    },
-    collapse_expanded_sent_pres: function(presentation){
-      this.sent_pres_expanded_items = this.sent_pres_expanded_items.filter(
-        item => item != presentation.presentation_exchange_id
-      );
-    },
     update_attributes: function(cred_def) {
       var comp = this;
       cred_def.attributes.forEach(name => {
@@ -333,6 +287,14 @@ export default {
         });
       });
     },
+    requestedAttributes: function(presentation) {
+      let attrs = presentation.presentation_request.requested_attributes
+      return Object.values(attrs).map(attr => attr.name)
+    },
+    requestedPredicates: function(presentation) {
+      let preds = presentation.presentation_request.requested_predicates
+      return Object.values(preds).map(pred => `${pred.name} ${pred.p_type} ${pred.p_value}`)
+    }
   },
   computed: {
     connection_map: function() {
@@ -345,49 +307,6 @@ export default {
     },
     completed_verifications: function() {
       return this.presentations.filter(pres_exch => pres_exch.state === 'verified');
-    },
-    VerifiedPresentations() {
-      console.log('PRESENTATIONS', this.presentations);
-      return this.presentations.filter(
-        exchange =>
-        (
-          "state" in exchange &&
-          (
-            exchange.state === "verified" ||
-            exchange.state === "presentation_acked"
-          )
-        ) &&
-        //==========================================
-        "role" in exchange &&
-        "prover" === exchange.role )
-    },
-    ReceivedRequests(){
-      return this.presentations.filter(
-        exchange =>
-        "state" in exchange &&
-        exchange.state === "request_received" &&
-        //==========================================
-        "role" in exchange &&
-        "prover" === exchange.role)
-    },
-    SentPresentations(){
-      return this.presentations.filter(
-        exchange =>
-        "state" in exchange &&
-        exchange.state === "presentation_sent" &&
-        //==========================================
-        "role" in exchange &&
-        "prover" === exchange.role )
-    },
-    SentProposals(){
-      return this.presentations.filter(
-        exchange =>
-        "state" in exchange &&
-        exchange.state === "proposal_sent"  &&
-        //==========================================
-        "role" in exchange &&
-        "prover" === exchange.role
-      )
     },
   }
 }

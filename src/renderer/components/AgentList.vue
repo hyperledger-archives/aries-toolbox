@@ -13,21 +13,30 @@
       </div>
     </el-card>
 
-    <el-card shadow="never" class="function_card" id="new_agent_connection">
-      <span slot="header">New Agent Connection</span>
-      <div>
-        <el-form :inline="true">
-          <el-input v-model="new_agent_invitation" placeholder="Paste agent invitation"></el-input>
-          <el-button type="primary" @click="connect_clicked">Connect</el-button>
-        </el-form>
-      </div>
-      <el-alert v-show="invitation_error != ''"
-        title="Invitation Error"
-        type="error"
-        :description="invitation_error"
-        show-icon>
-      </el-alert>
-    </el-card>
+    <hr v-if="agent_list.length > 0">
+
+    <div class="invite-entry">
+      <h5>New Agent Connection</h5>
+      <el-form :inline="true">
+        <el-input
+          v-model="new_agent_invitation"
+          placeholder="Paste agent invitation"
+          @keypress.enter.native="connect_clicked">
+        <el-button
+          slot="append"
+          type="primary"
+          icon="el-icon-plus"
+          @click="connect_clicked"
+          >Connect</el-button>
+        </el-input>
+      </el-form>
+    </div>
+    <el-alert v-show="invitation_error != ''"
+      title="Invitation Error"
+      type="error"
+      :description="invitation_error"
+      show-icon>
+    </el-alert>
     <el-card shadow="never" class="function_card" id="new_agent_invitation" v-show="hasMediator && false">
       <span slot="header">New Agent Invitation</span>
       <div>
@@ -43,35 +52,40 @@
         show-icon>
       </el-alert>
     </el-card>
-    <el-card shadow="never" class="function_card" id="new_mediator_connection">
-      <span slot="header">Connect to Mediator</span>
-      <div>
-        <el-form :inline="true">
-          <el-input v-model="new_mediator_invitation" placeholder="Paste mediator invitation"></el-input>
-          <el-button type="primary" @click="process_mediator_invitation">Connect</el-button>
-        </el-form>
-      </div>
-      <el-alert v-show="mediation_error != ''"
-        title="Invitation Error"
-        type="error"
-        :description="mediation_error"
-        show-icon>
-      </el-alert>
-    </el-card>
+    <div class="invite-entry">
+    <h5>Connect to Mediator</h5>
+      <el-form :inline="true">
+        <el-input
+          v-model="new_mediator_invitation"
+          placeholder="Paste mediator invitation"
+          @keypress.enter.native="process_mediator_invitation">
+        <el-button
+          slot="append"
+          type="primary"
+          icon="el-icon-plus"
+          @click="process_mediator_invitation"
+          >Connect</el-button>
+        </el-input>
+      </el-form>
+    </div>
+    <el-alert v-show="mediation_error != ''"
+      title="Invitation Error"
+      type="error"
+      :description="mediation_error"
+      show-icon>
+    </el-alert>
   </el-row>
 </template>
 
 <script>
 const electron = require('electron');
-const bs58 = require('bs58');
-const rp = require('request-promise');
-const DIDComm = require('encryption-envelope-js');
 //import DIDComm from 'didcomm-js';
 import { mapState, mapActions, mapGetters } from "vuex"
-import { new_connection } from '../connection_detail.js';
 import message_bus from '@/message_bus.js';
-import { base64_decode, base64_encode } from '../base64.js';
 import { from_store } from '../connection_detail.js';
+import { base64_decode } from '../base64.js';
+import ConnectionsProtocol from './ConnectionsProtocol.js';
+import DIDExProtocol from './DIDExProtocol'
 const uuidv4 = require('uuid/v4');
 const coordinate_mediation =
   (type) => `did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/coordinate-mediation/1.0/${type}`;
@@ -121,7 +135,9 @@ export default {
         height: 600,
         webPreferences: {
           webSecurity: false,
-          nodeIntegration: true
+          contextIsolation: false,
+          nodeIntegration: true,
+          enableRemoteModule: true,
         }
       })
 
@@ -281,112 +297,71 @@ export default {
     },
 
     async process_mediator_invitation() {
-      let connection = await this.new_agent_invitation_process(this.new_mediator_invitation);
+      let connection = await this.newAgentInvitationProcess(this.new_mediator_invitation);
       connection.unpacked_processor = this.mediatorInbound(connection);
       await this.send_mediation_request(connection);
       this.mediatorConnect(connection);
       this.new_mediator_invitation = "";
     },
 
-    async connect_clicked() {
-      this.invitation_error = "";
-      try {
-        await this.new_agent_invitation_process(this.new_agent_invitation);
-      } catch (err) {
-        console.log("request post err", err);
-        this.invitation_error = err.message;
-      }
-      this.new_agent_invitation = "";
-    },
-
-    async new_agent_invitation_process(invitation){
-      //process invite, prepare request
-      //extract c_i param
-      function getUrlVars(url) {
+    getUrlVars: function(url) {
         var vars = {};
         var parts = url.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
           vars[key] = value;
         });
         return vars;
-      }
+      },
 
-      var invite_b64 = getUrlVars(invitation)["c_i"];
-      //base 64 decode
-      var invite_string = base64_decode(invite_b64);
-      var invite = JSON.parse(invite_string);
-
-      //make a did
-      const didcomm = new DIDComm.DIDComm();
-      await didcomm.Ready;
-      const toolbox_did = await didcomm.generateKeyPair();
-      toolbox_did.did = bs58.encode(Buffer.from(toolbox_did.publicKey.subarray(0, 16)));
-      toolbox_did.publicKey_b58 = bs58.encode(Buffer.from(toolbox_did.publicKey));
-      toolbox_did.privateKey_b58 = bs58.encode(Buffer.from(toolbox_did.privateKey));
-
-      let service_endpoint_block = {
-        "id": toolbox_did.did + ";indy",
-        "type": "IndyAgent",
-        "recipientKeys": [toolbox_did.publicKey_b58],
-        "serviceEndpoint": ""
-      };
-
-      if(this.mediator_connection && this.mediator_connection.active_as_mediator){
-        let mediator_agent = this.agent_list.find(a => a.active_as_mediator === true);
-        if(mediator_agent != null) {
-          service_endpoint_block["routingKeys"] = mediator_agent.mediator_info.routing_keys || [];
-          service_endpoint_block["serviceEndpoint"] = mediator_agent.mediator_info.endpoint;
+    async newAgentInvitationProcess (raw_invitation) {
+      let urlVars = this.getUrlVars(raw_invitation); 
+      if ("oob" in urlVars) {
+        //OOB Invitation
+        let invite_b64 = this.getUrlVars(raw_invitation)["oob"];
+      
+        //base 64 decode
+        let invite_string = base64_decode(invite_b64);
+        let invite = JSON.parse(invite_string);
+          
+        const protocolToHandler = {
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0": ConnectionsProtocol,
+          "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0": DIDExProtocol,
+          "https://didcomm.org/connections/1.0": ConnectionsProtocol,
+          "https://didcomm.org/didexchange/1.0": DIDExProtocol,
         }
-        console.log('Informing mediator about new key to route...');
-        await this.add_route_to_mediator(toolbox_did.publicKey_b58);
-      }
 
-      var req = {
-        "@id":  (uuidv4().toString()),
-        "~transport": {
-          "return_route": "all"
-        },
-        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/request",
-        "label": "ToolBox",
-        "connection": {
-          "DID": toolbox_did.did,
-          "DIDDoc": {
-            "@context": "https://w3id.org/did/v1",
-            "id": toolbox_did.did,
-            "publicKey": [{
-              "id": toolbox_did.did + "#keys-1",
-              "type": "Ed25519VerificationKey2018",
-              "controller": toolbox_did.did,
-              "publicKeyBase58": toolbox_did.publicKey_b58
-            }],
-            "service": [service_endpoint_block]
-          }
+        let handled = false
+
+        for (const protocol of invite.handshake_protocols) {
+            if (protocol in protocolToHandler) {
+                let connection = await protocolToHandler[protocol].connectByInvite(this, invite);
+                handled = true;
+                return connection;
+            }
         }
-      };
-      console.log("Exchange Request", req);
 
-      //send request, look for response
-      const packedMsg = await didcomm.packMessage(JSON.stringify(req), [bs58.decode(invite.recipientKeys[0])], toolbox_did, true);
-      console.log("Packed Exchange Request", packedMsg);
+        if (!handled) {
+            throw new Error("No supported handshake_protocols supplied")
+        }
+      } else if ("c_i" in urlVars) {
+        //Connections Invitation
+        let invite_b64 = this.getUrlVars(raw_invitation)["c_i"];
+        //base 64 decode
+        let invite_string = base64_decode(invite_b64);
+        let invite = JSON.parse(invite_string);
 
-      // this code assumes that the response comes via return-route on the post.
-      const res = await rp({
-        method: 'POST',
-        uri: invite.serviceEndpoint,
-        body: packedMsg,
-      });
-      const unpackedResponse = await didcomm.unpackMessage(res, toolbox_did);
-      const response = JSON.parse(unpackedResponse.message);
-      //TODO: Validate signature against invite.
-      let buff = new Buffer(response['connection~sig'].sig_data, 'base64');
-      let text = buff.toString('ascii');
-      //first 8 chars are a timestamp for the signature, so we ignore those before parsing value
-      response.connection = JSON.parse(text.substring(8));
-      console.log("response message", response);
-      let connection_detail = new_connection(invite.label, response.connection.DIDDoc, toolbox_did);
-      console.log("connection detail", connection_detail);
-      this.add_agent(connection_detail.to_store());
-      return connection_detail;
+        return await ConnectionsProtocol.connectByInvite(this, invite);
+      }
     },
+
+    async connect_clicked() {
+      try {
+        await this.newAgentInvitationProcess(this.new_agent_invitation);
+      } catch (err) {
+        console.log("request post err", err);
+        this.invitation_error = err.message;
+      }
+      this.new_agent_invitation = "";
+      }
   },
   created: async function(){
     let mediator_agent = this.agent_list.find(a => a.active_as_mediator === true);
@@ -437,5 +412,11 @@ export default {
     text-align: right;
     float:right;
     margin-top: 10px;
+  }
+  .invite-entry {
+    margin: 1em 1em;
+  }
+  hr {
+    margin: 1em;
   }
 </style>

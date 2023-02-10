@@ -1,12 +1,19 @@
 <template >
+  <el-row>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">{{ title }}</a>
+    <el-button
+      type="primary"
+      icon="el-icon-refresh"
+      @click="fetch_dids"></el-button>
+  </nav>
   <div v-if="list.length">
-    <p>{{ title }}</p>
     <el-collapse v-model="expanded_items">
       <ul class="list">
         <el-collapse-item
           v-for="did in list"
           v-bind:title="get_name(did)"
-          :name="get_name(did)"
+          :name="did.did"
           :key="did.did">
           <el-row :key="did.did">
             <div>
@@ -20,10 +27,14 @@
             </template>
             <!-- <el-button type="danger" @click="delete_did(did)">Delete</el-button> -->
             <!-- <el-button v-if="activeDid" v-on:click="publish(did)">Publish</el-button> -->
-            <el-button @click="edit(did)">Edit</el-button>
-            <el-button v-if="!('metadata' in did &&
-                              'public' in did.metadata &&
-                              did.metadata.public)" v-on:click="activate(did)">activate</el-button>
+            <el-button type="primary" @click="edit(did)">Edit</el-button>
+            <el-button
+              v-if="!('metadata' in did &&
+                    'public' in did.metadata &&
+                    did.metadata.public)"
+              v-on:click="activate(did)"
+              type="primary"
+              >Activate</el-button>
             <!-- <el-button v-on:click="resolve(did)">read permissions</el-button> -->
             <!-- <el-button v-on:click="collapse_expanded(did)">^</el-button> -->
           </el-row>
@@ -35,9 +46,9 @@
         <el-form-item label="Label:" :label-width="formLabelWidth">
           <el-input v-model="editForm.label" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="permission:" :label-width="formLabelWidth">
+        <!-- <el-form-item label="permission:" :label-width="formLabelWidth">
           <el-input v-model="editForm.permission" autocomplete="off"></el-input>
-        </el-form-item>
+        </el-form-item> -->
         <!-- <el-form-item label="public:" :label-width="formLabelWidth">
           <el-input v-model="editForm.permission" autocomplete="off"></el-input>
         </el-form-item> -->
@@ -48,6 +59,7 @@
       </span>
     </el-dialog>
   </div>
+  </el-row>
 </template>
 
 <script>
@@ -76,9 +88,9 @@ export default {
   methods: {
     get_name: function(did) {
       if('metadata'in did && 'label' in did.metadata) {
-        return 'did: ' + did.metadata.label;
+        return `${did.metadata.label}: ${did.did}`;
       };
-      return 'did: ' + did.did + ', vk: ' + did.verkey;
+      return 'DID: ' + did.did + ', Verkey: ' + did.verkey;
     },
     edit: function (did) {
       this.editForm.did = did.did;
@@ -87,6 +99,9 @@ export default {
       //this.editForm.public = did.public
       this.editForm.permissions = did.permissions
       this.editFormActive = true
+    },
+    fetch_dids: function() {
+      this.$emit('fetch-dids');
     },
     update: function() {
       this.editFormActive = false;

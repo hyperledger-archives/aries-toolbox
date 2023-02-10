@@ -13,24 +13,32 @@
         @click="$emit('verification-refresh',)"></el-button>
     </nav>
     <el-collapse v-model="expanded_items">
-      <ul class="list">
         <el-collapse-item
-          v-if="presentations.length"
           v-for="presentation in presentations"
-          v-bind:title="presentation_title(presentation)"
           :name="presentation.presentation_exchange_id"
           :key="presentation.presentation_exchange_id">
+          <template slot="title">
+            <i v-bind:class="presentation.verified ? 'el-icon-success verified' : 'el-icon-circle-close verified'"></i> {{presentation_title(presentation)}}
+          </template>
           <el-row>
+            <ul>
+              <li><strong>Requested from:</strong> {{presentation.connection_their_label}} ({{presentation.connection_id}})</li>
+              <li><strong>Presentation Exchange ID:</strong> {{presentation.presentation_exchange_id}}</li>
+              <li><strong>State:</strong> {{presentation.state}}</li>
+              <li><strong>Verified:</strong> {{presentation.verified ? presentation.verified : false}}</li>
+              <li><strong>Created at:</strong> {{presentation.created_at}}</li>
+              <li v-if="presentation.presentation"><strong>Revealed Attributes:</strong> <attributes class="attributes" :values="revealedAttributes(presentation)"></attributes></li>
+              <li v-if="presentation.presentation"><strong>Predicates:</strong> <attributes :list="predicates(presentation)" inline></attributes></li>
+            </ul>
             <div>
               <vue-json-pretty
-                :deep=1
+                :deep=2
                 :data="presentation">
               </vue-json-pretty>
             </div>
             <el-button v-on:click="collapse_expanded(presentation)">^</el-button>
           </el-row>
         </el-collapse-item>
-      </ul>
     </el-collapse>
     <el-dialog title="Request Presentation" :visible.sync="requestFormActive">
       <el-form :model="requestForm">
@@ -64,6 +72,10 @@
             v-model="requestForm.comment"
             placeholder="Optional Comment"
             type="textarea"></el-input>
+        </el-form-item>
+
+        <el-form-item label="Exclude Revoked:">
+          <el-checkbox v-model="requestForm.non_revoked" />
         </el-form-item>
 
         <!-- Dynamic Attributes -->
@@ -176,10 +188,18 @@
 .restrictions .el-select {
   margin-bottom: .5em;
 }
+i.verified {
+  margin-right: .25em;
+  font-size: 1.5em;
+}
+.attributes {
+  margin-left: 2em;
+}
 </style>
 
 <script>
 import VueJsonPretty from 'vue-json-pretty';
+import Attributes from '../CredentialIssuance/Attributes.vue';
 import share from '@/share.js';
 
 export default {
@@ -194,6 +214,7 @@ export default {
   mixins: [share({use: ['id_to_connection']})],
   components: {
     VueJsonPretty,
+    Attributes,
   },
   data () {
     return {
@@ -204,6 +225,7 @@ export default {
         connection_id: '', // Who
         comment: '', // Optional comment
         name: '',
+        non_revoked: false,
         attributes: [
           // Key: (can be whatever) property name,
           // {
@@ -276,7 +298,7 @@ export default {
   },
   methods: {
     presentation_title: function(presentation) {
-      return presentation.presentation_request.name + ' requested from ' + presentation.connection_their_label;
+      return presentation.presentation_request.name + ': Requested from ' + presentation.connection_their_label;
     },
     collapse_expanded: function(creddef) {
       this.expanded_items = this.expanded_items.filter(
@@ -292,6 +314,9 @@ export default {
         predicates: this.requestForm.predicates
       }
       this.requestFormActive = false;
+      if (this.requestForm.non_revoked) {
+        values.non_revoked = true;
+      }
 
       this.requestForm.connection_id = '';
       this.requestForm.name = '';
@@ -323,6 +348,14 @@ export default {
     },
     remove_predicate: function(index) {
       this.requestForm.predicates.splice(index, 1);
+    },
+    revealedAttributes: function(presentation) {
+      const attrs = presentation.presentation.requested_proof.revealed_attrs;
+      return Object.keys(attrs).map(attr => ({name: attr, value: attrs[attr].raw}))
+    },
+    predicates: function(presentation) {
+      let preds = presentation.presentation_request.requested_predicates
+      return Object.values(preds).map(pred => `${pred.name} ${pred.p_type} ${pred.p_value}`)
     }
   }
 }

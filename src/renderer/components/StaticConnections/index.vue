@@ -51,26 +51,32 @@
     </el-collapse>
 
     <p>Add Static Connection:</p>
-    <el-form :model="static_agent_form" inline>
-      <el-form-item label="Label:">
-        <el-input v-model="static_agent_form.label" style="width:100px;"> </el-input>
-      </el-form-item>
-      <el-form-item label="Role:">
-        <el-input v-model="static_agent_form.role" style="width:100px;"> </el-input>
-      </el-form-item>
-      <el-form-item label="Static DID:">
-        <el-input v-model="static_agent_form.static_did" style="width:100px;"> </el-input>
-      </el-form-item>
-      <el-form-item label="Static Key:">
-        <el-input v-model="static_agent_form.static_key" style="width:100px;"> </el-input>
-      </el-form-item>
-      <el-form-item label="Static Endpoint:">
-        <el-input v-model="static_agent_form.static_endpoint" style="width:100px;"> </el-input>
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" @click="add">Add Static Agent</el-button>
-      </el-form-item>
-    </el-form>
+  <el-form :inline="false" label-width="120px">
+    <link rel="shortcut icon" href="/static"/>
+    <el-form-item label="Label:">
+      <el-input v-model="static_agent_form.label" style="width:200px;"> </el-input>
+      <i>Static agent label.</i>
+    </el-form-item>
+    <el-form-item label="Role:">
+      <el-input v-model="static_agent_form.role" style="width:200px;"> </el-input>
+      <i>Static agent role.</i>
+    </el-form-item>
+    <el-form-item label="Static DID:">
+      <el-input v-model="static_agent_form.static_did" style="width:200px;"> </el-input>
+      <i>Static DID.</i>
+    </el-form-item>
+    <el-form-item label="Static Key:">
+      <el-input v-model="static_agent_form.static_key" style="width:200px;"> </el-input>
+      <i>Static key.</i>
+    </el-form-item>
+    <el-form-item label="Endpoint:">
+      <el-input v-model="static_agent_form.static_endpoint" style="width:200px;"> </el-input>
+      <i>Static endpoint.</i>
+    </el-form-item>
+    <el-form-item>
+      <el-button type="primary" @click="add">Add Static Agent</el-button>
+    </el-form-item>
+  </el-form>
   </el-row>
 </template>
 

@@ -1,27 +1,33 @@
 <template >
   <el-row>
     <did-list
-      name="did_list"
-      title="DIDs:"
-      activeDid="public_did"
-      :list="dids"
-      @did-update="updateAgentDid"
-      @did-activate="activate_did">
+        name="did_list"
+        title="DIDs"
+        activeDid="public_did"
+        :list="dids"
+        @fetch-dids="fetch_dids"
+        @did-update="updateAgentDid"
+        @did-activate="activate_did">
     </did-list>
-  <p>Create a Did:</p>
-  <el-form :model=did_form>
-    <div>
-      <span slot="label">Did:</span>
-      <el-input v-model="did_form.did" style="width:100px;"> </el-input>
-      <span slot="label">Seed:</span>
-      <el-input v-model="did_form.seed" style="width:100px;"> </el-input>
-      <span slot="label">Alias:</span>
-      <el-input v-model="did_form.label" style="width:100px;"> </el-input>
-    </div>
-    <div>
-      <el-button type="primary" @click="createDid()">Create DID</el-button>
-    </div>
+
+  <p>Create a DID:</p>
+  <el-form :inline="false" label-width="120px">
     <link rel="shortcut icon" href="/static"/>
+    <el-form-item label="DID:">
+      <el-input v-model="did_form.did" style="width:200px;"> </el-input>
+      <i>Your new DID.</i>
+    </el-form-item>
+    <el-form-item label="Seed:">
+      <el-input v-model="did_form.seed" style="width:200px;"> </el-input>
+      <i>Seed for this DID.</i>
+    </el-form-item>
+    <el-form-item label="Label:">
+      <el-input v-model="did_form.label" style="width:200px;"> </el-input>
+      <i>An alias used to easily identify your DID.</i>
+    </el-form-item>
+    <el-form-item>
+      <el-button type="primary" @click="createDid()">Create DID</el-button>
+    </el-form-item>
   </el-form>
   </el-row>
 </template>
@@ -54,11 +60,16 @@ export const shared = {
     (share, msg) => {
       share.dids = msg.result;
     },
-    'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-dids/0.1/did': (share, msg) => {
-      if(msg.result && 'metadata' in msg.result && 'public' in msg.result.metadata && msg.result.metadata.public === true) {
-        share.public_did = msg.result.did;
-      }
+    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1/did': (share, msg) => {
       share.fetch_dids();
+    },
+    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1/public-did': (share, msg) => {
+      if(typeof msg.result !== "undefined") {
+        share.public_did = msg.result.did;
+        share.fetch_dids();
+      } else {
+        console.warn("No Public DID found");
+      }
     }
   },
   methods: {
@@ -108,7 +119,6 @@ export default {
         did:'',
         seed:'',
         label:'',
-        metadata:'',
       },
       active_ledger_selector:{
         leger:'',
@@ -136,15 +146,16 @@ export default {
         msg.metadata = { "label": this.did_form.label };
       }
       this.send_message(msg);
+      this.did_form.label = '';
+      this.did_form.seed = '';
+      this.did_form.did = '';
     },
     async updateAgentDid(editForm){
       this.send_message({
         "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-dids/0.1/set-did-metadata",
         "did": editForm.did,
         "metadata": {
-          ...editForm.metadata,
-          'label':editForm.label,
-          'permission': editForm.permission,
+          'label': editForm.label,
         },
       });
     },

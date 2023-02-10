@@ -3,7 +3,7 @@ const bs58 = require('bs58');
 const rp = require('request-promise');
 const uuidv4 = require('uuid/v4');
 const WebSocketAsPromised = require('websocket-as-promised');
-const WebSocket = require('ws');
+// const WebSocket = require('ws');
 
 class ConnectionDetail {
     constructor(input, inbound_processor = null) {
@@ -60,6 +60,10 @@ class ConnectionDetail {
                     return new Buffer.from(data, 'ascii');
                 },
                 unpackMessage: async data => {
+
+                    if (data instanceof MessageEvent) {
+                        data = data.data;
+                    }
 
                     if (data instanceof Blob) {
                         data = await blobToStr(data);
@@ -129,21 +133,24 @@ class ConnectionDetail {
 
     async send_message(msg) {
         console.log("Sending message:", msg);
+        let message_to_send = {
+            ...msg
+        }
 
-        if (!('@id' in msg)) { // Ensure @id is populated
-            msg['@id'] = uuidv4().toString();
+        if (!('@id' in message_to_send)) { // Ensure @id is populated
+            message_to_send['@id'] = uuidv4().toString();
         }
 
         // don't use return_route if this is the active mediator
         // messages will arrive via the main agentlist
         if (this.use_return_route) {
-            if (!("~transport" in msg)) {
-                msg["~transport"] = {}
+            if (!("~transport" in message_to_send)) {
+                message_to_send["~transport"] = {}
             }
-            msg["~transport"]["return_route"] = "all"
+            message_to_send["~transport"]["return_route"] = "all"
         }
 
-        const packedMsg = await this.packMessage(msg);
+        const packedMsg = await this.packMessage(message_to_send);
 
         // Send message
         if (this.service_transport_protocol === "http" ||
@@ -178,11 +185,12 @@ class ConnectionDetail {
         } else {
             throw "Unsupported transport protocol";
         }
+        return message_to_send
     }
 
     async packMessage(msg) {
         await this.didcomm.Ready;
-        return await this.didcomm.packMessage(
+        return this.didcomm.packMessage(
             JSON.stringify(msg),
             [bs58.decode(this.service.recipientKeys[0])],
             this.my_key
@@ -205,7 +213,7 @@ class ConnectionDetail {
     async unpackMessage(packed_msg) {
         await this.didcomm.Ready;
         // this will only work if the key matches. If it doesn't match, it'll fail.
-        const unpackedResponse = await this.didcomm.unpackMessage(packed_msg, this.my_key);
+        const unpackedResponse = this.didcomm.unpackMessage(packed_msg, this.my_key);
         //console.log("unpacked", unpackedResponse);
         return JSON.parse(unpackedResponse.message);
     }

@@ -58,6 +58,7 @@
         <el-select
           v-model="request_mediation_form.connection_id"
           filterable
+          no-data-text="No connections found"
           placeholder="Potential mediator...">
           <el-option
             v-for="connection in active_connections"
@@ -78,6 +79,7 @@
         <el-select
           v-model="updaterouteform.connection_id"
           filterable
+          no-data-text="No connections found"
           placeholder="Connection">
           <el-option
             v-for="connection in active_connections"
@@ -92,6 +94,7 @@
           v-model="updaterouteform.did"
           value-key="did.did"
           filterable
+          no-data-text="No DIDs found"
           placeholder="DID">
           <el-option
             v-for="did in dids"
@@ -109,7 +112,7 @@
         </el-select>
       </el-form-item>
       <el-form-item label="" :label-width="formLabelWidth">
-        <el-button @click="keylist_update_send">Go</el-button>
+        <el-button type="primary" @click="keylist_update_send">Go</el-button>
       </el-form-item>
     </el-form>
   </el-row>

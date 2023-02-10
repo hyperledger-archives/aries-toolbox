@@ -13,6 +13,7 @@ Connections Admin Protocol
 - [delete](#delete)
 - [deleted](#deleted)
 - [receive-invitation](#receive-invitation)
+- [receive-oob-invitation](#receive-oob-invitation)
 - [connected](#connected)
 
 ## Message Definitions
@@ -165,6 +166,21 @@ given invitation or not.
 
 `mediation_id` (Optional): Identifier for mediator to use when accepting this
 invitation.
+
+--------------------------------------------------------------------------------
+
+### Receive OOB Invitation
+
+Create a new connection by receiving an out-of-band invitation.
+
+```jsonc
+{
+  "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/receive-oob-invitation",
+  "invitation": "https://example.com?oob=..."
+  "auto_accept": true,
+  "mediation_id": "cbf76a1c-aba9-4675-af64-a65ef116f359"
+}
+```
 
 --------------------------------------------------------------------------------
 

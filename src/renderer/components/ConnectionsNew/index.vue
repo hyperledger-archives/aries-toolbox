@@ -26,7 +26,8 @@
         label="Invitation URL:">
         <el-input
           style="width: 300px;"
-          v-model="invite_form.invitation">
+          v-model="invite_form.invitation"
+          @keypress.enter.native="recieve_invitation">
           <el-button
             slot="append"
             type="primary"
@@ -38,6 +39,7 @@
         <el-select style="width: 300px;"
           v-model="invite_form.mediation_id"
           filterable
+          no-data-text="No mediators found"
           placeholder="Mediator">
           <el-option
             v-for="mediator in mediators"
@@ -76,7 +78,8 @@ export const metadata = {
     update: protocol + '/update',
     delete: protocol + '/delete',
     deleted: protocol + '/deleted',
-    receive_invitation: protocol + '/receive-invitation'
+    receive_invitation: protocol + '/receive-invitation',
+    connected: protocol + '/connected'
   }
 };
 
@@ -110,6 +113,11 @@ export const shared = {
     (share, msg) => share.fetch_connections(),
     [metadata.types.deleted]:
     (share, msg) => share.fetch_connections(),
+    [metadata.types.connected]:
+    (share, msg) => {
+      share.fetch_connections();
+      share.fetch_invitations_v1();
+    },
   },
   methods: {
     fetch_connections: ({send}) => {
@@ -189,9 +197,6 @@ export default {
       this.send_message(receive_invite_msg);
       this.invite_form.invitation = "";
       this.invite_form.mediation_id = "";
-      setTimeout(() => {
-        return this.fetch_connections();
-      }, 4000);
     },
     mediator_name: function(mediator) {
       let connection_label = 'Unknown';

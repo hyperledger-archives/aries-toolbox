@@ -13,11 +13,13 @@ Define messages for credential holder admin protocols.
 - [credential-offer-received](#credential-offer-received)
 - [credential-request-sent](#credential-request-sent)
 - [credential-received](#credential-received)
+- [credential-delete](#credential-delete)
 - [send-credential-proposal](#send-credential-proposal)
 - [credential-exchange](#credential-exchange)
 - [presentations-get-list](#presentations-get-list)
 - [presentations-list](#presentations-list)
 - [presentation-request-approve](#presentation-request-approve)
+- [presentation-request-reject](#presentation-request-reject)
 - [presentation-get-matching-credentials](#presentation-get-matching-credentials)
 - [presentation-matching-credentials](#presentation-matching-credentials)
 - [send-presentation-proposal](#send-presentation-proposal)
@@ -398,6 +400,25 @@ Example:
 
 `revocation_id` (String; Optional): Credential identifier within revocation registry
 
+### credential-delete
+
+Delete existing credential exchange.
+
+Example:
+
+```json
+{
+  "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-delete",
+  "credential_exchange_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+}
+```
+
+#### Fields
+
+`@type` (String): Message type
+
+`credential_exchange_id` (String; Optional): Credential exchange identifier
+
 ### send-credential-proposal
 
 Send Credential Proposal Message.
@@ -644,6 +665,31 @@ Example:
 `requested_predicates` (Dict): Nested object mapping proof request predicate referents to requested-predicate specifiers
 
 `comment` (String; Optional): Optional comment.
+
+### presentation-request-reject
+
+Reject presentation request.
+
+Example:
+
+```json
+{
+  "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentation-request-reject",
+  "@id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "presentation_exchange_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "message_description": "Description of problem",
+}
+```
+
+#### Fields
+
+`@type` (String): Message type
+
+`@id` (String; Optional): Message identifier
+
+`presentation_exchange_id` (String): Presentation to reject.
+
+`message_description` (String; Optional): Description of cause of rejection.  
 
 ### presentation-get-matching-credentials
 

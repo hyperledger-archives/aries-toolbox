@@ -19,6 +19,7 @@
       v-bind:connections="active_connections"
       v-bind:cred_defs="issuer_cred_defs"
       @issue="issue_credential"
+      @revoke="revoke_credential"
       @issue-cred-refresh="fetch_issued_credentials">
     </issued-cred-list>
   </el-row>
@@ -66,8 +67,10 @@ export const shared = {
     (share, msg) => share.schemas = msg.results,
     "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-issuer/0.1/credentials-list":
     (share, msg) => share.issued_credentials = msg.results,
-    "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-credential-definitions/0.1/credential-definition-list":
-    (share, msg) => share.cred_defs = msg.results
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/credential-definition-list":
+    (share, msg) => share.cred_defs = msg.results,
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/credential-issued":
+    (share, msg) => share.fetch_issued_credentials()
   },
   methods: {
     fetch_schemas: ({send}) => {
@@ -158,6 +161,13 @@ export default {
           "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/issue-credential/1.0/credential-preview",
           "attributes": form.attributes
         }
+      };
+      this.send_message(query_msg);
+    },
+    revoke_credential: function(form) {
+      let query_msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/revoke-credential",
+        "credential_exchange_id": form.credential_exchange_id,
       };
       this.send_message(query_msg);
     },

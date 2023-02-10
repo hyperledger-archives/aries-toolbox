@@ -5,6 +5,7 @@
       v-bind:presentations= "holder_presentations"
       v-bind:connections = "active_connections"
       v-bind:cred_defs = "cred_defs"
+      v-bind:connection_details = "id_to_connection"
       @presentation-refresh = "fetch_holder_presentations"
       @send-presentation-proposal= "sendPresentationProposal"
       ></presentation>
@@ -35,9 +36,12 @@ export const shared = {
     holder_presentations: [],
   },
   listeners: {
-    'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/presentations-list': (share, msg) => {
-      share.holder_presentations = msg.results;
-    }
+    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentations-list':
+    (share, msg) => share.holder_presentations = msg.results,
+    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentation-request-received':
+    (share, msg) => {
+        share.holder_presentations.push(msg.raw_repr)
+    },
   },
   methods: {
     fetch_holder_presentations: ({send}) => {
@@ -60,7 +64,8 @@ export default {
       use: [
         'active_connections', 
         'cred_defs',
-        'holder_presentations'
+        'holder_presentations',
+        'id_to_connection'
       ],
       actions: ['fetch_holder_presentations']
     })

@@ -13,19 +13,26 @@
           v-for="(connection) in list"
           v-bind:title="get_name(connection)"
           :name="connection.connection_id"
-          :key="title+connection.connection_id">
-          <el-row>
+          :key="connection.connection">
+          <el-row :key="connection.connection">
+            <ul>
+              <li><strong>Connected to:</strong> {{connection.label}} ({{connection.connection_id}})</li>
+              <li><strong>State:</strong> {{connection.state}}</li>
+              <li><strong>My DID:</strong> {{connection.my_did}}</li>
+              <li><strong>Their DID:</strong> {{connection.their_did}}</li>
+            </ul>
             <div>
               <vue-json-pretty
-                :deep=1
-                :data="connection">
+                :deep=0
+                :deepCollapseChildren="true"
+                :data="connection.raw_repr">
               </vue-json-pretty>
             </div>
             <template v-if="editable">
               <el-button @click="edit(connection)">Edit</el-button>
             </template>
             <el-button type="danger" @click="delete_conn(connection)">Delete</el-button>
-            <el-button v-on:click="collapse_expanded(connection)">^</el-button>
+            <el-button v-on:click="collapse_expanded(connection)"><i class="el-icon-arrow-up"></i></el-button>
           </el-row>
         </el-collapse-item>
       </ul>
