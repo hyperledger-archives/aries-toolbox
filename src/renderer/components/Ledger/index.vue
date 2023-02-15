@@ -47,7 +47,8 @@ export const metadata = {
     group: 'Agent to Agent',
     priority: 80,
     required_protocols: [
-      'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-ledgers/0.1'
+      {'https' : 'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-ledgers/0.1'},
+      {'did:sov' : 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-ledgers/0.1'}
     ]
   }
 };

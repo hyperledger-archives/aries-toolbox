@@ -86,7 +86,8 @@ export const metadata = {
     group: 'Agent to Agent',
     priority: 10,
     required_protocols: [
-      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1'
+    {'did:sov' : 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1'},
+    {'https' : 'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1'}
     ]
   }
 };
@@ -97,6 +98,9 @@ export const shared = {
   },
   listeners: {
     'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/invitation-list': (share, msg) => {
+      share.invitations = msg.results;
+    }, 
+    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/invitation-list': (share, msg) => {
       share.invitations = msg.results;
     } 
   },
@@ -114,6 +118,9 @@ export default {
   mixins: [
     message_bus({events: {
       'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/invitation': (v, msg) => {
+        v.fetch_invitations()
+      },
+      'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/invitation': (v, msg) => {
         v.fetch_invitations()
       }
     }}),

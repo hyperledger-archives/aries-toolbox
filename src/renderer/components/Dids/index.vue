@@ -45,7 +45,9 @@ export const metadata = {
     group: 'Agent to Agent',
     priority: 10,
     required_protocols: [
-      'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-dids/0.1'
+    {'https' : 'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-dids/0.1'},
+    {'did:sov' : 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1'}
+'
     ]
   }
 };
@@ -60,8 +62,23 @@ export const shared = {
     (share, msg) => {
       share.dids = msg.result;
     },
+    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1/list-dids':
+    (share, msg) => {
+      share.dids = msg.result;
+    },
+    'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-dids/0.1/did': (share, msg) => {
+      share.fetch_dids();
+    },
     'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1/did': (share, msg) => {
       share.fetch_dids();
+    },
+    'https://github.com/hyperledger/aries-toolbox/tree/master/docs/0.1/public-did': (share, msg) => {
+      if(typeof msg.result !== "undefined") {
+        share.public_did = msg.result.did;
+        share.fetch_dids();
+      } else {
+        console.warn("No Public DID found");
+      }
     },
     'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1/public-did': (share, msg) => {
       if(typeof msg.result !== "undefined") {
@@ -94,6 +111,15 @@ export default {
     message_bus({
       events: {
         'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-dids/0.1/did':
+        (v, msg) => {
+          if ('result' in msg &&
+            'did' in msg.result) {
+            v.did_form.did = ""
+            v.did_form.seed = ""
+            v.did_form.label = ""
+          }
+        },
+        'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1/did':
         (v, msg) => {
           if ('result' in msg &&
             'did' in msg.result) {

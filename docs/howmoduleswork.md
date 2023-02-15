@@ -19,17 +19,18 @@ An additional `metadata` export informs the toolbox about the Module name and re
 ```javascript
 export const metadata = {
     menu: {
-        label: 'Module Name', 
-        icon: 'el-icon-user',
-        group: 'Agent to Agent',
-        priority: 30,
-        required_protocols: [
-            'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1'
-        ]
+      label: 'Module Name', 
+      icon: 'el-icon-user',
+      group: 'Agent to Agent',
+      priority: 30,
+      required_protocols: [
+        {'https' : 'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1'},
+        {'did:sov' : 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1'}
+      ]
     }
-};
-```
+  };
 
+```
 **label** will appear in the menu.
 
 **icon** must be an icon name from the [Element UI Icon Library](https://element.eleme.io/#/en-US/component/icon). This will also be used in the left menu.
@@ -59,9 +60,15 @@ export const shared = {
   listeners: {
     "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/connection-list":
     (share, msg) => share.connections = msg.results,
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/connection-list":
+    (share, msg) => share.connections = msg.results,
     "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/connection":
     (share, msg) => share.fetch_connections(),
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1/connection":
+    (share, msg) => share.fetch_connections(),
     "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/ack":
+    (share, msg) => share.fetch_connections(),
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/docs/admin-connections/0.1/ack":
     (share, msg) => share.fetch_connections(),
   },
   methods: {

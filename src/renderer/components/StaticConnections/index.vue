@@ -93,7 +93,8 @@ export const metadata = {
     group: 'Agent to Agent',
     priority: 40,
     required_protocols: [
-      'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-static-connections/0.1'
+      {'https' : 'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-static-connections/0.1'},
+      {'did:sov' : 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/0.1'}
     ]
   }
 };
@@ -106,7 +107,13 @@ export const shared = {
     "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-static-connections/0.1/static-connection-list": (share, msg) => {
       share.static_connections = msg.results;
     },
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/0.1/static-connection-list": (share, msg) => {
+      share.static_connections = msg.results;
+    },
     "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-static-connections/0.1/static-connection-info": (share, msg) => {
+      share.fetch_static_connections();
+    },
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/0.1/static-connection-info": (share, msg) => {
       share.fetch_static_connections();
     }
   },

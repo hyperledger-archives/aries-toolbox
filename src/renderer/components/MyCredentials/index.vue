@@ -29,7 +29,8 @@ export const metadata = {
     group: 'Agent to Agent',
     priority: 60,
     required_protocols: [
-      "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1"
+      {'https' : "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1"},
+      {'did:sov' : 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1'}
     ]
   }
 };
@@ -51,9 +52,15 @@ export const shared = {
   listeners: {
     "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credentials-list":
     (share, msg) => share.holder_credentials = msg.results,
+    "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/credentials-list":
+    (share, msg) => share.holder_credentials = msg.results,
     "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-offer-received":
     (share, msg) => share.holder_credentials.push(msg.raw_repr),
+    "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/credential-offer-received":
+    (share, msg) => share.holder_credentials.push(msg.raw_repr),
     "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-received":
+    (share, msg) => share.fetch_holder_credentials(),
+    "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/credential-received":
     (share, msg) => share.fetch_holder_credentials()
   },
   methods: {
@@ -75,6 +82,8 @@ export default {
     message_bus({
       events: {
         "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/credential-exchange":
+        (v, msg) => setTimeout(v.fetch_holder_credentials, 4500),
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-exchange":
         (v, msg) => setTimeout(v.fetch_holder_credentials, 4500),
         'my-credentials': (v) => v.fetch_holder_credentials()
       }

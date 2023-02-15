@@ -39,9 +39,12 @@ export const metadata = {
     group: 'Agent to Agent',
     priority: 50,
     required_protocols: [
-      'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-schemas/0.1',
-      "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-issuer/0.1",
-      "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-credential-definitions/0.1"
+      {'https-schemas' : 'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-schemas/0.1'},
+      {'https-issuer' : 'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-issuer/0.1'},
+      {'https-creddef' : 'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-credential-definitions/0.1'},
+      {'did:sov-schemas' : 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/0.1'},
+      {'did:sov-issuer' : 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1'},
+      {'did:sov-creddef' : 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1'}
     ]
   }
 };
@@ -65,10 +68,18 @@ export const shared = {
   listeners: {
     "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-schemas/0.1/schema-list":
     (share, msg) => share.schemas = msg.results,
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/0.1/schema-list":
+    (share, msg) => share.schemas = msg.results,
     "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-issuer/0.1/credentials-list":
     (share, msg) => share.issued_credentials = msg.results,
+    "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/credentials-list":
+    (share, msg) => share.issued_credentials = msg.results,
+    "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-credential-definitions/0.1/credential-definition-list":
+    (share, msg) => share.cred_defs = msg.results,
     "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/credential-definition-list":
     (share, msg) => share.cred_defs = msg.results,
+    "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-issuer/0.1/credential-issued":
+    (share, msg) => share.fetch_issued_credentials(),
     "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/credential-issued":
     (share, msg) => share.fetch_issued_credentials()
   },
@@ -98,9 +109,15 @@ export default {
       events: {
         "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-schemas/0.1/schema-id":
         (v, msg) => v.fetch_schemas(),
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/0.1/schema-id":
+        (v, msg) => v.fetch_schemas(),
         "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-schemas/0.1/schema":
         (v, msg) => v.fetch_schemas(),
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/0.1/schema":
+        (v, msg) => v.fetch_schemas(),
         "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-issuer/0.1/credential-exchange":
+        (v, msg) => v.fetch_issued_credentials(),
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/credential-exchange":
         (v, msg) => v.fetch_issued_credentials(),
       }
     }),

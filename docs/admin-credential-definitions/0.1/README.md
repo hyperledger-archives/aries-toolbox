@@ -1,7 +1,7 @@
 # Credential Definition Admin Protocol
 
 ## Overview
-**Protocol URI:** `https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-credential-definitions/0.1`
+**Protocol URI:** `did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1`
 
 
 #### Protocol Messages

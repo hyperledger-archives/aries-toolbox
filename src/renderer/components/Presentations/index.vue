@@ -26,7 +26,8 @@ export const metadata = {
     group: 'Agent to Agent',
     priority: 90,
     required_protocols: [
-      'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1'
+      {'https' : 'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1'},
+      {'did:sov' : 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1'}
     ]
   }
 };
@@ -38,7 +39,13 @@ export const shared = {
   listeners: {
     'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentations-list':
     (share, msg) => share.holder_presentations = msg.results,
+    'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/presentations-list':
+    (share, msg) => share.holder_presentations = msg.results,
     'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentation-request-received':
+    (share, msg) => {
+        share.holder_presentations.push(msg.raw_repr)
+    },
+    'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/presentation-request-received':
     (share, msg) => {
         share.holder_presentations.push(msg.raw_repr)
     },

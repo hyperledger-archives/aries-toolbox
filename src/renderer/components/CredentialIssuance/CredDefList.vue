@@ -97,7 +97,11 @@ export default {
       events: {
         "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-credential-definitions/0.1/credential-definition-id":
         (v, msg) => setTimeout(v.fetch_cred_defs, 4500),
-        "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-credential-definitions/0.1/credential-definition":
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/credential-definition-id":
+        (v, msg) => setTimeout(v.fetch_cred_defs, 4500),
+        "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-credential-definitions/0.1/credential-definition-id":
+        (v, msg) => setTimeout(v.fetch_cred_defs, 4500),
+        "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/credential-definition":
         (v, msg) => setTimeout(v.fetch_cred_defs, 4500),
       }
     }),
