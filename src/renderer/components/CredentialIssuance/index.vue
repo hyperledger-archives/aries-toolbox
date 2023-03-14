@@ -19,6 +19,7 @@
       v-bind:connections="active_connections"
       v-bind:cred_defs="issuer_cred_defs"
       @issue="issue_credential"
+      @revoke="revoke_credential"
       @issue-cred-refresh="fetch_issued_credentials">
     </issued-cred-list>
   </el-row>
@@ -160,6 +161,13 @@ export default {
           "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/credential-preview",
           "attributes": form.attributes
         }
+      };
+      this.send_message(query_msg);
+    },
+    revoke_credential: function(form) {
+      let query_msg = {
+        "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/revoke-credential",
+        "credential_exchange_id": form.credential_exchange_id,
       };
       this.send_message(query_msg);
     },

@@ -96,6 +96,9 @@ export default {
             if (attribute.restrictions.cred_def) {
               transmuted_attr.restrictions[0].cred_def_id = attribute.restrictions.cred_def.cred_def_id;
             }
+            if (attribute.restrictions.trusted_issuer) {
+              transmuted_attr.restrictions[0].issuer_did = attribute.restrictions.trusted_issuer;
+            }
             acc[attribute.name] = transmuted_attr;
             return acc;
           }, {}),
@@ -112,11 +115,17 @@ export default {
             if (predicate.restrictions.cred_def) {
               transmuted_pred.restrictions[0].cred_def_id = predicate.restrictions.cred_def.cred_def_id;
             }
+            if (predicate.restrictions.trusted_issuer) {
+              transmuted_pred.restrictions[0].issuer_did = predicate.restrictions.trusted_issuer;
+            }
             acc[predicate.name] = transmuted_pred;
             return acc;
           }, {}),
         },
       };
+      if (form.non_revoked) {
+        query_msg.proof_request.non_revoked = {"to": new Date().getTime()};
+      }
       this.send_message(query_msg);
     },
   },

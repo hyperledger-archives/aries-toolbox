@@ -21,7 +21,7 @@ if (!isDev) {
   if (gotTheLock) {
     app.on('second-instance', () => {
       // Someone tried to run a second instance, we should focus our window.
-      if (mainWindow && mainWindow.isMinimized()) {
+      if (mainWindow?.isMinimized()) {
         mainWindow.restore()
       }
       mainWindow.focus()
@@ -65,8 +65,6 @@ function createWindow() {
     show: false,
   })
 
-  // eslint-disable-next-line
-
   // load root file/url
   if (isDev) {
     mainWindow.loadURL('http://localhost:9080')
@@ -89,31 +87,30 @@ function createWindow() {
   })
   mainWindow.webContents.on('context-menu', (e, props) => {
     const InputMenu = Menu.buildFromTemplate([{
-        label: 'Undo',
-        role: 'undo',
+      label: 'Undo',
+      role: 'undo',
     }, {
-        label: 'Redo',
-        role: 'redo',
+      label: 'Redo',
+      role: 'redo',
     }, {
-        type: 'separator',
+      type: 'separator',
     }, {
-        label: 'Cut',
-        role: 'cut',
+      label: 'Cut',
+      role: 'cut',
     }, {
-        label: 'Copy',
-        role: 'copy',
+      label: 'Copy',
+      role: 'copy',
     }, {
-        label: 'Paste',
-        role: 'paste',
+      label: 'Paste',
+      role: 'paste',
     }, {
-        type: 'separator',
+      type: 'separator',
     }, {
-        label: 'Select all',
-        role: 'selectall',
+      label: 'Select all',
+      role: 'selectall',
     },
     ]);
-    const { inputFieldType } = props;
-    if (inputFieldType === 'plainText') {
+    if (props?.inputFieldType === 'plainText') {
       InputMenu.popup(mainWindow);
     }
   });
