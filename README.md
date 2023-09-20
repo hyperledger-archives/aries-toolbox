@@ -1,3 +1,24 @@
+# Deprecation Notice
+
+This project is no longer receiving updates. The Aries Toolbox was an
+invaluable tool in helping to bootstrap the Aries Ecosystem by providing ways to
+interact with Agents in development. It was one of the earliest UIs to an agent
+and it helped shape our thinking of Agents, DIDComm, AnonCreds, and more.
+
+While it served a critical role in the early days of the Aries project, the
+Aries Toolbox has worked itself out of a job. Today, we have a rich ecosystem
+of agents. It is no longer necessary to demonstrate DIDComm and Credential
+Issuance and Verification over DIDComm using the Toolbox because we can do it
+with any number of available Issuer, Verifier, and Holder agents.
+
+There are some components of the Toolbox that remain relevant and valuable
+tools during Agent development, such as live composition of DIDComm messages
+and being able to analyze and inspect DIDComm messages in plaintext. These
+concepts will live on in other tools and projects.
+
+If you have questions about this project or replacements for this project, feel
+free to reach out on Hyperledger's Discord: https://discord.gg/hyperledger
+
 # Aries Toolbox
 
 The Toolbox makes interacting with Aries Agent easier for developers and system
